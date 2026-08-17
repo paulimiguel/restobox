@@ -49,7 +49,8 @@ if ! command -v pm2 >/dev/null 2>&1 || [[ "$(command -v pm2)" != "$NVM_DIR"/* ]]
 	npm install --global pm2@latest
 fi
 cd "$CURRENT"
-pm2 startOrReload ecosystem.config.cjs --update-env
+pm2 delete restobox >/dev/null 2>&1 || true
+pm2 start ecosystem.config.cjs --update-env
 pm2 save
 
 START_SCRIPT="$HOME/scripts/restobox-pm2-start.sh"
@@ -85,7 +86,8 @@ if [[ -n "$PREVIOUS" && -d "$PREVIOUS" ]]; then
 	ln -sfn "$PREVIOUS" "$ROOT/.current-next"
 	mv -Tf "$ROOT/.current-next" "$CURRENT"
 	cd "$CURRENT"
-	pm2 startOrReload ecosystem.config.cjs --update-env
+	pm2 delete restobox >/dev/null 2>&1 || true
+	pm2 start ecosystem.config.cjs --update-env
 	pm2 save
 fi
 exit 1
