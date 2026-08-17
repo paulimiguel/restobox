@@ -354,6 +354,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-footer .row-links a { width: 32px; height: 32px; border-radius: 8px; }
 .restaurant-list.view-detail .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
 .restaurant-list.view-detail .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 18px; height: 18px; }
+.restaurant-list.view-detail .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
+.restaurant-list.view-detail .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-detail .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 76px; align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
 .restaurant-list.view-list .restaurant-card-image { min-height: 112px; }
