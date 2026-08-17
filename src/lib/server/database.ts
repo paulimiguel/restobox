@@ -21,7 +21,9 @@ export type MediaRecord = {
 
 const dataDirectory = resolve(process.env.RESTOBOX_DATA_DIR || join(process.cwd(), 'data'));
 export const uploadsDirectory = join(dataDirectory, 'uploads');
+export const profilePhotosDirectory = join(dataDirectory, 'profile-photos');
 mkdirSync(uploadsDirectory, { recursive: true });
+mkdirSync(profilePhotosDirectory, { recursive: true });
 
 const database = new DatabaseSync(join(dataDirectory, 'restobox.sqlite'), {
 	enableForeignKeyConstraints: true,
@@ -68,6 +70,17 @@ database.exec(`
 	) STRICT;
 	CREATE INDEX IF NOT EXISTS media_restaurant_idx ON media(restaurant_id, kind, sort_order);
 `);
+
+function ensureColumn(name: string, definition: string) {
+	const columns = database.prepare('PRAGMA table_info(users)').all() as Array<{ name: string }>;
+	if (!columns.some((column) => column.name === name)) database.exec(`ALTER TABLE users ADD COLUMN ${definition}`);
+}
+
+ensureColumn('email', "email TEXT NOT NULL DEFAULT ''");
+ensureColumn('name', "name TEXT NOT NULL DEFAULT ''");
+ensureColumn('alias', "alias TEXT NOT NULL DEFAULT ''");
+ensureColumn('profile_photo', "profile_photo TEXT NOT NULL DEFAULT ''");
+ensureColumn('auth_provider', "auth_provider TEXT NOT NULL DEFAULT 'local'");
 
 export function getDatabase() {
 	return database;

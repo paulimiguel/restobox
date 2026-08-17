@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "RestoBox - Importar lugares",
+  "version": "1.0.0",
+  "description": "Importa lugares y restaurantes desde la página que estás visitando a RestoBox.",
+  "permissions": ["activeTab", "tabs"],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": ["https://restobox.beweb.com.ar/*", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["js/content.js"],
+      "css": ["css/content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.ico"
+  },
+  "icons": {
+    "16": "icons/icon.ico",
+    "32": "icons/icon.ico",
+    "48": "icons/icon.ico",
+    "128": "icons/icon.ico"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/mark.svg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

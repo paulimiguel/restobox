@@ -1,0 +1,35 @@
+#restobox-import-button {
+  all: initial;
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  width: 58px !important;
+  height: 58px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #22b9ee, #24d1a5) !important;
+  box-shadow: 0 7px 22px rgba(15, 75, 77, .32) !important;
+  cursor: pointer !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+#restobox-import-button:hover { transform: translateY(-2px) scale(1.06) !important; box-shadow: 0 10px 28px rgba(15, 75, 77, .4) !important; }
+#restobox-import-button img { all: initial; display: block !important; width: 34px !important; height: 34px !important; }
+#restobox-import-button span {
+  all: initial;
+  position: absolute !important;
+  right: 70px !important;
+  padding: 8px 11px !important;
+  border-radius: 6px !important;
+  color: white !important;
+  background: rgba(20, 30, 34, .92) !important;
+  font: 600 13px/1.2 Arial, sans-serif !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity .18s ease !important;
+}
+#restobox-import-button:hover span { opacity: 1 !important; }

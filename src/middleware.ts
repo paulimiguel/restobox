@@ -22,7 +22,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	}
 	if (!user) {
 		if (pathname.startsWith('/api/')) return Response.json({ error: 'No autorizado' }, { status: 401 });
-		return context.redirect(`/login?next=${encodeURIComponent(pathname)}`);
+		return context.redirect(`/login?next=${encodeURIComponent(`${pathname}${context.url.search}`)}`);
 	}
 	return next();
 });

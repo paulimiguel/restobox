@@ -1,7 +1,12 @@
 ---
 import '../styles/global.css';
-const currentUser = await Astro.session?.get('user');
-const userInitials = currentUser?.username
+import { getUserProfile } from '../lib/server/auth';
+const sessionUser = await Astro.session?.get('user');
+const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
+const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
+const userDisplayEmail = currentUser?.email || (currentUser?.username.includes('@') ? currentUser.username : '');
+const isGoogleUser = currentUser?.authProvider === 'google' || currentUser?.id.startsWith('google:');
+const userInitials = userDisplayName
 	.split(/[\s._-]+/)
 	.filter(Boolean)
 	.slice(0, 2)
@@ -94,9 +99,14 @@ const userInitials = currentUser?.username
 						</details>
 
 						<details class="top-dropdown user-dropdown">
-							<summary class="avatar" aria-label="Menú de usuario" title="Usuario">{userInitials}</summary>
+							<summary class="avatar" aria-label="Menú de usuario" title="Usuario">
+								{currentUser?.profilePhoto ? <img id="header-profile-photo" src={currentUser.profilePhoto} alt="" /> : <span id="header-profile-initials">{userInitials}</span>}
+							</summary>
 							<div class="dropdown-panel user-panel">
-								<div class="user-summary"><strong>{currentUser?.username ?? 'Usuario'}</strong><small>RestoBox</small></div>
+								<div class="user-summary"><strong id="user-menu-name">{userDisplayName}</strong><small id="user-menu-email">{userDisplayEmail}</small></div>
+								<div class="dropdown-separator"></div>
+								<button type="button" id="open-profile-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0M4 4h3M5.5 2.5v3"/></svg>Editar perfil</button>
+								<button type="button" id="open-extension-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.8 8h14.4M8 4.8l4 7.2m4-7.2L12 12m0 0v8"/></svg>Instalar Extensión Chrome</button>
 								<div class="dropdown-separator"></div>
 								<button type="button" id="logout-button"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></svg>Cerrar sesión</button>
 							</div>
@@ -612,7 +622,63 @@ const userInitials = currentUser?.username
 			</div>
 		</dialog>
 
+		<dialog id="profile-dialog" class="mini-dialog profile-dialog">
+			<form id="profile-form">
+				<div class="profile-dialog-heading">
+					<h2>Editar perfil</h2>
+					<button id="close-profile-dialog" class="profile-close-button" type="button" aria-label="Cerrar">×</button>
+				</div>
+				<div id="profile-message" class="profile-message" role="status" hidden></div>
+				<div class="profile-photo-section">
+					<span class="profile-field-title">Foto de perfil</span>
+					<div class="profile-photo-preview" id="profile-photo-preview">
+						{currentUser?.profilePhoto ? <img src={currentUser.profilePhoto} alt="Foto de perfil" /> : <span>{userInitials}</span>}
+					</div>
+					<div class="profile-photo-actions">
+						<label class="secondary-button profile-upload-button" for="profile-photo-input"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v5h14v-5"/></svg>Subir foto</label>
+						<button id="remove-profile-photo" class="text-button" type="button" hidden>Quitar foto</button>
+					</div>
+					<input id="profile-photo-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+				</div>
+				<label><span>Email</span><div class="profile-input-wrap"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 6l9 7 9-7"/></svg><input id="profile-email" type="email" maxlength="254" value={userDisplayEmail} autocomplete="email" /></div></label>
+				<label><span>Nombre</span><div class="profile-input-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><input id="profile-name" type="text" maxlength="100" value={currentUser?.name || currentUser?.username || ''} required autocomplete="name" /></div></label>
+				<label><span>Alias (opcional)</span><div class="profile-input-wrap"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-7 7L3 12z"/><circle cx="8" cy="8" r="1"/></svg><input id="profile-alias" type="text" maxlength="80" value={currentUser?.alias || ''} placeholder="Cómo querés que aparezca tu nombre" /></div></label>
+				{!isGoogleUser && <details class="password-editor">
+					<summary><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-3 3 2 2m-5 1 2 2"/></svg>Cambiar contraseña</summary>
+					<div class="password-editor-fields">
+						<label><span>Contraseña actual</span><input id="profile-current-password" type="password" autocomplete="current-password" /></label>
+						<label><span>Nueva contraseña</span><input id="profile-new-password" type="password" minlength="12" autocomplete="new-password" /></label>
+					</div>
+				</details>}
+				<div class="mini-dialog-actions">
+					<button id="cancel-profile" class="secondary-button" type="button">Cancelar</button>
+					<button id="save-profile" class="primary-button" type="submit">Guardar cambios</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog id="extension-dialog" class="mini-dialog extension-dialog">
+			<div class="extension-dialog-content">
+				<div class="profile-dialog-heading">
+					<h2>Extensión Chrome de RestoBox</h2>
+					<button id="close-extension-dialog" class="profile-close-button" type="button" aria-label="Cerrar">×</button>
+				</div>
+				<p class="extension-intro">Importá el lugar de la página que estás visitando directamente en RestoBox.</p>
+				<ol class="extension-steps">
+					<li><span>1</span><div><strong>Descargá la extensión</strong><small>Guardá y descomprimí el archivo ZIP.</small></div></li>
+					<li><span>2</span><div><strong>Abrí las extensiones de Chrome</strong><small>Ingresá <code>chrome://extensions/</code> en la barra del navegador.</small></div></li>
+					<li><span>3</span><div><strong>Activá el modo desarrollador</strong><small>Usá el interruptor que aparece arriba a la derecha.</small></div></li>
+					<li><span>4</span><div><strong>Cargá la carpeta</strong><small>Elegí “Cargar extensión sin empaquetar” y seleccioná la carpeta descomprimida.</small></div></li>
+				</ol>
+				<div class="mini-dialog-actions">
+					<button id="cancel-extension" class="secondary-button" type="button">Cerrar</button>
+					<a class="primary-button" href="/downloads/restobox-extension.zip" download>Descargar extensión</a>
+				</div>
+			</div>
+		</dialog>
+
 		<div id="toast" class="toast" role="status" aria-live="polite"></div>
 		<script src="../scripts/restaurants.ts"></script>
+		<script src="../scripts/profile.ts"></script>
 	</body>
 </html>

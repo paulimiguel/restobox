@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { CodeChallengeMethod, OAuth2Client } from 'google-auth-library';
+import { upsertGoogleUser } from './auth';
 
 const GOOGLE_CALLBACK_PATH = '/api/auth/google/callback';
 
@@ -74,12 +75,14 @@ export async function exchangeGoogleAuthorizationCode(code: string, codeVerifier
 	const email = payload?.email?.trim().toLocaleLowerCase('en');
 	if (!payload?.sub || !email || payload.email_verified !== true) return null;
 	if (!configuration.allowedEmails.has(email)) return { allowed: false as const, email };
+	const user = upsertGoogleUser({
+		subject: payload.sub,
+		email,
+		name: payload.name?.trim() || email.split('@')[0],
+		picture: payload.picture,
+	});
 	return {
 		allowed: true as const,
-		user: {
-			id: `google:${payload.sub}`,
-			username: payload.name?.trim() || email,
-			role: 'user' as const,
-		},
+		user,
 	};
 }

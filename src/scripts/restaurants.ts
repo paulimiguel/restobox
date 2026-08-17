@@ -3492,4 +3492,19 @@ selectedServices = [];
 renderSelectedServices();
 renderServiceOptions(true, true);
 render();
+const extensionImportUrl = new URL(window.location.href).searchParams.get('import_url');
+if (extensionImportUrl) {
+	try {
+		const parsedImportUrl = new URL(extensionImportUrl);
+		if (['http:', 'https:'].includes(parsedImportUrl.protocol)) {
+			openUrlImportButton.click();
+			restaurantSourceUrl.value = parsedImportUrl.toString();
+			restaurantSourceUrl.dispatchEvent(new Event('input', { bubbles: true }));
+			const cleanUrl = new URL(window.location.href);
+			cleanUrl.searchParams.delete('import_url');
+			history.replaceState(null, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+			window.setTimeout(() => urlImportForm.requestSubmit(), 100);
+		}
+	} catch { /* La URL inválida simplemente se ignora. */ }
+}
 void initializeServerPersistence();

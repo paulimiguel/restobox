@@ -6,6 +6,11 @@ declare namespace App {
 			id: string;
 			username: string;
 			role: 'admin' | 'user';
+			email?: string;
+			name?: string;
+			alias?: string;
+			profilePhoto?: string;
+			authProvider?: 'local' | 'google';
 		};
 		googleOAuth: {
 			state: string;

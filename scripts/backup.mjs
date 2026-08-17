@@ -27,5 +27,9 @@ if (!existsSync(sourceDatabase)) {
 	if (existsSync(uploadsDirectory)) {
 		await cp(uploadsDirectory, join(backupDirectory, 'uploads'), { recursive: true });
 	}
+	const profilePhotosDirectory = join(dataDirectory, 'profile-photos');
+	if (existsSync(profilePhotosDirectory)) {
+		await cp(profilePhotosDirectory, join(backupDirectory, 'profile-photos'), { recursive: true });
+	}
 	console.log(`Respaldo creado en ${backupDirectory}`);
 }
