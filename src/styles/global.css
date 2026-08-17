@@ -326,6 +326,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .restaurant-list.view-columns-5 .restaurant-card-body { padding-inline: 11px; }
 .restaurant-list.view-columns-5 .restaurant-card-name { font-size: 18px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer { padding-inline: 10px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links a { width: 32px; height: 32px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
