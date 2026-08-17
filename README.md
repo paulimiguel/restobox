@@ -16,6 +16,7 @@ GOOGLE_MAPS_API_KEY=
 RESTOBOX_ADMIN_USERNAME=admin
 RESTOBOX_ADMIN_PASSWORD=una-clave-segura-de-al-menos-12-caracteres
 RESTOBOX_DATA_DIR=./data
+RESTOBOX_PUBLIC_ORIGIN=https://restobox.example.com
 ```
 
 La primera vez que inicia, RestoBox crea el usuario administrador indicado. Para agregar otro usuario se puede reiniciar temporalmente con otro nombre y contraseña; los usuarios anteriores se conservan.

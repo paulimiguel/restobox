@@ -11,7 +11,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 	if (!['GET', 'HEAD', 'OPTIONS'].includes(context.request.method)) {
 		const origin = context.request.headers.get('origin');
-		if (origin && origin !== context.url.origin) return new Response('Origen no permitido', { status: 403 });
+		const publicOrigin = process.env.RESTOBOX_PUBLIC_ORIGIN?.replace(/\/$/, '');
+		const allowedOrigins = new Set([context.url.origin, publicOrigin].filter((value): value is string => Boolean(value)));
+		if (origin && !allowedOrigins.has(origin)) return new Response('Origen no permitido', { status: 403 });
 	}
 
 	if (isPublic) {
