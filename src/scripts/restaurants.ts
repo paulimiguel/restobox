@@ -2929,10 +2929,6 @@ document.querySelector('.top-actions')?.addEventListener('click', (event) => {
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-document.querySelector('#storage-info')!.addEventListener('click', () => {
-	showToast('Tus datos están guardados en SQLite en el servidor');
-	document.querySelector<HTMLDetailsElement>('.user-dropdown')?.removeAttribute('open');
-});
 document.querySelector('#header-print-directory')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
 	selectionMode = 'print';
@@ -3174,11 +3170,6 @@ printPlacesPanel.addEventListener('click', (event) => {
 	}, { once: true });
 	window.print();
 });
-document.querySelector('#header-storage-info')?.addEventListener('click', () => {
-	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
-	showToast('Tus datos están guardados en SQLite en el servidor');
-});
-
 document.querySelectorAll<HTMLDetailsElement>('.top-dropdown').forEach((dropdown) => {
 	dropdown.addEventListener('toggle', () => {
 		if (!dropdown.open) return;
