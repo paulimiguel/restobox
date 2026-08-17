@@ -3473,7 +3473,11 @@ async function initializeServerPersistence() {
 
 setupClearableFields();
 document.querySelector<HTMLButtonElement>('#logout-button')?.addEventListener('click', async () => {
-	const response = await fetch('/api/auth/logout', { method: 'POST' });
+	const response = await fetch('/api/auth/logout', {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: '{}',
+	});
 	if (response.ok) window.location.assign('/login');
 	else showToast('No se pudo cerrar la sesión');
 });
