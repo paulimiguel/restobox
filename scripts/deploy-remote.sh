@@ -70,7 +70,7 @@ fi
 PORT_VALUE="$(sed -n 's/^PORT=//p' "$SHARED/.env" | tail -n 1 | tr -d '\r')"
 PORT_VALUE="${PORT_VALUE:-4321}"
 for attempt in {1..20}; do
-	if curl --fail --silent --show-error "http://127.0.0.1:${PORT_VALUE}/login" >/dev/null; then
+	if curl --fail --silent "http://127.0.0.1:${PORT_VALUE}/login" >/dev/null; then
 		rm -f "$ARCHIVE"
 		find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' \
 			| sort -nr | tail -n +6 | cut -d' ' -f2- | xargs -r rm -rf --
