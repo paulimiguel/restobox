@@ -334,6 +334,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-6 .restaurant-card-name { font-size: 17px; }
 .restaurant-list.view-columns-6 .restaurant-card-establishments { font-size: 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-cuisines { font-size: 9px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer { padding: 7px 5px 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links { flex-wrap: wrap; justify-content: center; gap: 3px; overflow: visible; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links a { width: 27px; height: 27px; flex: 0 0 27px; }
