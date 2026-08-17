@@ -1,0 +1,62 @@
+---
+import { countUsers } from '../lib/server/auth';
+const configured = countUsers() > 0;
+---
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Ingresar | RestoBox</title>
+		<style>
+			:root { font-family: Inter, system-ui, sans-serif; color: #26382f; background: #f7f6f2; }
+			body { display: grid; min-height: 100vh; margin: 0; place-items: center; }
+			main { width: min(390px, calc(100% - 32px)); padding: 34px; border: 1px solid #d8e7e2; border-radius: 14px; background: white; box-shadow: 0 20px 55px rgba(25,45,36,.12); }
+			img { display: block; width: 180px; height: 76px; margin: 0 auto 20px; object-fit: contain; }
+			h1 { margin: 0 0 8px; font-size: 25px; text-align: center; }
+			p { margin: 0 0 22px; color: #6b746f; font-size: 14px; line-height: 1.5; text-align: center; }
+			form, label { display: grid; gap: 8px; }
+			form { gap: 16px; }
+			label { color: #4e5953; font-size: 13px; font-weight: 650; }
+			input { height: 44px; padding: 0 13px; border: 1px solid #c9ddd6; border-radius: 8px; font: inherit; }
+			input:focus { border-color: #318b7b; outline: 3px solid rgba(49,139,123,.12); }
+			button { height: 45px; border: 0; border-radius: 8px; color: #173a32; background: #bde9df; font: inherit; font-weight: 750; cursor: pointer; }
+			button:hover { background: #96ddce; }
+			button:disabled { cursor: wait; opacity: .65; }
+			#error { min-height: 20px; margin: 0; color: #b42318; font-size: 13px; }
+			.setup { padding: 12px; border-radius: 8px; background: #fff3cd; color: #6b5412; }
+		</style>
+	</head>
+	<body>
+		<main>
+			<img src="/restobox-logo-transparent.png" alt="RestoBox" />
+			<h1>Ingresar</h1>
+			{configured ? <p>Accedé a tu base de lugares.</p> : <p class="setup">Primero configurá RESTOBOX_ADMIN_USERNAME y RESTOBOX_ADMIN_PASSWORD en el servidor y reinicialo.</p>}
+			<form id="login-form" hidden={!configured}>
+				<label>Usuario <input name="username" autocomplete="username" required /></label>
+				<label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
+				<p id="error" role="alert"></p>
+				<button type="submit">Ingresar</button>
+			</form>
+		</main>
+		<script>
+			const form = document.querySelector<HTMLFormElement>('#login-form');
+			form?.addEventListener('submit', async (event) => {
+				event.preventDefault();
+				const button = form.querySelector<HTMLButtonElement>('button')!;
+				const error = document.querySelector<HTMLElement>('#error')!;
+				button.disabled = true;
+				error.textContent = '';
+				try {
+					const data = Object.fromEntries(new FormData(form));
+					const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+					const result = await response.json();
+					if (!response.ok) throw new Error(result.error || 'No se pudo ingresar');
+					const next = new URLSearchParams(location.search).get('next');
+					location.href = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
+				} catch (cause) { error.textContent = cause instanceof Error ? cause.message : 'No se pudo ingresar'; }
+				finally { button.disabled = false; }
+			});
+		</script>
+	</body>
+</html>
