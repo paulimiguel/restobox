@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { ensureBootstrapAdmin } from './lib/server/auth';
 
-const publicPaths = new Set(['/login', '/api/auth/login']);
+const publicPaths = new Set(['/login', '/api/auth/login', '/api/auth/google/start', '/api/auth/google/callback']);
 
 export const onRequest = defineMiddleware(async (context, next) => {
 	await ensureBootstrapAdmin();

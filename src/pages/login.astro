@@ -1,6 +1,10 @@
 ---
 import { countUsers } from '../lib/server/auth';
-const configured = countUsers() > 0;
+import { isGoogleAuthConfigured, safeLoginDestination } from '../lib/server/google-auth';
+const passwordConfigured = countUsers() > 0;
+const googleConfigured = isGoogleAuthConfigured();
+const next = safeLoginDestination(Astro.url.searchParams.get('next'));
+const googleLoginUrl = `/api/auth/google/start?next=${encodeURIComponent(next)}`;
 ---
 <!doctype html>
 <html lang="es">
@@ -24,6 +28,13 @@ const configured = countUsers() > 0;
 			button { height: 45px; border: 0; border-radius: 8px; color: #173a32; background: #bde9df; font: inherit; font-weight: 750; cursor: pointer; }
 			button:hover { background: #96ddce; }
 			button:disabled { cursor: wait; opacity: .65; }
+			.login-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: #84908a; font-size: 12px; }
+			.login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: #dce7e3; }
+			.google-login { display: flex; height: 45px; align-items: center; justify-content: center; gap: 10px; border: 1px solid #cbd8d3; border-radius: 8px; color: #37433d; background: white; font-size: 14px; font-weight: 700; text-decoration: none; transition: border-color .18s, background .18s, box-shadow .18s; }
+			.google-login:hover { border-color: #9dbab0; background: #f8fbfa; box-shadow: 0 4px 12px rgba(25,45,36,.08); }
+			.google-login svg { width: 19px; height: 19px; flex: 0 0 auto; }
+			.google-login[aria-disabled='true'] { pointer-events: none; opacity: .48; }
+			.google-setup { margin: 9px 0 0; color: #7a837e; font-size: 11px; }
 			#error { min-height: 20px; margin: 0; color: #b42318; font-size: 13px; }
 			.setup { padding: 12px; border-radius: 8px; background: #fff3cd; color: #6b5412; }
 		</style>
@@ -32,16 +43,31 @@ const configured = countUsers() > 0;
 		<main>
 			<img src="/restobox-logo-transparent.png" alt="RestoBox" />
 			<h1>Ingresar</h1>
-			{configured ? <p>Accedé a tu base de lugares.</p> : <p class="setup">Primero configurá RESTOBOX_ADMIN_USERNAME y RESTOBOX_ADMIN_PASSWORD en el servidor y reinicialo.</p>}
-			<form id="login-form" hidden={!configured}>
+			{passwordConfigured || googleConfigured ? <p>Accedé a tu base de lugares.</p> : <p class="setup">Configurá un método de ingreso en el servidor para continuar.</p>}
+			<p id="error" role="alert"></p>
+			<form id="login-form" hidden={!passwordConfigured}>
 				<label>Usuario <input name="username" autocomplete="username" required /></label>
 				<label>Contraseña <input name="password" type="password" autocomplete="current-password" required /></label>
-				<p id="error" role="alert"></p>
 				<button type="submit">Ingresar</button>
 			</form>
+			{passwordConfigured && <div class="login-divider">o</div>}
+			<a class="google-login" href={googleConfigured ? googleLoginUrl : undefined} aria-disabled={googleConfigured ? undefined : 'true'} title={googleConfigured ? 'Ingresar con una cuenta de Google autorizada' : 'Falta configurar Google en el servidor'}>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.5-.2-2.2H12v4h5.4a4.6 4.6 0 0 1-2 3v2.6h3.3c1.9-1.8 2.9-4.4 2.9-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4L15.4 17c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.5-4.1H3.1v2.7A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.5 13.9A6 6 0 0 1 6.2 12c0-.7.1-1.3.3-1.9V7.4H3.1A10 10 0 0 0 2 12c0 1.7.4 3.2 1.1 4.6l3.4-2.7Z"/><path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.7 9.7 0 0 0 12 2a10 10 0 0 0-8.9 5.4l3.4 2.7A5.9 5.9 0 0 1 12 6Z"/></svg>
+				<span>Entrar con Google</span>
+			</a>
+			{!googleConfigured && <p class="google-setup">El acceso con Google estará disponible al completar su configuración.</p>}
 		</main>
 		<script>
 			const form = document.querySelector<HTMLFormElement>('#login-form');
+			const googleErrors: Record<string, string> = {
+				not_configured: 'El acceso con Google todavía no está configurado.',
+				cancelled: 'El ingreso con Google fue cancelado.',
+				invalid_state: 'La solicitud de Google venció o no es válida. Intentá nuevamente.',
+				not_allowed: 'Esa cuenta de Google no está autorizada para ingresar.',
+				failed: 'No se pudo completar el ingreso con Google.',
+			};
+			const googleError = new URLSearchParams(location.search).get('google_error');
+			if (googleError) document.querySelector<HTMLElement>('#error')!.textContent = googleErrors[googleError] ?? googleErrors.failed;
 			form?.addEventListener('submit', async (event) => {
 				event.preventDefault();
 				const button = form.querySelector<HTMLButtonElement>('button')!;

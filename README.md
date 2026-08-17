@@ -17,9 +17,22 @@ RESTOBOX_ADMIN_USERNAME=admin
 RESTOBOX_ADMIN_PASSWORD=una-clave-segura-de-al-menos-12-caracteres
 RESTOBOX_DATA_DIR=./data
 RESTOBOX_PUBLIC_ORIGIN=https://restobox.example.com
+RESTOBOX_GOOGLE_CLIENT_ID=
+RESTOBOX_GOOGLE_CLIENT_SECRET=
+RESTOBOX_GOOGLE_ALLOWED_EMAILS=persona1@gmail.com,persona2@gmail.com
 ```
 
 La primera vez que inicia, RestoBox crea el usuario administrador indicado. Para agregar otro usuario se puede reiniciar temporalmente con otro nombre y contraseña; los usuarios anteriores se conservan.
+
+### Ingreso con Google
+
+Creá en Google Cloud una credencial OAuth 2.0 de tipo **Aplicación web** y registrá esta URI de redirección autorizada:
+
+```text
+https://restobox.example.com/api/auth/google/callback
+```
+
+Copiá el ID y el secreto en las variables correspondientes. `RESTOBOX_GOOGLE_ALLOWED_EMAILS` es una lista separada por comas; solamente esas cuentas podrán ingresar. El botón se muestra deshabilitado mientras falte alguna de las tres configuraciones.
 
 ## Desarrollo
 
