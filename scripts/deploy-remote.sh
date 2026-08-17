@@ -52,6 +52,21 @@ cd "$CURRENT"
 pm2 startOrReload ecosystem.config.cjs --update-env
 pm2 save
 
+START_SCRIPT="$HOME/scripts/restobox-pm2-start.sh"
+mkdir -p "$HOME/scripts"
+cat > "$START_SCRIPT" <<'STARTUP'
+#!/usr/bin/env bash
+export NVM_DIR="$HOME/.nvm"
+source "$NVM_DIR/nvm.sh"
+nvm use 22 >/dev/null
+pm2 resurrect
+STARTUP
+chmod 700 "$START_SCRIPT"
+CRON_LINE="@reboot $START_SCRIPT >> $HOME/logs/pm2-resurrect.log 2>&1"
+if ! crontab -l 2>/dev/null | grep -Fqx "$CRON_LINE"; then
+	( crontab -l 2>/dev/null || true; echo "$CRON_LINE" ) | crontab -
+fi
+
 PORT_VALUE="$(sed -n 's/^PORT=//p' "$SHARED/.env" | tail -n 1 | tr -d '\r')"
 PORT_VALUE="${PORT_VALUE:-4321}"
 for attempt in {1..20}; do
