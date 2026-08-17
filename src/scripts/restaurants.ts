@@ -86,6 +86,9 @@ const SERVER_MIGRATION_KEY = 'restobox-server-migration-v1';
 const DEFAULT_CUISINES = ['Comida rápida', 'Café', 'Pastas', 'Parrilla', 'Pizzas', 'Sushi'];
 const DEFAULT_ESTABLISHMENTS = ['Restaurante', 'Café', 'Bar', 'Pub'];
 const DEFAULT_SERVICES = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Poscena'];
+const DEFAULT_CITY = 'Mar del Plata';
+const DEFAULT_PROVINCE = 'Buenos Aires';
+const DEFAULT_COUNTRY = 'Argentina';
 const MAX_IMAGES = 12;
 const dialog = document.querySelector<HTMLDialogElement>('#restaurant-dialog')!;
 const form = document.querySelector<HTMLFormElement>('#restaurant-form')!;
@@ -1707,6 +1710,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 		(form.elements.namedItem('favorite') as HTMLInputElement).checked = Boolean(restaurant.favorite);
 		(form.elements.namedItem('visited') as HTMLInputElement).checked = Boolean(restaurant.visited);
 		hasBranchesInput.checked = Boolean(restaurant.hasBranches);
+	} else {
+		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
+		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
+		countryInput.value = ensureLocationOption('country', DEFAULT_COUNTRY);
 	}
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
 	viewVisitedStatus.hidden = !(readOnly && restaurant?.visited);
