@@ -982,15 +982,49 @@ function scheduleDayKey(value: string) {
 function parseScheduleText(value: string) {
 	const result = new Map<string, string>();
 	const dayPattern = /\b(lunes?|lun\.?|monday|martes|mar\.?|tuesday|miércoles?|miercoles?|mié\.?|mie\.?|wednesday|jueves|jue\.?|thursday|viernes|vie\.?|friday|sábados?|sabados?|sáb\.?|sab\.?|saturday|domingos?|dom\.?|sunday)(?!\p{L})/giu;
-	value.replace(/\r/g, '').split(/\n|;/).map((line) => line.trim()).filter(Boolean).forEach((line) => {
+	let activeDays: string[] = [];
+	const appendHours = (keys: string[], hours: string) => {
+		keys.forEach((key) => {
+			const current = result.get(key);
+			if (!current) {
+				result.set(key, hours);
+				return;
+			}
+			const ranges = current.split(' / ').map((item) => item.trim());
+			if (!ranges.includes(hours)) result.set(key, `${current} / ${hours}`);
+		});
+	};
+	const cleanLine = (line: string) => line
+		.replace(/[\u00a0\u202f]/g, ' ')
+		.replace(/[\u200b-\u200d\ufeff]/g, '')
+		.replace(/[\ue000-\uf8ff]/g, '')
+		.replace(/[\*_`]+/g, '')
+		.trim();
+	const isIgnoredLine = (line: string) => (
+		/^\([^)]*\)$/.test(line)
+		|| /^los horarios pueden variar\.?$/iu.test(line)
+		|| /^horarios? (?:en|de) d[ií]as? festivos?\.?$/iu.test(line)
+	);
+	const isHoursLine = (line: string) => (
+		/^(?:cerrado|abierto(?: las)? 24 horas|24 horas)$/iu.test(line)
+		|| (/\d/.test(line) && /(?::|\b(?:a\.?m\.?|p\.?m\.?|hs?\.?|horas?)\b|[–—-])/iu.test(line))
+	);
+
+	value.replace(/\r/g, '').split(/\n|;/).map(cleanLine).filter(Boolean).forEach((line) => {
+		if (isIgnoredLine(line)) return;
 		const matches = [...line.matchAll(dayPattern)];
-		if (!matches.length) return;
+		if (!matches.length) {
+			if (activeDays.length && isHoursLine(line)) appendHours(activeDays, line);
+			return;
+		}
 		const firstKey = scheduleDayKey(matches[0][0]);
 		const lastMatch = matches[matches.length - 1];
 		const lastKey = scheduleDayKey(lastMatch[0]);
 		const lastEnd = (lastMatch.index ?? 0) + lastMatch[0].length;
-		const hours = line.slice(lastEnd).replace(/^[\s,:–—-]+/, '').trim();
-		if (!hours) return;
+		const hours = line.slice(lastEnd)
+			.replace(/^[\s,:–—-]+/, '')
+			.replace(/^\([^)]*\)\s*/, '')
+			.trim();
 		let keys: string[] = matches.map((match) => scheduleDayKey(match[0])).filter(Boolean);
 		const betweenDays = line.slice((matches[0].index ?? 0) + matches[0][0].length, lastMatch.index ?? 0);
 		if (matches.length === 2 && /(?:\ba\b|\bal\b|\bto\b|–|—|-)/iu.test(betweenDays)) {
@@ -998,7 +1032,8 @@ function parseScheduleText(value: string) {
 			const lastIndex = SCHEDULE_DAYS.findIndex((day) => day.key === lastKey);
 			if (firstIndex >= 0 && lastIndex >= firstIndex) keys = SCHEDULE_DAYS.slice(firstIndex, lastIndex + 1).map((day) => day.key);
 		}
-		keys.forEach((key) => result.set(key, hours));
+		activeDays = keys;
+		if (hours && isHoursLine(hours)) appendHours(keys, hours);
 	});
 	return result;
 }
@@ -3270,10 +3305,11 @@ form.addEventListener('submit', async (event) => {
 		restaurantLogo = savedLogo;
 		imagesSaved = true;
 		showToast(keepOpen ? 'Datos actualizados' : 'Lugar guardado');
-	} catch {
+	} catch (error) {
 		restaurant.imageCount = restaurantImages.filter((image) => !image.isNew).length;
 		await saveRestaurants();
-		showToast('Datos guardados, pero hubo un problema con las imágenes');
+		const reason = error instanceof Error ? error.message : 'No se pudieron guardar las imágenes';
+		showToast(`Datos guardados, pero ${reason.charAt(0).toLocaleLowerCase('es')}${reason.slice(1)}`);
 	}
 	render();
 	if (keepOpen) {
