@@ -181,6 +181,7 @@ const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images'
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
+const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
 const imageHelp = document.querySelector<HTMLElement>('.image-field label small')!;
 const primaryImagePreview = document.querySelector<HTMLDivElement>('#primary-image-preview')!;
 const linktreeInput = document.querySelector<HTMLInputElement>('#linktree-url')!;
@@ -1620,7 +1621,7 @@ function renderImagePreviews() {
 	imageHelp.textContent = `${restaurantImages.length} de ${MAX_IMAGES} imágenes`;
 	const isFull = restaurantImages.length >= MAX_IMAGES;
 	imageDropZone.classList.toggle('full', isFull);
-	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá aquí las imágenes';
+	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá o pegá aquí las imágenes';
 	imageDropZone.setAttribute('aria-disabled', String(isFull));
 	updateDirtyState();
 }
@@ -1682,6 +1683,30 @@ async function addDroppedWebImage(dataTransfer: DataTransfer) {
 	} catch {
 		showToast('Esa página no permite copiar la imagen; descargala y arrastrala desde tu PC');
 	}
+}
+
+function getClipboardImageFiles(dataTransfer: DataTransfer) {
+	const files = [...dataTransfer.files].filter((file) => file.type.startsWith('image/'));
+	if (files.length > 0) return files;
+	return [...dataTransfer.items]
+		.filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+		.map((item) => item.getAsFile())
+		.filter((file): file is File => Boolean(file));
+}
+
+function addPastedImages(dataTransfer: DataTransfer) {
+	if (restaurantImages.length >= MAX_IMAGES) {
+		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
+		return;
+	}
+	const files = getClipboardImageFiles(dataTransfer);
+	if (files.length > 0) {
+		const available = MAX_IMAGES - restaurantImages.length;
+		addImageFiles(files);
+		if (files.length <= available) showToast(files.length === 1 ? 'Imagen pegada' : `${files.length} imágenes pegadas`);
+		return;
+	}
+	void addDroppedWebImage(dataTransfer);
 }
 
 async function addDroppedWebLogo(dataTransfer: DataTransfer) {
@@ -2863,6 +2888,13 @@ imageDropZone.addEventListener('drop', (event) => {
 	const files = [...event.dataTransfer!.files];
 	if (files.length > 0) addImageFiles(files);
 	else void addDroppedWebImage(event.dataTransfer!);
+});
+
+document.addEventListener('paste', (event) => {
+	if (!dialog.open || imagesPanel.hidden || form.classList.contains('view-mode') || isPasteTarget(event.target)) return;
+	if (!event.clipboardData) return;
+	event.preventDefault();
+	addPastedImages(event.clipboardData);
 });
 
 imagePreviews.addEventListener('click', (event) => {

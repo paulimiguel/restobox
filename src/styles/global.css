@@ -757,6 +757,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .logo-drop-zone button[hidden] { display: none; }
 .image-drop-zone { display: flex; min-height: 96px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px; border: 2px dashed #c8c9c3; border-radius: 9px; color: var(--muted); background: #faf9f5; text-align: center; cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
 .image-drop-zone:hover, .image-drop-zone.dragging { color: var(--forest); border-color: var(--forest); background: var(--sage); }
+.image-drop-zone:focus-visible { color: var(--forest); border-color: var(--forest); outline: 3px solid color-mix(in srgb, var(--forest) 22%, transparent); outline-offset: 2px; background: var(--sage); }
 .image-drop-zone.dragging { transform: scale(1.01); }
 .image-drop-zone.full { cursor: not-allowed; opacity: .58; }
 .image-drop-zone svg { width: 27px; margin-bottom: 2px; }
