@@ -646,6 +646,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .schedule-table .schedule-hours-input { height: 31px; padding-inline: 12px 32px; border: 0; border-radius: 0; background: transparent; font-size: 11px; }
 .schedule-table .schedule-hours-input:focus { outline: 0; background: color-mix(in srgb, var(--sage) 32%, white); box-shadow: inset 3px 0 var(--forest); }
 .schedule-help { color: var(--muted); font-size: 10px; font-weight: 400; }
+.schedule-paste-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.schedule-paste-button { min-height: 32px; padding-inline: 13px; font-size: 11px; }
 .editing-record #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
 .editing-record #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
 .editing-record #panel-information .schedule-table .schedule-hours-input { height: 24px; font-size: 11px; }
@@ -874,7 +876,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
 .view-mode #panel-information .schedule-table .schedule-hours-input { height: 24px; padding: 0 11px; border: 0; color: var(--ink); background: transparent; font-size: 11px; opacity: 1; -webkit-text-fill-color: var(--ink); }
 .view-mode #panel-information .schedule-table input::placeholder { color: transparent; }
-.view-mode #panel-information .schedule-help { display: none; }
+.view-mode #panel-information .schedule-paste-row { display: none; }
 .view-mode #panel-information .form-grid > label { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-information .clearable-control > textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
 .view-mode #panel-information textarea::placeholder { color: transparent; }

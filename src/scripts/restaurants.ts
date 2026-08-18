@@ -224,6 +224,7 @@ const pasteTextButton = document.querySelector<HTMLButtonElement>('#paste-text')
 const closeFormButton = document.querySelector<HTMLButtonElement>('#close-form-button')!;
 const updateDataButton = document.querySelector<HTMLButtonElement>('#update-data')!;
 const toast = document.querySelector<HTMLDivElement>('#toast')!;
+const pasteScheduleHoursButton = document.querySelector<HTMLButtonElement>('#paste-schedule-hours')!;
 const openUrlImportButton = document.querySelector<HTMLButtonElement>('#open-url-import')!;
 const urlImportDialog = document.querySelector<HTMLDialogElement>('#url-import-dialog')!;
 const urlImportForm = document.querySelector<HTMLFormElement>('#url-import-form')!;
@@ -315,6 +316,13 @@ let persistedRestaurants = new Map<string, string>();
 let persistenceQueue: Promise<boolean> = Promise.resolve(true);
 let settingsQueue: Promise<void> = Promise.resolve();
 
+function requireActiveSession(response: Response) {
+	if (response.status !== 401) return response;
+	const next = `${window.location.pathname}${window.location.search}`;
+	window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+	throw new Error('La sesión venció. Volvé a ingresar para continuar');
+}
+
 function loadRestaurants(): Restaurant[] {
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY);
@@ -340,6 +348,7 @@ function saveRestaurants(): Promise<boolean> {
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ upserts, deletedIds }),
 		});
+		requireActiveSession(response);
 		if (!response.ok) {
 			const result = await response.json().catch(() => ({})) as { error?: string };
 			throw new Error(result.error || 'No se pudieron guardar los datos en el servidor');
@@ -373,6 +382,7 @@ function persistCatalogSettings() {
 			method: 'PUT', headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ key: 'catalogs', value }),
 		});
+		requireActiveSession(response);
 		if (!response.ok) throw new Error('No se pudieron guardar las listas');
 	}).catch(() => showToast('No se pudieron guardar las listas en el servidor'));
 }
@@ -1434,6 +1444,7 @@ function openLegacyImageDatabase(): Promise<IDBDatabase> {
 
 async function fetchMediaBlob(media: ServerMedia): Promise<StoredImage> {
 	const response = await fetch(media.url);
+	requireActiveSession(response);
 	if (!response.ok) throw new Error('No se pudo cargar una imagen');
 	return { id: media.id, restaurantId: media.restaurantId, blob: await response.blob(), order: media.order };
 }
@@ -1443,6 +1454,7 @@ async function getServerMedia(restaurantId?: string, kind?: 'image' | 'logo'): P
 	if (restaurantId) parameters.set('restaurantId', restaurantId);
 	if (kind) parameters.set('kind', kind);
 	const response = await fetch(`/api/media?${parameters}`);
+	requireActiveSession(response);
 	if (!response.ok) throw new Error('No se pudieron cargar las imágenes');
 	return ((await response.json()) as { media: ServerMedia[] }).media;
 }
@@ -1480,6 +1492,7 @@ async function uploadRestaurantMedia(restaurantId: string, kind: 'image' | 'logo
 		if (image.isNew) data.append(`file:${image.id}`, image.blob, `${image.id}.${image.blob.type.split('/')[1] || 'jpg'}`);
 	});
 	const response = await fetch(`/api/restaurants/${encodeURIComponent(restaurantId)}/media`, { method: 'PUT', body: data });
+	requireActiveSession(response);
 	const result = await response.json().catch(() => ({})) as { media?: ServerMedia[]; error?: string };
 	if (!response.ok || !result.media) throw new Error(result.error || 'No se pudieron guardar las imágenes');
 	const blobs = new Map(items.map((image) => [image.id, image.blob]));
@@ -2531,6 +2544,18 @@ scheduleTable.addEventListener('paste', (event) => {
 	const clipboardText = event.clipboardData?.getData('text/plain') ?? '';
 	if (clipboardText && pasteScheduleText(clipboardText)) event.preventDefault();
 });
+pasteScheduleHoursButton.addEventListener('click', async () => {
+	try {
+		const clipboardText = await navigator.clipboard.readText();
+		if (!clipboardText.trim()) {
+			showToast('El portapapeles no contiene horarios');
+			return;
+		}
+		if (!pasteScheduleText(clipboardText)) showToast('No se encontraron días y horarios en el texto copiado');
+	} catch {
+		showToast('El navegador no permitió acceder al portapapeles');
+	}
+});
 pasteTextButton.addEventListener('pointerdown', (event) => {
 	if (pasteTarget) event.preventDefault();
 });
@@ -3469,6 +3494,8 @@ async function initializeServerPersistence() {
 	const localRestaurants = structuredClone(restaurants);
 	try {
 		const [restaurantResponse, settingsResponse] = await Promise.all([fetch('/api/restaurants'), fetch('/api/settings')]);
+		requireActiveSession(restaurantResponse);
+		requireActiveSession(settingsResponse);
 		if (!restaurantResponse.ok || !settingsResponse.ok) throw new Error('No se pudo conectar con la base de datos');
 		let serverRestaurants = ((await restaurantResponse.json()) as { restaurants: Restaurant[] }).restaurants;
 		const serverSettings = ((await settingsResponse.json()) as { settings: Record<string, unknown> }).settings;
@@ -3477,6 +3504,7 @@ async function initializeServerPersistence() {
 				method: 'PUT', headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ upserts: localRestaurants, deletedIds: [] }),
 			});
+			requireActiveSession(migrationResponse);
 			if (!migrationResponse.ok) throw new Error('No se pudieron migrar los lugares guardados');
 			serverRestaurants = ((await migrationResponse.json()) as { restaurants: Restaurant[] }).restaurants;
 			localStorage.setItem(SERVER_MIGRATION_KEY, 'pending-media');

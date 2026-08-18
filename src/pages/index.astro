@@ -476,7 +476,10 @@ const userInitials = userDisplayName
 								<label><span>Sábado</span><input class="schedule-hours-input" data-schedule-day="sabado" type="text" maxlength="80" placeholder="Ej. 09:00–00:00 o Cerrado" /></label>
 								<label><span>Domingo</span><input class="schedule-hours-input" data-schedule-day="domingo" type="text" maxlength="80" placeholder="Ej. 09:00–00:00 o Cerrado" /></label>
 							</div>
-							<small class="schedule-help">Pegá una lista con días y horarios y se ordenará automáticamente.</small>
+							<div class="schedule-paste-row">
+								<small class="schedule-help">Copiá una lista con días y horarios y se ordenará automáticamente.</small>
+								<button id="paste-schedule-hours" class="secondary-button schedule-paste-button" type="button">Pegar horarios</button>
+							</div>
 						</div>
 						<label class="wide">Notas <textarea name="notes" rows="5" maxlength="500" placeholder="Información adicional…"></textarea></label>
 					</div>
