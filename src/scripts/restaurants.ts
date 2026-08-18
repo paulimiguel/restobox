@@ -220,11 +220,15 @@ const tabPanels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
 const dialogTitle = document.querySelector<HTMLHeadingElement>('#dialog-title')!;
 const dialogRecordName = document.querySelector<HTMLElement>('#dialog-record-name')!;
 const viewEditButton = document.querySelector<HTMLButtonElement>('#view-edit-button')!;
+const restaurantRecordNavigation = document.querySelector<HTMLElement>('#restaurant-record-navigation')!;
+const previousRestaurantButton = document.querySelector<HTMLButtonElement>('#previous-restaurant')!;
+const nextRestaurantButton = document.querySelector<HTMLButtonElement>('#next-restaurant')!;
 const pasteTextButton = document.querySelector<HTMLButtonElement>('#paste-text')!;
 const closeFormButton = document.querySelector<HTMLButtonElement>('#close-form-button')!;
 const updateDataButton = document.querySelector<HTMLButtonElement>('#update-data')!;
 const toast = document.querySelector<HTMLDivElement>('#toast')!;
 const pasteScheduleHoursButton = document.querySelector<HTMLButtonElement>('#paste-schedule-hours')!;
+const clearScheduleHoursButton = document.querySelector<HTMLButtonElement>('#clear-schedule-hours')!;
 const openUrlImportButton = document.querySelector<HTMLButtonElement>('#open-url-import')!;
 const urlImportDialog = document.querySelector<HTMLDialogElement>('#url-import-dialog')!;
 const urlImportForm = document.querySelector<HTMLFormElement>('#url-import-form')!;
@@ -1700,7 +1704,7 @@ async function addDroppedWebLogo(dataTransfer: DataTransfer) {
 	}
 }
 
-async function openForm(restaurant?: Restaurant, readOnly = false) {
+async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 'general') {
 	activeRestaurantId = restaurant?.id ?? null;
 	form.classList.remove('importing-record');
 	form.classList.toggle('creating-record', !restaurant && !readOnly);
@@ -1721,7 +1725,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
 	closeEstablishmentDropdown();
 	closeServiceDropdown();
-	activateFormTab('general');
+	activateFormTab(initialTab);
 	restaurantImages = [];
 	restaurantLogo = null;
 	selectedEstablishments = restaurant ? [...getRestaurantEstablishmentTypes(restaurant)] : [];
@@ -1748,6 +1752,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 	dialogTitle.hidden = Boolean(restaurant);
 	dialogRecordName.textContent = restaurant?.name ?? '';
 	dialogRecordName.hidden = !restaurant;
+	const visibleIndex = restaurant ? visibleRestaurantIds.indexOf(restaurant.id) : -1;
+	restaurantRecordNavigation.hidden = !readOnly || visibleIndex < 0;
+	previousRestaurantButton.disabled = visibleIndex <= 0;
+	nextRestaurantButton.disabled = visibleIndex < 0 || visibleIndex >= visibleRestaurantIds.length - 1;
 	if (restaurant) {
 		Object.entries(restaurant).forEach(([key, value]) => {
 			if (['mealTypes', 'cuisine', 'cuisines', 'establishmentType', 'establishmentTypes'].includes(key)) return;
@@ -1787,7 +1795,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 	logoBaselineReady = !restaurant;
 	dirtyTrackingReady = !readOnly;
 	updateDirtyState();
-	dialog.showModal();
+	if (!dialog.open) dialog.showModal();
 	window.setTimeout(() => (form.elements.namedItem('name') as HTMLInputElement).focus(), 50);
 	if (restaurant) {
 		try {
@@ -1795,6 +1803,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 				getRestaurantImages(restaurant.id),
 				getRestaurantLogo(restaurant.id),
 			]);
+			if (activeRestaurantId !== restaurant.id) return;
 			restaurantImages = storedImages.map((image) => ({ ...image, isNew: false }));
 			restaurantLogo = storedLogo ? { ...storedLogo, isNew: false } : null;
 			renderImagePreviews();
@@ -1806,6 +1815,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false) {
 			logoBaselineReady = true;
 			updateDirtyState();
 		} catch {
+			if (activeRestaurantId !== restaurant.id) return;
 			updateViewEmptyFields(readOnly);
 			baselineImageState = captureImageState();
 			baselineLogoState = captureLogoState();
@@ -2194,9 +2204,21 @@ urlImportForm.addEventListener('submit', async (event) => {
 		importUrlButton.textContent = 'Importar';
 	}
 });
+function navigateVisibleRestaurant(direction: -1 | 1) {
+	if (!activeRestaurantId || !form.classList.contains('view-mode')) return;
+	const currentIndex = visibleRestaurantIds.indexOf(activeRestaurantId);
+	const targetId = visibleRestaurantIds[currentIndex + direction];
+	const target = restaurants.find((restaurant) => restaurant.id === targetId);
+	if (!target) return;
+	const activeTab = [...formTabs].find((tab) => tab.classList.contains('active'))?.dataset.formTab ?? 'general';
+	void openForm(target, true, activeTab);
+}
+previousRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(-1));
+nextRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(1));
 viewEditButton.addEventListener('click', () => {
 	form.classList.remove('view-mode');
 	form.classList.add('editing-record');
+	restaurantRecordNavigation.hidden = true;
 	placeMapField(false);
 	updateViewEmptyFields(false);
 	viewEditButton.hidden = true;
@@ -2555,6 +2577,15 @@ pasteScheduleHoursButton.addEventListener('click', async () => {
 	} catch {
 		showToast('El navegador no permitió acceder al portapapeles');
 	}
+});
+clearScheduleHoursButton.addEventListener('click', () => {
+	scheduleInputs.forEach((input) => {
+		input.value = '';
+		updateClearButton(input);
+	});
+	updateHoursValue();
+	form.dispatchEvent(new Event('input', { bubbles: true }));
+	showToast('Horarios borrados');
 });
 pasteTextButton.addEventListener('pointerdown', (event) => {
 	if (pasteTarget) event.preventDefault();

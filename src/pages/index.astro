@@ -231,6 +231,10 @@ const userInitials = userDisplayName
 					</div>
 					<div class="dialog-heading-right">
 						<span id="dialog-record-name" hidden></span>
+						<div id="restaurant-record-navigation" class="record-navigation" aria-label="Recorrer lugares" hidden>
+							<button id="previous-restaurant" type="button" aria-label="Lugar anterior" title="Lugar anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
+							<button id="next-restaurant" type="button" aria-label="Lugar siguiente" title="Lugar siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></button>
+						</div>
 						<button class="icon-button" type="button" data-close-form aria-label="Cerrar">×</button>
 					</div>
 				</div>
@@ -478,7 +482,10 @@ const userInitials = userDisplayName
 							</div>
 							<div class="schedule-paste-row">
 								<small class="schedule-help">Copiá una lista con días y horarios y se ordenará automáticamente.</small>
-								<button id="paste-schedule-hours" class="secondary-button schedule-paste-button" type="button">Pegar horarios</button>
+								<div class="schedule-paste-actions">
+									<button id="paste-schedule-hours" class="secondary-button schedule-paste-button" type="button">Pegar horarios</button>
+									<button id="clear-schedule-hours" class="secondary-button schedule-paste-button" type="button">Borrar horarios</button>
+								</div>
 							</div>
 						</div>
 						<label class="wide">Notas <textarea name="notes" rows="5" maxlength="500" placeholder="Información adicional…"></textarea></label>

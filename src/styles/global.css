@@ -607,6 +607,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .header-edit-button[hidden] { display: none; }
 .dialog-heading-right { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: 16px; }
 #dialog-record-name { max-width: 330px; overflow: hidden; color: var(--muted); font-family: var(--font-display); font-size: 26px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.record-navigation { display: flex; flex: 0 0 auto; gap: 6px; }
+.record-navigation[hidden] { display: none; }
+.record-navigation button { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 7px; color: #69716d; background: color-mix(in srgb, var(--sage) 38%, white); transition: color .18s, background .18s, border-color .18s, transform .18s, box-shadow .18s; }
+.record-navigation button:not(:disabled):hover { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 12px rgba(33,79,63,.14); transform: translateY(-1px); }
+.record-navigation button:disabled { cursor: default; opacity: .32; }
+.record-navigation svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .icon-button { flex: 0 0 auto; width: 40px; height: 40px; color: var(--button-ink); background: color-mix(in srgb, var(--forest) 72%, white); font-size: 24px; line-height: 1; }
 .icon-button:hover { color: var(--button-ink); background: var(--forest); }
 .form-tabs { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f8f6f0; }
@@ -646,7 +652,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .schedule-table .schedule-hours-input { height: 31px; padding-inline: 12px 32px; border: 0; border-radius: 0; background: transparent; font-size: 11px; }
 .schedule-table .schedule-hours-input:focus { outline: 0; background: color-mix(in srgb, var(--sage) 32%, white); box-shadow: inset 3px 0 var(--forest); }
 .schedule-help { color: var(--muted); font-size: 10px; font-weight: 400; }
-.schedule-paste-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.schedule-paste-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.schedule-paste-actions { display: flex; flex: 0 0 auto; gap: 7px; }
 .schedule-paste-button { min-height: 32px; padding-inline: 13px; font-size: 11px; }
 .editing-record #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
 .editing-record #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
