@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RestoBox">
   <defs>
     <linearGradient id="restobox" x1="14" y1="8" x2="50" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#22b9ee"/>
-      <stop offset="1" stop-color="#24d1a5"/>
+      <stop stop-color="#ff2b62"/>
+      <stop offset="1" stop-color="#f90344"/>
     </linearGradient>
   </defs>
   <path fill="url(#restobox)" d="M32 2C17.1 2 6 13.1 6 27.9 6 45.3 32 62 32 62s26-16.7 26-34.1C58 13.1 46.9 2 32 2Z"/>
