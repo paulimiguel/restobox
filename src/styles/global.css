@@ -329,7 +329,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-5 .restaurant-card-body { padding-inline: 11px; }
 .restaurant-list.view-columns-5 .restaurant-card-name { font-size: 18px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-columns-5 .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions > button, .restaurant-list.view-columns-5 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer { padding-inline: 10px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links a { width: 32px; height: 32px; }
@@ -340,7 +340,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-6 .restaurant-card-establishments { font-size: 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-cuisines { font-size: 9px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-columns-6 .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer { padding: 7px 5px 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links { flex-wrap: wrap; justify-content: center; gap: 3px; overflow: visible; }
@@ -363,7 +363,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
 .restaurant-list.view-detail .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 18px; height: 18px; }
 .restaurant-list.view-detail .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-detail .restaurant-card-top-actions button { width: 25px; height: 25px; border-radius: 6px; }
+.restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-detail .restaurant-card-top-actions svg { width: 13px; height: 13px; }
 .restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 76px; align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
@@ -407,14 +407,21 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card:hover .restaurant-card-image img { transform: scale(1.05); }
 .restaurant-card-placeholder { font-family: var(--font-display); font-size: 58px; color: var(--accent-text); opacity: .65; }
 .restaurant-card-top-actions { position: absolute; top: 9px; right: 9px; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-.restaurant-card-top-actions button { display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
-.restaurant-card-top-actions button:hover { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
+.restaurant-card-top-actions > button, .restaurant-card-actions-menu > summary { display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
+.restaurant-card-top-actions > button:hover, .restaurant-card-actions-menu > summary:hover, .restaurant-card-actions-menu[open] > summary { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
 .restaurant-card-top-actions svg { width: 17px; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
 .restaurant-card-top-actions .visited-button.active svg { stroke-width: 2.5; }
-.restaurant-card-top-actions .delete-button:hover { color: #b33b32; background: rgba(255,240,238,.94); }
+.restaurant-card-actions-menu { position: relative; }
+.restaurant-card-actions-menu > summary { list-style: none; }
+.restaurant-card-actions-menu > summary::-webkit-details-marker { display: none; }
+.restaurant-card-actions-popover { position: absolute; top: calc(100% + 4px); right: 0; display: grid; width: 145px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.98); box-shadow: 0 12px 28px rgba(20,28,24,.22); backdrop-filter: blur(10px); }
+.restaurant-card-top-actions .restaurant-card-actions-popover button { display: flex; width: 100%; height: 29px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 9px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; backdrop-filter: none; transform: none; }
+.restaurant-card-top-actions .restaurant-card-actions-popover button:hover { color: var(--accent-text); background: var(--sage); box-shadow: none; transform: none; }
+.restaurant-card-top-actions .restaurant-card-actions-popover button svg { width: 15px; height: 15px; flex: 0 0 15px; }
+.restaurant-card-top-actions .restaurant-card-actions-popover .delete-button:hover { color: #b33b32; background: rgba(255,240,238,.94); }
 .restaurant-card-body { display: grid; gap: 5px; padding: 12px 15px 10px; }
 .restaurant-card-identity { display: contents; }
 .restaurant-card-location { display: none; }
@@ -472,7 +479,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active { color: #22a95b; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active svg { stroke-width: 2.5; }
 .restaurant-list.view-list .restaurant-card-top-actions { display: none; }
-.restaurant-list.view-list .restaurant-card-top-actions button { width: 15px; height: 15px; border-radius: 3px; }
+.restaurant-list.view-list .restaurant-card-top-actions > button, .restaurant-list.view-list .restaurant-card-actions-menu > summary { width: 15px; height: 15px; border-radius: 3px; }
 .restaurant-list.view-list .restaurant-card-top-actions svg { width: 9px; }
 .restaurant-list.view-list .restaurant-card-footer { min-height: 0; padding: 7px 10px; }
 .restaurant-list.view-list .restaurant-card-footer .row-links { flex-wrap: wrap; gap: 4px; overflow: visible; }
@@ -788,20 +795,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .primary-image-edit { position: absolute; left: 50%; bottom: 12px; z-index: 2; min-height: 34px; padding: 0 14px; border: 0; border-radius: 7px; color: white; background: rgba(28,37,32,.82); font-size: 11px; font-weight: 600; transform: translateX(-50%); white-space: nowrap; }
 .primary-image-edit:hover { background: var(--forest); }
 .lead-data { display: grid; gap: 13px; }
-.branches-field { gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--sage) 20%, white); }
-.branches-field[hidden], .branch-addresses-editor[hidden], .branch-addresses-view[hidden] { display: none !important; }
-.branches-toggle { display: flex !important; min-height: 24px; align-items: center; gap: 9px !important; cursor: pointer; font-size: 12px !important; }
-.branches-toggle input { width: 16px !important; height: 16px !important; flex: 0 0 16px; padding: 0 !important; accent-color: var(--forest); }
-.branch-addresses-editor { display: grid; gap: 9px; }
-.branch-addresses-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.branch-address-row { display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: center; gap: 5px; }
-.branch-address-row input { height: 38px; }
-.remove-branch-address { width: 30px; height: 30px; padding: 0; border: 0; color: var(--muted); background: transparent; font-size: 20px; line-height: 1; }
-.remove-branch-address:hover { color: var(--accent-text); }
-.add-branch-address { width: max-content; min-height: 34px; padding-inline: 12px; }
-.branch-addresses-view { display: grid; grid-template-columns: 155px minmax(0, 1fr); min-height: 37px; align-items: start; gap: 11px; padding-block: 7px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
-.branch-addresses-view > strong { color: #414a44; font-size: 13px; font-weight: 600; }
-.view-branch-address-list { display: grid; gap: 5px; color: var(--ink); font-size: 14px; font-weight: 400; line-height: 1.45; }
 .lead-contacts { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 .view-status-row { display: none; }
 .location-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -844,8 +837,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-general .external-link-button { width: 34px; height: 34px; }
 .view-mode #panel-general .map-url-field { display: none; }
 .view-mode #panel-general .map-status-field { display: none; }
-.view-mode #panel-general .branches-field { display: block; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
-.view-mode #panel-general .branches-toggle, .view-mode #panel-general .branch-addresses-editor { display: none !important; }
 .map-preview { height: 150px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #eceae4; }
 .map-preview iframe { width: 100%; height: 100%; border: 0; }
 .view-mode #panel-details .form-grid { row-gap: 0; }
@@ -980,8 +971,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.images-logo-row .image-previews { grid-template-columns: repeat(3, 1fr); }
 	.view-mode #panel-images .images-logo-row { grid-template-columns: 1fr; }
 	.view-mode #panel-images .images-logo-row .image-previews { grid-template-columns: repeat(3, 1fr); }
-	.branch-addresses-list { grid-template-columns: 1fr; }
-	.branch-addresses-view { grid-template-columns: 120px minmax(0, 1fr); }
 	.establishment-lead { grid-template-columns: 1fr; }
 	.primary-image-preview { width: 100%; max-width: 230px; height: auto; aspect-ratio: 1; }
 	.lead-contacts, .location-fields { grid-template-columns: 1fr; }
@@ -991,6 +980,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 }
 
 @media (min-width: 641px) and (max-width: 980px) {
+	.top-actions { gap: 2px; }
+	.top-nav-button { padding-inline: 7px; }
+	.add-dropdown { display: none; }
 	.directory-actions { grid-template-columns: 1fr; gap: 12px; }
 	.restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.restaurant-list.view-columns-1 .restaurant-card { grid-template-columns: 220px minmax(180px, 1fr) 150px; }
@@ -1013,6 +1005,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	body.print-mode-cards .restaurant-list { grid-template-columns: repeat(3, 1fr); }
 	body.print-mode-list .restaurant-list { grid-template-columns: 1fr; gap: 5px; }
 	body.print-mode-list .restaurant-card { display: grid; grid-template-columns: 64px minmax(0, 1fr); min-height: 64px; }
+	body.print-mode-single .restaurant-list { width: min(760px, 100%); grid-template-columns: 1fr; margin-inline: auto; }
 	body.print-mode-list .restaurant-card-media, body.print-mode-list .restaurant-card-open, body.print-mode-list .restaurant-card-image { width: 64px; height: 64px; min-height: 64px; }
 }
 

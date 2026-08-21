@@ -150,13 +150,6 @@ const provinceCombobox = document.querySelector<HTMLDivElement>('#province-combo
 const provinceOptions = document.querySelector<HTMLDivElement>('#province-options')!;
 const countryCombobox = document.querySelector<HTMLDivElement>('#country-combobox')!;
 const countryOptions = document.querySelector<HTMLDivElement>('#country-options')!;
-const branchesField = document.querySelector<HTMLDivElement>('#branches-field')!;
-const hasBranchesInput = document.querySelector<HTMLInputElement>('#has-branches')!;
-const branchAddressesEditor = document.querySelector<HTMLDivElement>('#branch-addresses-editor')!;
-const branchAddressesList = document.querySelector<HTMLDivElement>('#branch-addresses-list')!;
-const addBranchAddressButton = document.querySelector<HTMLButtonElement>('#add-branch-address')!;
-const viewBranchAddresses = document.querySelector<HTMLDivElement>('#view-branch-addresses')!;
-const viewBranchAddressList = document.querySelector<HTMLDivElement>('#view-branch-address-list')!;
 const selectedCuisinesContainer = document.querySelector<HTMLDivElement>('#selected-cuisines')!;
 const tagInput = document.querySelector<HTMLInputElement>('#tag-input')!;
 const selectedTagsContainer = document.querySelector<HTMLDivElement>('#selected-tags')!;
@@ -306,7 +299,6 @@ let selectedCuisines: string[] = [];
 let selectedTags: string[] = [];
 let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
-let branchAddresses: string[] = [];
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -1081,71 +1073,6 @@ function pasteScheduleText(value: string) {
 	return true;
 }
 
-function renderBranchAddresses(readOnly = form.classList.contains('view-mode')) {
-	const hasBranches = hasBranchesInput.checked;
-	const visibleAddresses = branchAddresses.map((address) => address.trim()).filter(Boolean);
-	branchesField.hidden = readOnly && !hasBranches;
-	branchAddressesEditor.hidden = readOnly || !hasBranches;
-	viewBranchAddresses.hidden = !readOnly || !hasBranches;
-	branchAddressesList.replaceChildren();
-	viewBranchAddressList.replaceChildren();
-
-	if (readOnly) {
-		if (visibleAddresses.length) {
-			const item = document.createElement('span');
-			item.textContent = visibleAddresses.join(', ');
-			viewBranchAddressList.append(item);
-		} else {
-			const item = document.createElement('span');
-			item.textContent = 'Sí';
-			viewBranchAddressList.append(item);
-		}
-		return;
-	}
-
-	branchAddresses.forEach((address, index) => {
-		const row = document.createElement('div');
-		row.className = 'branch-address-row';
-		const input = document.createElement('input');
-		input.type = 'text';
-		input.name = 'branchAddress';
-		input.maxLength = 160;
-		input.placeholder = `Dirección de la sucursal ${index + 1}`;
-		input.value = address;
-		input.className = 'branch-address-input';
-		input.setAttribute('aria-label', `Dirección de la sucursal ${index + 1}`);
-		input.addEventListener('input', () => { branchAddresses[index] = input.value; });
-		const remove = document.createElement('button');
-		remove.type = 'button';
-		remove.className = 'remove-branch-address';
-		remove.textContent = '×';
-		remove.title = 'Quitar dirección';
-		remove.setAttribute('aria-label', `Quitar dirección de la sucursal ${index + 1}`);
-		remove.addEventListener('click', () => {
-			branchAddresses.splice(index, 1);
-			renderBranchAddresses(false);
-			form.dispatchEvent(new Event('input', { bubbles: true }));
-		});
-		row.append(input, remove);
-		branchAddressesList.append(row);
-	});
-	addBranchAddressButton.disabled = branchAddresses.length >= 20;
-}
-
-hasBranchesInput.addEventListener('change', () => {
-	if (hasBranchesInput.checked && !branchAddresses.length) branchAddresses.push('');
-	renderBranchAddresses(false);
-	if (hasBranchesInput.checked) window.setTimeout(() => branchAddressesList.querySelector<HTMLInputElement>('input:last-of-type')?.focus(), 0);
-});
-
-addBranchAddressButton.addEventListener('click', () => {
-	if (branchAddresses.length >= 20) return;
-	branchAddresses.push('');
-	renderBranchAddresses(false);
-	form.dispatchEvent(new Event('input', { bubbles: true }));
-	window.setTimeout(() => branchAddressesList.querySelectorAll<HTMLInputElement>('input').item(branchAddresses.length - 1)?.focus(), 0);
-});
-
 function captureFormState() {
 	return JSON.stringify([...new FormData(form).entries()]
 		.filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
@@ -1397,8 +1324,15 @@ function render() {
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
-						<button type="button" data-edit="${restaurant.id}" aria-label="Editar ${safe(restaurant.name)}" title="Editar"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg></button>
-						<button class="delete-button" type="button" data-delete="${restaurant.id}" aria-label="Eliminar ${safe(restaurant.name)}" title="Eliminar"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg></button>
+						<details class="restaurant-card-actions-menu">
+							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
+							<div class="restaurant-card-actions-popover">
+								<button type="button" data-edit="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
+								<button type="button" data-duplicate="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button>
+								<button type="button" data-print="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
+								<button class="delete-button" type="button" data-delete="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
+							</div>
+						</details>
 					</div>
 				</div>
 				<div class="restaurant-card-body">
@@ -1767,10 +1701,6 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	renderCuisineOptions();
 	selectedTags = restaurant?.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
 	renderSelectedTags();
-	branchAddresses = restaurant?.branchAddresses?.filter((address): address is string => typeof address === 'string') ?? [];
-	hasBranchesInput.checked = Boolean(restaurant?.hasBranches);
-	if (hasBranchesInput.checked && !readOnly && !branchAddresses.length) branchAddresses.push('');
-	renderBranchAddresses(readOnly);
 	renderImagePreviews();
 	renderLogoPreview();
 	dialogTitle.textContent = restaurant ? '' : 'Nuevo lugar';
@@ -1790,7 +1720,6 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('province') as HTMLInputElement).value = restaurant.province ?? '';
 		(form.elements.namedItem('favorite') as HTMLInputElement).checked = Boolean(restaurant.favorite);
 		(form.elements.namedItem('visited') as HTMLInputElement).checked = Boolean(restaurant.visited);
-		hasBranchesInput.checked = Boolean(restaurant.hasBranches);
 	} else {
 		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
@@ -2250,8 +2179,6 @@ viewEditButton.addEventListener('click', () => {
 	closeFormButton.textContent = 'Cancelar';
 	form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')
 		.forEach((control) => { control.disabled = false; });
-	if (hasBranchesInput.checked && !branchAddresses.length) branchAddresses.push('');
-	renderBranchAddresses(false);
 	updateMapPreview(false);
 	updateClearButtons();
 	baselineFormState = captureFormState();
@@ -3293,7 +3220,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 printPlacesPanel.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-print-mode]');
 	if (!button || !printSelectedIds.size) return;
-	document.body.classList.remove('print-mode-places', 'print-mode-cards', 'print-mode-list');
+	document.body.classList.remove('print-mode-places', 'print-mode-cards', 'print-mode-list', 'print-mode-single');
 	document.body.classList.add('print-has-selection', `print-mode-${button.dataset.printMode}`);
 	window.addEventListener('afterprint', () => {
 		document.body.classList.remove('print-has-selection', 'print-mode-places', 'print-mode-cards', 'print-mode-list');
@@ -3310,7 +3237,12 @@ document.querySelectorAll<HTMLDetailsElement>('.top-dropdown').forEach((dropdown
 });
 
 document.addEventListener('click', (event) => {
-	if ((event.target as HTMLElement).closest('.top-dropdown')) return;
+	const target = event.target as HTMLElement;
+	const activeCardMenu = target.closest<HTMLDetailsElement>('.restaurant-card-actions-menu');
+	document.querySelectorAll<HTMLDetailsElement>('.restaurant-card-actions-menu[open]').forEach((menu) => {
+		if (menu !== activeCardMenu) menu.removeAttribute('open');
+	});
+	if (target.closest('.top-dropdown')) return;
 	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown').forEach((dropdown) => dropdown.removeAttribute('open'));
 });
 
@@ -3336,6 +3268,7 @@ form.addEventListener('submit', async (event) => {
 	const existingIndex = activeRestaurantId
 		? restaurants.findIndex((restaurant) => restaurant.id === activeRestaurantId)
 		: -1;
+	const existingRestaurant = existingIndex >= 0 ? restaurants[existingIndex] : undefined;
 	const restaurant: Restaurant = {
 		id: activeRestaurantId ?? crypto.randomUUID(),
 		name: data.name.trim(),
@@ -3354,8 +3287,8 @@ form.addEventListener('submit', async (event) => {
 		city: savedCity,
 		address: data.address.trim(),
 		neighborhood: savedNeighborhood,
-		hasBranches: formData.has('hasBranches'),
-		branchAddresses: formData.has('hasBranches') ? branchAddresses.map((address) => address.trim()).filter(Boolean) : [],
+		hasBranches: existingRestaurant?.hasBranches ?? false,
+		branchAddresses: existingRestaurant?.branchAddresses ?? [],
 		phone: data.phone.trim(),
 		mobile: data.mobile.trim(),
 		website: data.website.trim(),
@@ -3446,6 +3379,63 @@ async function removeRestaurant(restaurantId: string) {
 	showToast('Lugar eliminado');
 }
 
+async function duplicateRestaurant(restaurantId: string) {
+	const original = restaurants.find((restaurant) => restaurant.id === restaurantId);
+	if (!original) return;
+	const duplicateId = crypto.randomUUID();
+	const duplicate: Restaurant = structuredClone({
+		...original,
+		id: duplicateId,
+		name: `${original.name} (copia)`,
+		createdAt: new Date().toISOString(),
+	});
+	backupRestaurants();
+	restaurants.unshift(duplicate);
+	if (!await saveRestaurants()) {
+		restaurants = restaurants.filter((restaurant) => restaurant.id !== duplicateId);
+		render();
+		return;
+	}
+	render();
+	try {
+		const [images, logo] = await Promise.all([getRestaurantImages(original.id), getRestaurantLogo(original.id)]);
+		const duplicateImages: RestaurantImage[] = images.map((image) => ({
+			...image,
+			id: crypto.randomUUID(),
+			restaurantId: duplicateId,
+			isNew: true,
+		}));
+		const duplicateLogos: RestaurantImage[] = logo ? [{
+			...logo,
+			id: crypto.randomUUID(),
+			restaurantId: duplicateId,
+			isNew: true,
+		}] : [];
+		await Promise.all([
+			uploadRestaurantMedia(duplicateId, 'image', duplicateImages),
+			uploadRestaurantMedia(duplicateId, 'logo', duplicateLogos),
+		]);
+		render();
+		showToast('Lugar duplicado');
+	} catch {
+		showToast('Lugar duplicado, pero no se pudieron copiar todas las imágenes');
+	}
+}
+
+function printRestaurant(restaurantId: string) {
+	const card = list.querySelector<HTMLElement>(`[data-restaurant-id="${CSS.escape(restaurantId)}"]`);
+	if (!card) return;
+	list.querySelectorAll('.restaurant-card.print-selected').forEach((selected) => selected.classList.remove('print-selected'));
+	card.classList.add('print-selected');
+	document.body.classList.remove('print-mode-places', 'print-mode-cards', 'print-mode-list');
+	document.body.classList.add('print-has-selection', 'print-mode-single');
+	window.addEventListener('afterprint', () => {
+		document.body.classList.remove('print-has-selection', 'print-mode-single');
+		render();
+	}, { once: true });
+	window.requestAnimationFrame(() => window.print());
+}
+
 list.addEventListener('click', async (event) => {
 	const target = event.target as HTMLElement;
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
@@ -3453,6 +3443,8 @@ list.addEventListener('click', async (event) => {
 	const visitedButton = target.closest<HTMLButtonElement>('[data-visited]');
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
 	const editButton = target.closest<HTMLButtonElement>('[data-edit]');
+	const duplicateButton = target.closest<HTMLButtonElement>('[data-duplicate]');
+	const printButton = target.closest<HTMLButtonElement>('[data-print]');
 	const deleteButton = target.closest<HTMLButtonElement>('[data-delete]');
 	if (printSelectButton) {
 		const id = printSelectButton.dataset.printSelect;
@@ -3490,10 +3482,23 @@ list.addEventListener('click', async (event) => {
 		return;
 	}
 	if (editButton) {
+		editButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 		const restaurant = restaurants.find((item) => item.id === editButton.dataset.edit);
 		if (restaurant) void openForm(restaurant);
+		return;
+	}
+	if (duplicateButton?.dataset.duplicate) {
+		duplicateButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		await duplicateRestaurant(duplicateButton.dataset.duplicate);
+		return;
+	}
+	if (printButton?.dataset.print) {
+		printButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		printRestaurant(printButton.dataset.print);
+		return;
 	}
 	if (deleteButton) {
+		deleteButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 		if (deleteButton.dataset.delete) await removeRestaurant(deleteButton.dataset.delete);
 	}
 });

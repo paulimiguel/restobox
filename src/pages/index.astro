@@ -64,7 +64,7 @@ const userInitials = userDisplayName
 
 						<button class="top-nav-button header-nav-link" id="header-directory" type="button">DIRECTORIO</button>
 						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>TIPO DE LUGAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<summary class="top-nav-button"><span>LUGAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="header-establishment-options" class="dropdown-panel category-panel"></div>
 						</details>
 						<details class="top-dropdown category-dropdown">
@@ -72,7 +72,7 @@ const userInitials = userDisplayName
 							<div id="header-service-options" class="dropdown-panel category-panel"></div>
 						</details>
 						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>TIPO DE COCINA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<summary class="top-nav-button"><span>COCINA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="header-cuisine-options" class="dropdown-panel category-panel"></div>
 						</details>
 
@@ -280,20 +280,6 @@ const userInitials = userDisplayName
 									<div id="view-visited-status" class="view-status-row" hidden><strong class="visited-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong></div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 								</div>
-							</div>
-						</div>
-						<div id="branches-field" class="form-field branches-field wide">
-							<label class="branches-toggle" for="has-branches">
-								<input id="has-branches" name="hasBranches" type="checkbox" />
-								<span>Tiene sucursales</span>
-							</label>
-							<div id="branch-addresses-editor" class="branch-addresses-editor" hidden>
-								<div id="branch-addresses-list" class="branch-addresses-list"></div>
-								<button id="add-branch-address" class="secondary-button add-branch-address" type="button">+ Agregar dirección</button>
-							</div>
-							<div id="view-branch-addresses" class="branch-addresses-view" hidden>
-								<strong>Sucursales</strong>
-								<div id="view-branch-address-list" class="view-branch-address-list"></div>
 							</div>
 						</div>
 						<div class="location-fields wide">
