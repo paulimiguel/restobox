@@ -418,7 +418,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-actions-menu > summary { list-style: none; }
 .restaurant-card-actions-menu > summary::-webkit-details-marker { display: none; }
 .restaurant-card-actions-popover { position: absolute; top: calc(100% + 4px); right: 0; display: grid; width: 145px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.98); box-shadow: 0 12px 28px rgba(20,28,24,.22); backdrop-filter: blur(10px); }
-.restaurant-card-top-actions .restaurant-card-actions-popover button { display: flex; width: 100%; height: 29px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 9px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; backdrop-filter: none; transform: none; }
+.restaurant-card-top-actions .restaurant-card-actions-popover button { display: flex; width: 100%; height: 24px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 9px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; backdrop-filter: none; transform: none; }
 .restaurant-card-top-actions .restaurant-card-actions-popover button:hover { color: var(--accent-text); background: var(--sage); box-shadow: none; transform: none; }
 .restaurant-card-top-actions .restaurant-card-actions-popover button svg { width: 15px; height: 15px; flex: 0 0 15px; }
 .restaurant-card-top-actions .restaurant-card-actions-popover .delete-button:hover { color: #b33b32; background: rgba(255,240,238,.94); }
@@ -982,6 +982,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 @media (min-width: 641px) and (max-width: 980px) {
 	.top-actions { gap: 2px; }
 	.top-nav-button { padding-inline: 7px; }
+	#main-search-button { width: 40px; padding-inline: 0; }
+	#main-search-button span { display: none; }
 	.add-dropdown { display: none; }
 	.directory-actions { grid-template-columns: 1fr; gap: 12px; }
 	.restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

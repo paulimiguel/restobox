@@ -307,6 +307,7 @@ let imageBaselineReady = false;
 let logoBaselineReady = false;
 let carouselImageIndex = 0;
 let carouselImageUrl = '';
+let carouselUsesTemporaryImages = false;
 let activeRestaurantId: string | null = null;
 let serverPersistenceReady = false;
 let persistedRestaurants = new Map<string, string>();
@@ -1327,6 +1328,7 @@ function render() {
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
+								<button type="button" data-view-images="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg>Ver imágenes</button>
 								<button type="button" data-edit="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" data-duplicate="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button>
 								<button type="button" data-print="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -1573,8 +1575,9 @@ function renderCarouselImage() {
 	nextCarouselImage.hidden = !hasSeveralImages;
 }
 
-function openImageCarousel(index: number) {
+function openImageCarousel(index: number, usesTemporaryImages = false) {
 	if (!restaurantImages[index]) return;
+	carouselUsesTemporaryImages = usesTemporaryImages;
 	carouselImageIndex = index;
 	renderCarouselImage();
 	imageCarouselDialog.showModal();
@@ -2851,6 +2854,8 @@ imageCarouselDialog.addEventListener('close', () => {
 	if (carouselImageUrl) URL.revokeObjectURL(carouselImageUrl);
 	carouselImageUrl = '';
 	imageCarouselImage.removeAttribute('src');
+	if (carouselUsesTemporaryImages) restaurantImages = [];
+	carouselUsesTemporaryImages = false;
 });
 
 imagePreviews.addEventListener('dragstart', (event) => {
@@ -3436,12 +3441,27 @@ function printRestaurant(restaurantId: string) {
 	window.requestAnimationFrame(() => window.print());
 }
 
+async function viewRestaurantImages(restaurantId: string) {
+	try {
+		const storedImages = await getRestaurantImages(restaurantId);
+		if (!storedImages.length) {
+			showToast('Este lugar no tiene imágenes guardadas');
+			return;
+		}
+		restaurantImages = storedImages.map((image) => ({ ...image, isNew: false }));
+		openImageCarousel(0, true);
+	} catch {
+		showToast('No se pudieron cargar las imágenes');
+	}
+}
+
 list.addEventListener('click', async (event) => {
 	const target = event.target as HTMLElement;
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
 	const favoriteButton = target.closest<HTMLButtonElement>('[data-favorite]');
 	const visitedButton = target.closest<HTMLButtonElement>('[data-visited]');
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
+	const viewImagesButton = target.closest<HTMLButtonElement>('[data-view-images]');
 	const editButton = target.closest<HTMLButtonElement>('[data-edit]');
 	const duplicateButton = target.closest<HTMLButtonElement>('[data-duplicate]');
 	const printButton = target.closest<HTMLButtonElement>('[data-print]');
@@ -3479,6 +3499,13 @@ list.addEventListener('click', async (event) => {
 	if (viewButton) {
 		const restaurant = restaurants.find((item) => item.id === viewButton.dataset.view);
 		if (restaurant) void openForm(restaurant, true);
+		return;
+	}
+	if (viewImagesButton?.dataset.viewImages) {
+		viewImagesButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		viewImagesButton.disabled = true;
+		await viewRestaurantImages(viewImagesButton.dataset.viewImages);
+		viewImagesButton.disabled = false;
 		return;
 	}
 	if (editButton) {
