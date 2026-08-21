@@ -200,11 +200,23 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-actions { position: sticky; top: 88px; z-index: 32; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 18px; margin-bottom: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--paper) 94%, transparent); box-shadow: 0 7px 22px rgba(35,45,38,.1); backdrop-filter: blur(12px); }
 .directory-actions-left { display: grid; grid-template-columns: minmax(280px, 430px) minmax(190px, 230px); gap: 8px; }
 .directory-actions-grid { display: grid; grid-template-columns: repeat(3, 112px); gap: 8px; }
+.action-search-group { display: grid; min-width: 0; align-content: start; gap: 7px; }
 .action-search { position: relative; display: flex; align-items: center; }
 .action-search svg { position: absolute; left: 15px; width: 18px; color: var(--muted); pointer-events: none; }
 .action-search input, .directory-action-menu > summary { width: 100%; height: 48px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: white; font-size: 14px; }
 .action-search input { padding: 0 15px 0 48px; font-weight: 500; }
 .action-search input:focus { border-color: var(--forest); outline: 2px solid color-mix(in srgb, var(--forest) 15%, transparent); }
+.search-scope-options { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 16px; padding-inline: 7px; }
+.search-scope-options label { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 11px; cursor: pointer; }
+.search-scope-options input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
+.search-terms-row { display: flex; min-width: 0; align-items: flex-start; gap: 8px; }
+.search-terms-row[hidden] { display: none; }
+.search-terms-list { display: flex; min-width: 0; flex: 1 1 auto; flex-wrap: wrap; gap: 5px; }
+.search-term-chip { display: inline-flex; min-height: 24px; align-items: center; gap: 4px; padding: 2px 4px 2px 9px; border-radius: 999px; color: var(--accent-text); background: color-mix(in srgb, var(--sage) 75%, white); font-size: 11px; font-weight: 600; }
+.search-term-chip button { display: grid; width: 17px; height: 17px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: currentColor; background: transparent; font-size: 15px; line-height: 1; }
+.search-term-chip button:hover { background: color-mix(in srgb, var(--forest) 20%, transparent); }
+#clear-search-terms { flex: 0 0 auto; padding: 4px 2px; border: 0; color: var(--accent-text); background: transparent; font-size: 10px; font-weight: 750; letter-spacing: .55px; }
+#clear-search-terms:hover { text-decoration: underline; text-underline-offset: 3px; }
 .directory-action-menu { position: relative; min-width: 0; }
 .directory-action-menu > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px; list-style: none; cursor: pointer; transition: color .18s, border-color .18s, background .18s, box-shadow .18s; }
 .directory-actions-grid .directory-action-menu > summary { height: 40px; gap: 7px; padding: 0 10px; font-size: 12px; transition: color .18s, border-color .18s, background .18s, box-shadow .18s, transform .18s; }
@@ -414,11 +426,12 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
 .restaurant-card-top-actions .visited-button.active svg { stroke-width: 2.5; }
+.restaurant-card-top-actions .view-images-button:hover { color: var(--accent-text); }
 .restaurant-card-actions-menu { position: relative; }
 .restaurant-card-actions-menu > summary { list-style: none; }
 .restaurant-card-actions-menu > summary::-webkit-details-marker { display: none; }
 .restaurant-card-actions-popover { position: absolute; top: calc(100% + 4px); right: 0; display: grid; width: 145px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.98); box-shadow: 0 12px 28px rgba(20,28,24,.22); backdrop-filter: blur(10px); }
-.restaurant-card-top-actions .restaurant-card-actions-popover button { display: flex; width: 100%; height: 24px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 9px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; backdrop-filter: none; transform: none; }
+.restaurant-card-top-actions .restaurant-card-actions-popover button { display: flex; width: 100%; height: 29px; align-items: center; justify-content: flex-start; gap: 9px; padding: 0 9px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; backdrop-filter: none; transform: none; }
 .restaurant-card-top-actions .restaurant-card-actions-popover button:hover { color: var(--accent-text); background: var(--sage); box-shadow: none; transform: none; }
 .restaurant-card-top-actions .restaurant-card-actions-popover button svg { width: 15px; height: 15px; flex: 0 0 15px; }
 .restaurant-card-top-actions .restaurant-card-actions-popover .delete-button:hover { color: #b33b32; background: rgba(255,240,238,.94); }

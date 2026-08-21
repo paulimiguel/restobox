@@ -95,6 +95,10 @@ const form = document.querySelector<HTMLFormElement>('#restaurant-form')!;
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
+const searchTermsRow = document.querySelector<HTMLElement>('#search-terms-row')!;
+const searchTermsList = document.querySelector<HTMLElement>('#search-terms')!;
+const clearSearchTermsButton = document.querySelector<HTMLButtonElement>('#clear-search-terms')!;
+const searchScopeInputs = [...document.querySelectorAll<HTMLInputElement>('input[name="searchScope"]')];
 const establishmentFilterOptions = document.querySelector<HTMLDivElement>('#establishment-filter-options')!;
 const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-options')!;
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
@@ -299,6 +303,8 @@ let selectedCuisines: string[] = [];
 let selectedTags: string[] = [];
 let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
+let searchTerms: string[] = [];
+let searchScope: 'keyword' | 'name' = 'keyword';
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -1263,13 +1269,19 @@ function render() {
 	renderAdditionalFilterOptions();
 	cardPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 	cardPreviewUrls = [];
-	const term = search.value.trim().toLocaleLowerCase('es');
+	const normalizedSearchTerms = [...searchTerms, search.value]
+		.map((term) => term.trim().toLocaleLowerCase('es'))
+		.filter(Boolean);
+	const keywordSearchTerms = normalizedSearchTerms.flatMap((term) => term.split(/\s+/).filter(Boolean));
 	const filtered = restaurants.filter((restaurant) => {
 		const searchable = [
 			restaurant.name, restaurant.description, restaurant.tags ?? '', restaurant.address, ...(restaurant.branchAddresses ?? []), restaurant.neighborhood, restaurant.country, restaurant.province, restaurant.city,
 			...getRestaurantCuisines(restaurant), ...getRestaurantEstablishmentTypes(restaurant), ...(restaurant.mealTypes ?? []),
-		];
-		const matchesTerm = searchable.some((value) => (value ?? '').toLocaleLowerCase('es').includes(term));
+		].map((value) => (value ?? '').toLocaleLowerCase('es'));
+		const normalizedName = restaurant.name.toLocaleLowerCase('es');
+		const matchesTerm = searchScope === 'name'
+			? normalizedSearchTerms.every((term) => normalizedName.includes(term))
+			: keywordSearchTerms.every((term) => searchable.some((value) => value.includes(term)));
 		const restaurantEstablishments = getRestaurantEstablishmentTypes(restaurant);
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
@@ -1325,10 +1337,10 @@ function render() {
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
+						<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
-								<button type="button" data-view-images="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg>Ver imágenes</button>
 								<button type="button" data-edit="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" data-duplicate="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button>
 								<button type="button" data-print="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -1357,7 +1369,7 @@ function render() {
 	}).join('');
 	void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
 
-	const isFiltered = Boolean(term)
+	const isFiltered = normalizedSearchTerms.length > 0
 		|| selectedEstablishmentFilters.size > 0
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
@@ -2582,7 +2594,50 @@ wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
 countryInput.addEventListener('input', updateWhatsAppWebLink);
+function renderSearchTerms() {
+	searchTermsList.innerHTML = searchTerms.map((term, index) => `
+		<span class="search-term-chip">
+			${safe(term)}
+			<button type="button" data-remove-search-term="${index}" aria-label="Quitar ${safe(term)}" title="Quitar">×</button>
+		</span>
+	`).join('');
+	searchTermsRow.hidden = searchTerms.length === 0;
+}
+
+function clearSearchTerms() {
+	searchTerms = [];
+	search.value = '';
+	renderSearchTerms();
+}
+
 search.addEventListener('input', render);
+search.addEventListener('keydown', (event) => {
+	if (event.key !== 'Enter') return;
+	event.preventDefault();
+	const term = search.value.trim();
+	if (!term) return;
+	if (!searchTerms.some((item) => item.toLocaleLowerCase('es') === term.toLocaleLowerCase('es'))) searchTerms.push(term);
+	search.value = '';
+	renderSearchTerms();
+	render();
+});
+searchTermsList.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-search-term]');
+	if (!button) return;
+	searchTerms.splice(Number(button.dataset.removeSearchTerm), 1);
+	renderSearchTerms();
+	render();
+});
+clearSearchTermsButton.addEventListener('click', () => {
+	clearSearchTerms();
+	render();
+	search.focus();
+});
+searchScopeInputs.forEach((input) => input.addEventListener('change', () => {
+	if (!input.checked) return;
+	searchScope = input.value === 'name' ? 'name' : 'keyword';
+	render();
+}));
 directoryFilterPanel.addEventListener('change', (event) => {
 	const input = (event.target as HTMLElement).closest<HTMLInputElement>('input[type="checkbox"]');
 	if (!input) return;
@@ -2966,7 +3021,7 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 });
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
-	search.value = '';
+	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	filterActionMenu.removeAttribute('open');
 	directoryFilterPanel.hidden = true;
@@ -2978,7 +3033,7 @@ document.querySelector('.top-actions')?.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-header-filter]');
 	const value = button?.dataset.headerFilterValue;
 	if (!button || !value) return;
-	search.value = '';
+	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	const targetSet = button.dataset.headerFilter === 'establishment'
 		? selectedEstablishmentFilters

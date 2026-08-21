@@ -117,11 +117,21 @@ const userInitials = userDisplayName
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div class="directory-actions-left">
-							<label class="action-search">
-								<span class="sr-only">Buscar restaurantes</span>
-								<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
-								<input id="search" type="search" placeholder="Buscar por nombre, ciudad, cocina, etc." autocomplete="off" />
-							</label>
+							<div class="action-search-group">
+								<label class="action-search">
+									<span class="sr-only">Buscar restaurantes</span>
+									<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+									<input id="search" type="search" placeholder="Buscar" title="Escribí una palabra o frase y pulsá Enter para agregarla. Podés sumar varias." autocomplete="off" />
+								</label>
+								<div class="search-scope-options" role="radiogroup" aria-label="Campo de búsqueda">
+									<label title="Busca cada palabra en todos los datos del lugar"><input type="radio" name="searchScope" value="keyword" checked />Palabra clave</label>
+									<label title="Busca cada frase solamente en el nombre del lugar"><input type="radio" name="searchScope" value="name" />Nombre</label>
+								</div>
+								<div id="search-terms-row" class="search-terms-row" hidden>
+									<div id="search-terms" class="search-terms-list" aria-label="Términos de búsqueda"></div>
+									<button id="clear-search-terms" type="button">LIMPIAR</button>
+								</div>
+							</div>
 							<details class="directory-action-menu new-establishment-menu">
 								<summary><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>Importar lugar</span><svg class="action-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="directory-action-popover">
