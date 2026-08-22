@@ -2103,11 +2103,16 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	precio: 'price', 'nivel de precio': 'price',
 	'precio promedio': 'averagePrice', 'precio promedio por persona': 'averagePrice',
 	pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', barrio: 'neighborhood',
-	telefono: 'phone', celular: 'mobile', movil: 'mobile', whatsapp: 'mobile',
-	web: 'website', 'sitio web': 'website', website: 'website', google: 'googleUrl', 'url google': 'googleUrl',
-	linktree: 'linktreeUrl', menu: 'menuUrl', 'url menu': 'menuUrl', instagram: 'instagramUrl', tiktok: 'tiktokUrl', facebook: 'facebookUrl',
-	woki: 'wokiUrl', tripadvisor: 'tripAdvisorUrl', mapa: 'mapUrl', 'url mapa': 'mapUrl',
-	horario: 'hours', horarios: 'hours', notas: 'notes', observaciones: 'notes',
+	telefono: 'phone', 'telefono fijo': 'phone', celular: 'mobile', movil: 'mobile', whatsapp: 'mobile',
+	web: 'website', 'sitio web': 'website', website: 'website', 'pagina web': 'website', 'link a la pagina web': 'website', 'link pagina web': 'website',
+	google: 'googleUrl', 'url google': 'googleUrl', 'link de google': 'googleUrl', 'link a google': 'googleUrl',
+	linktree: 'linktreeUrl', menu: 'menuUrl', 'url menu': 'menuUrl', 'link al menu': 'menuUrl', 'link a menu': 'menuUrl',
+	instagram: 'instagramUrl', 'link al instagram': 'instagramUrl', 'link a instagram': 'instagramUrl',
+	tiktok: 'tiktokUrl', 'link al tiktok': 'tiktokUrl', 'link a tiktok': 'tiktokUrl',
+	facebook: 'facebookUrl', 'link al facebook': 'facebookUrl', 'link a facebook': 'facebookUrl',
+	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
+	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
+	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
 	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited',
 };
 
@@ -2167,7 +2172,7 @@ async function readSpreadsheet(file: File): Promise<Array<{ rowNumber: number; c
 }
 
 function splitSpreadsheetValues(value: string) {
-	return [...new Set(value.split(/[,;|\n]+/).map((item) => item.trim()).filter(Boolean))];
+	return [...new Set(value.split(/[,;|/\n]+/).map((item) => item.trim()).filter(Boolean))];
 }
 
 function spreadsheetBoolean(value: string) {
@@ -2216,13 +2221,13 @@ function normalizedSpreadsheetIdentity(value: string) {
 	return value.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-function spreadsheetRestaurantExists(data: SpreadsheetRestaurant, collection: Restaurant[]) {
+function findSpreadsheetRestaurant(data: SpreadsheetRestaurant, collection: Restaurant[]) {
 	const name = normalizedSpreadsheetIdentity(data.name);
 	const address = normalizedSpreadsheetIdentity(data.address);
 	const city = normalizedSpreadsheetIdentity(data.city);
 	const googleUrl = data.googleUrl.trim().replace(/\/$/, '').toLocaleLowerCase('es');
 	const wokiUrl = data.wokiUrl.trim().replace(/\/$/, '').toLocaleLowerCase('es');
-	return collection.some((restaurant) => {
+	return collection.find((restaurant) => {
 		if (googleUrl && restaurant.googleUrl?.trim().replace(/\/$/, '').toLocaleLowerCase('es') === googleUrl) return true;
 		if (wokiUrl && restaurant.wokiUrl?.trim().replace(/\/$/, '').toLocaleLowerCase('es') === wokiUrl) return true;
 		if (normalizedSpreadsheetIdentity(restaurant.name) !== name) return false;
@@ -2262,6 +2267,23 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
 		favorite: data.favorite, visited: data.visited, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
+}
+
+function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Restaurant) {
+	const before = JSON.stringify(existing);
+	const textFields: Array<keyof Restaurant> = [
+		'description', 'establishmentType', 'cuisine', 'tags', 'rating', 'price', 'averagePrice', 'country', 'province', 'city', 'address', 'neighborhood',
+		'phone', 'mobile', 'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'tiktokUrl', 'instagramUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'mapUrl', 'hours', 'notes',
+	];
+	textFields.forEach((field) => {
+		if (!existing[field] && imported[field]) (existing[field] as string) = imported[field] as string;
+	});
+	if (!existing.establishmentTypes?.length && imported.establishmentTypes?.length) existing.establishmentTypes = imported.establishmentTypes;
+	if (!existing.cuisines?.length && imported.cuisines?.length) existing.cuisines = imported.cuisines;
+	if (!existing.mealTypes?.length && imported.mealTypes?.length) existing.mealTypes = imported.mealTypes;
+	existing.favorite = Boolean(existing.favorite || imported.favorite);
+	existing.visited = Boolean(existing.visited || imported.visited);
+	return before !== JSON.stringify(existing);
 }
 
 openExcelImportButtons.forEach((button) => button.addEventListener('click', () => {
@@ -2314,12 +2336,16 @@ excelImportForm.addEventListener('submit', async (event) => {
 	try {
 		backupRestaurants();
 		const imported: Restaurant[] = [];
+		let updated = 0;
 		let skipped = 0;
 		validRows.forEach(({ data }, index) => {
-			if (spreadsheetRestaurantExists(data, [...restaurants, ...imported])) { skipped += 1; return; }
-			imported.push(createRestaurantFromSpreadsheet(data, index));
+			const existing = findSpreadsheetRestaurant(data, [...restaurants, ...imported]);
+			const spreadsheetRestaurant = createRestaurantFromSpreadsheet(data, index);
+			if (!existing) { imported.push(spreadsheetRestaurant); return; }
+			if (completeRestaurantFromSpreadsheet(existing, spreadsheetRestaurant)) updated += 1;
+			else skipped += 1;
 		});
-		if (!imported.length) throw new Error('Todos los lugares de la planilla ya existen');
+		if (!imported.length && !updated) throw new Error('Los lugares ya existen y no tienen datos nuevos para completar');
 		restaurants.unshift(...imported);
 		if (!await saveRestaurants()) throw new Error('No se pudieron guardar los lugares importados');
 		[cuisines, establishmentTypes, serviceTypes, neighborhoods, cities, provinces, countries].forEach((values) => values.sort((a, b) => a.localeCompare(b, 'es')));
@@ -2328,8 +2354,10 @@ excelImportForm.addEventListener('submit', async (event) => {
 		renderCuisineFilterOptions();
 		renderServiceFilterOptions();
 		render();
-		excelImportProgress.textContent = `Listo: se importaron ${imported.length} lugares${skipped ? ` y se omitieron ${skipped} que ya existían` : ''}.`;
-		showToast(`${imported.length} lugares importados${skipped ? ` · ${skipped} existentes` : ''}`);
+		const resultParts = [`${imported.length} nuevos`, `${updated} actualizados`];
+		if (skipped) resultParts.push(`${skipped} sin cambios`);
+		excelImportProgress.textContent = `Listo: ${resultParts.join(' · ')}.`;
+		showToast(resultParts.join(' · '));
 		spreadsheetPreviewRows = [];
 		window.setTimeout(() => excelImportDialog.close(), 900);
 	} catch (error) {
