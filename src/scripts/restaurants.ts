@@ -66,6 +66,41 @@ type ImportedRestaurant = Partial<Omit<Restaurant, 'id' | 'createdAt' | 'imageCo
 	collectionUrls?: string[];
 };
 
+type SpreadsheetRestaurant = {
+	name: string;
+	description: string;
+	establishmentTypes: string[];
+	cuisines: string[];
+	tags: string;
+	rating: string;
+	mealTypes: string[];
+	price: string;
+	averagePrice: string;
+	country: string;
+	province: string;
+	city: string;
+	address: string;
+	neighborhood: string;
+	phone: string;
+	mobile: string;
+	website: string;
+	googleUrl: string;
+	linktreeUrl: string;
+	menuUrl: string;
+	tiktokUrl: string;
+	instagramUrl: string;
+	facebookUrl: string;
+	wokiUrl: string;
+	tripAdvisorUrl: string;
+	mapUrl: string;
+	hours: string;
+	notes: string;
+	favorite: boolean;
+	visited: boolean;
+};
+
+type SpreadsheetPreviewRow = { rowNumber: number; data: SpreadsheetRestaurant; error: string };
+
 const STORAGE_KEY = 'restobox-restaurants-v1';
 const BACKUP_KEY = 'restobox-restaurants-backups-v1';
 const CUISINES_KEY = 'restobox-cuisines-v1';
@@ -140,6 +175,7 @@ const headerEstablishmentOptions = document.querySelector<HTMLDivElement>('#head
 const headerServiceOptions = document.querySelector<HTMLDivElement>('#header-service-options')!;
 const headerCuisineOptions = document.querySelector<HTMLDivElement>('#header-cuisine-options')!;
 const toolbarImportUrl = document.querySelector<HTMLButtonElement>('#toolbar-import-url')!;
+const openExcelImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-excel-import]')];
 const cuisineSelect = document.querySelector<HTMLInputElement>('#cuisine')!;
 const cuisineCombobox = document.querySelector<HTMLDivElement>('#cuisine-combobox')!;
 const cuisineOptions = document.querySelector<HTMLDivElement>('#cuisine-options')!;
@@ -243,6 +279,15 @@ const placeSearchName = document.querySelector<HTMLInputElement>('#place-search-
 const nameImportProgress = document.querySelector<HTMLDivElement>('#name-import-progress')!;
 const cancelNameImport = document.querySelector<HTMLButtonElement>('#cancel-name-import')!;
 const searchNameImport = document.querySelector<HTMLButtonElement>('#search-name-import')!;
+const excelImportDialog = document.querySelector<HTMLDialogElement>('#excel-import-dialog')!;
+const excelImportForm = document.querySelector<HTMLFormElement>('#excel-import-form')!;
+const excelImportFile = document.querySelector<HTMLInputElement>('#excel-import-file')!;
+const excelImportProgress = document.querySelector<HTMLDivElement>('#excel-import-progress')!;
+const excelImportPreview = document.querySelector<HTMLDivElement>('#excel-import-preview')!;
+const excelImportSummary = document.querySelector<HTMLElement>('#excel-import-summary')!;
+const excelImportPreviewBody = document.querySelector<HTMLTableSectionElement>('#excel-import-preview-body')!;
+const cancelExcelImport = document.querySelector<HTMLButtonElement>('#cancel-excel-import')!;
+const importExcelButton = document.querySelector<HTMLButtonElement>('#import-excel-button')!;
 const deletePlaceDialog = document.querySelector<HTMLDialogElement>('#delete-place-dialog')!;
 const deletePlaceMessage = document.querySelector<HTMLParagraphElement>('#delete-place-message')!;
 const bulkEditDialog = document.querySelector<HTMLDialogElement>('#bulk-edit-dialog')!;
@@ -296,6 +341,7 @@ let cardPreviewUrls: string[] = [];
 let cardRenderVersion = 0;
 let draggedImageIndex: number | null = null;
 let draggedCuisineIndex: number | null = null;
+let spreadsheetPreviewRows: SpreadsheetPreviewRow[] = [];
 let imageInsertMode: 'append' | 'primary' = 'append';
 let toastTimer: number | undefined;
 let pasteTarget: HTMLInputElement | HTMLTextAreaElement | null = null;
@@ -2045,6 +2091,260 @@ nameImportForm.addEventListener('submit', async (event) => {
 		searchNameImport.textContent = 'Buscar e importar';
 	}
 });
+
+const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = {
+	nombre: 'name', 'nombre del lugar': 'name', restaurante: 'name',
+	descripcion: 'description', detalle: 'description',
+	lugar: 'establishmentTypes', 'tipo de lugar': 'establishmentTypes', 'tipos de lugar': 'establishmentTypes', categoria: 'establishmentTypes',
+	cocina: 'cuisines', 'tipo de cocina': 'cuisines', 'tipos de cocina': 'cuisines',
+	servicio: 'mealTypes', servicios: 'mealTypes',
+	etiqueta: 'tags', etiquetas: 'tags', tags: 'tags',
+	calificacion: 'rating', puntuacion: 'rating', rating: 'rating',
+	precio: 'price', 'nivel de precio': 'price',
+	'precio promedio': 'averagePrice', 'precio promedio por persona': 'averagePrice',
+	pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', barrio: 'neighborhood',
+	telefono: 'phone', celular: 'mobile', movil: 'mobile', whatsapp: 'mobile',
+	web: 'website', 'sitio web': 'website', website: 'website', google: 'googleUrl', 'url google': 'googleUrl',
+	linktree: 'linktreeUrl', menu: 'menuUrl', 'url menu': 'menuUrl', instagram: 'instagramUrl', tiktok: 'tiktokUrl', facebook: 'facebookUrl',
+	woki: 'wokiUrl', tripadvisor: 'tripAdvisorUrl', mapa: 'mapUrl', 'url mapa': 'mapUrl',
+	horario: 'hours', horarios: 'hours', notas: 'notes', observaciones: 'notes',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited',
+};
+
+function normalizeSpreadsheetHeader(value: string) {
+	return value.replace(/^\uFEFF/, '').trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+}
+
+function spreadsheetCellText(value: unknown): string {
+	if (value === null || value === undefined) return '';
+	if (value instanceof Date) return value.toLocaleDateString('es-AR');
+	if (typeof value !== 'object') return String(value).trim();
+	const cell = value as { text?: unknown; result?: unknown; richText?: Array<{ text?: unknown }> };
+	if (cell.text !== undefined) return String(cell.text).trim();
+	if (cell.result !== undefined) return spreadsheetCellText(cell.result);
+	if (Array.isArray(cell.richText)) return cell.richText.map((part) => String(part.text ?? '')).join('').trim();
+	return '';
+}
+
+function parseDelimitedText(source: string): string[][] {
+	const firstLine = source.split(/\r?\n/, 1)[0] ?? '';
+	const delimiters = [',', ';', '\t'];
+	const delimiter = delimiters.sort((a, b) => firstLine.split(b).length - firstLine.split(a).length)[0];
+	const rows: string[][] = [];
+	let row: string[] = [];
+	let value = '';
+	let quoted = false;
+	for (let index = 0; index < source.length; index += 1) {
+		const character = source[index];
+		if (character === '"') {
+			if (quoted && source[index + 1] === '"') { value += '"'; index += 1; }
+			else quoted = !quoted;
+		} else if (character === delimiter && !quoted) {
+			row.push(value.trim()); value = '';
+		} else if ((character === '\n' || character === '\r') && !quoted) {
+			if (character === '\r' && source[index + 1] === '\n') index += 1;
+			row.push(value.trim());
+			if (row.some(Boolean)) rows.push(row);
+			row = []; value = '';
+		} else value += character;
+	}
+	row.push(value.trim());
+	if (row.some(Boolean)) rows.push(row);
+	return rows;
+}
+
+async function readSpreadsheet(file: File): Promise<Array<{ rowNumber: number; cells: string[] }>> {
+	if (file.name.toLocaleLowerCase('es').endsWith('.csv')) {
+		return parseDelimitedText(await file.text()).map((cells, index) => ({ rowNumber: index + 1, cells }));
+	}
+	const { default: readXlsxFile } = await import('read-excel-file/browser');
+	const sheets = await readXlsxFile(file);
+	const rows = sheets[0]?.data;
+	if (!rows) throw new Error('La planilla no contiene hojas');
+	return rows
+		.map((cells, index) => ({ rowNumber: index + 1, cells: cells.map(spreadsheetCellText) }))
+		.filter(({ cells }) => cells.some(Boolean));
+}
+
+function splitSpreadsheetValues(value: string) {
+	return [...new Set(value.split(/[,;|\n]+/).map((item) => item.trim()).filter(Boolean))];
+}
+
+function spreadsheetBoolean(value: string) {
+	return ['si', 'sí', 'true', 'verdadero', '1', 'x'].includes(value.trim().toLocaleLowerCase('es'));
+}
+
+function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
+	return {
+		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '',
+		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false,
+	};
+}
+
+function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string[] }>): SpreadsheetPreviewRow[] {
+	if (rows.length < 2) throw new Error('La planilla debe incluir encabezados y al menos un lugar');
+	const headerRow = rows[0];
+	const columns = headerRow.cells.map((header) => SPREADSHEET_HEADER_ALIASES[normalizeSpreadsheetHeader(header)]);
+	if (!columns.includes('name')) throw new Error('No se encontró la columna obligatoria “Nombre”');
+	return rows.slice(1).filter(({ cells }) => cells.some((cell) => cell.trim())).map(({ rowNumber, cells }) => {
+		const data = emptySpreadsheetRestaurant();
+		columns.forEach((column, index) => {
+			if (!column) return;
+			const value = cells[index]?.trim() ?? '';
+			if (column === 'establishmentTypes' || column === 'cuisines' || column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
+			else if (column === 'favorite' || column === 'visited') data[column] = spreadsheetBoolean(value);
+			else data[column] = value;
+		});
+		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
+		data.price = ['$','$$','$$$','$$$$'].includes(data.price.replace(/\s/g, '')) ? data.price.replace(/\s/g, '') : '';
+		return { rowNumber, data, error: data.name ? '' : 'Falta el nombre' };
+	});
+}
+
+function renderSpreadsheetPreview() {
+	const valid = spreadsheetPreviewRows.filter((row) => !row.error).length;
+	const invalid = spreadsheetPreviewRows.length - valid;
+	excelImportSummary.textContent = `${valid} ${valid === 1 ? 'lugar listo' : 'lugares listos'}${invalid ? ` · ${invalid} ${invalid === 1 ? 'fila omitida' : 'filas omitidas'}` : ''}`;
+	excelImportPreviewBody.innerHTML = spreadsheetPreviewRows.slice(0, 200).map(({ rowNumber, data, error }) => `
+		<tr class="${error ? 'is-invalid' : ''}"><td>${rowNumber}</td><td>${safe(data.name || 'Sin nombre')}</td><td>${safe(data.establishmentTypes.join(', ') || '—')}</td><td>${safe(data.city || '—')}</td><td>${safe(error || 'Lista')}</td></tr>`).join('');
+	excelImportPreview.hidden = false;
+	importExcelButton.disabled = valid === 0;
+}
+
+function normalizedSpreadsheetIdentity(value: string) {
+	return value.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function spreadsheetRestaurantExists(data: SpreadsheetRestaurant, collection: Restaurant[]) {
+	const name = normalizedSpreadsheetIdentity(data.name);
+	const address = normalizedSpreadsheetIdentity(data.address);
+	const city = normalizedSpreadsheetIdentity(data.city);
+	const googleUrl = data.googleUrl.trim().replace(/\/$/, '').toLocaleLowerCase('es');
+	const wokiUrl = data.wokiUrl.trim().replace(/\/$/, '').toLocaleLowerCase('es');
+	return collection.some((restaurant) => {
+		if (googleUrl && restaurant.googleUrl?.trim().replace(/\/$/, '').toLocaleLowerCase('es') === googleUrl) return true;
+		if (wokiUrl && restaurant.wokiUrl?.trim().replace(/\/$/, '').toLocaleLowerCase('es') === wokiUrl) return true;
+		if (normalizedSpreadsheetIdentity(restaurant.name) !== name) return false;
+		if (address) return normalizedSpreadsheetIdentity(restaurant.address) === address;
+		return Boolean(city) && normalizedSpreadsheetIdentity(restaurant.city) === city;
+	});
+}
+
+function addSpreadsheetCatalogValue(values: string[], removed: string[], value: string, maxLength = 80) {
+	const normalized = value.trim().slice(0, maxLength);
+	if (!normalized) return '';
+	const existing = values.find((item) => item.toLocaleLowerCase('es') === normalized.toLocaleLowerCase('es'));
+	if (!existing) values.push(normalized);
+	const canonical = existing ?? normalized;
+	const removedIndex = removed.findIndex((item) => item.toLocaleLowerCase('es') === canonical.toLocaleLowerCase('es'));
+	if (removedIndex >= 0) removed.splice(removedIndex, 1);
+	return canonical;
+}
+
+function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: number): Restaurant {
+	const importedEstablishments = (data.establishmentTypes.length ? data.establishmentTypes : ['Restaurante'])
+		.map((value) => addSpreadsheetCatalogValue(establishmentTypes, removedEstablishmentTypes, value)).filter(Boolean);
+	const importedCuisines = data.cuisines.map((value) => addSpreadsheetCatalogValue(cuisines, removedCuisines, value)).filter(Boolean);
+	const importedServices = data.mealTypes.map((value) => addSpreadsheetCatalogValue(serviceTypes, removedServiceTypes, value)).filter(Boolean);
+	const neighborhood = addSpreadsheetCatalogValue(neighborhoods, removedNeighborhoods, data.neighborhood);
+	const city = addSpreadsheetCatalogValue(cities, removedCities, data.city, 60);
+	const province = addSpreadsheetCatalogValue(provinces, removedProvinces, data.province, 60);
+	const country = addSpreadsheetCatalogValue(countries, removedCountries, data.country, 60);
+	return {
+		id: crypto.randomUUID(), name: data.name.trim(), description: data.description.trim(),
+		establishmentType: importedEstablishments[0] ?? '', establishmentTypes: importedEstablishments,
+		cuisine: importedCuisines[0] ?? '', cuisines: importedCuisines, tags: data.tags.trim(), rating: data.rating,
+		mealTypes: importedServices, price: data.price, averagePrice: data.averagePrice.trim(), country, province, city,
+		address: data.address.trim(), neighborhood, hasBranches: false, branchAddresses: [], phone: data.phone.trim(), mobile: data.mobile.trim(),
+		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
+		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
+		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
+		favorite: data.favorite, visited: data.visited, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+	};
+}
+
+openExcelImportButtons.forEach((button) => button.addEventListener('click', () => {
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	excelImportForm.reset();
+	spreadsheetPreviewRows = [];
+	excelImportProgress.hidden = true;
+	excelImportProgress.classList.remove('is-error');
+	excelImportPreview.hidden = true;
+	excelImportPreviewBody.innerHTML = '';
+	importExcelButton.disabled = true;
+	importExcelButton.textContent = 'Importar lugares';
+	excelImportDialog.showModal();
+}));
+
+cancelExcelImport.addEventListener('click', () => excelImportDialog.close());
+
+excelImportFile.addEventListener('change', async () => {
+	spreadsheetPreviewRows = [];
+	excelImportPreview.hidden = true;
+	importExcelButton.disabled = true;
+	const file = excelImportFile.files?.[0];
+	if (!file) return;
+	excelImportProgress.hidden = false;
+	excelImportProgress.classList.remove('is-error');
+	excelImportProgress.textContent = 'Leyendo la planilla…';
+	try {
+		spreadsheetPreviewRows = spreadsheetRowsToPreview(await readSpreadsheet(file));
+		if (!spreadsheetPreviewRows.length) throw new Error('La planilla no contiene lugares para importar');
+		renderSpreadsheetPreview();
+		excelImportProgress.hidden = true;
+	} catch (error) {
+		excelImportProgress.classList.add('is-error');
+		excelImportProgress.textContent = error instanceof Error ? error.message : 'No se pudo leer la planilla';
+	}
+});
+
+excelImportForm.addEventListener('submit', async (event) => {
+	event.preventDefault();
+	const validRows = spreadsheetPreviewRows.filter((row) => !row.error);
+	if (!validRows.length) return;
+	importExcelButton.disabled = true;
+	cancelExcelImport.disabled = true;
+	importExcelButton.textContent = 'Importando…';
+	excelImportProgress.hidden = false;
+	excelImportProgress.classList.remove('is-error');
+	excelImportProgress.textContent = `Guardando ${validRows.length} lugares…`;
+	const previousRestaurants = structuredClone(restaurants);
+	const catalogSnapshot = structuredClone({ cuisines, removedCuisines, establishmentTypes, removedEstablishmentTypes, serviceTypes, removedServiceTypes, neighborhoods, removedNeighborhoods, cities, removedCities, provinces, removedProvinces, countries, removedCountries });
+	try {
+		backupRestaurants();
+		const imported: Restaurant[] = [];
+		let skipped = 0;
+		validRows.forEach(({ data }, index) => {
+			if (spreadsheetRestaurantExists(data, [...restaurants, ...imported])) { skipped += 1; return; }
+			imported.push(createRestaurantFromSpreadsheet(data, index));
+		});
+		if (!imported.length) throw new Error('Todos los lugares de la planilla ya existen');
+		restaurants.unshift(...imported);
+		if (!await saveRestaurants()) throw new Error('No se pudieron guardar los lugares importados');
+		[cuisines, establishmentTypes, serviceTypes, neighborhoods, cities, provinces, countries].forEach((values) => values.sort((a, b) => a.localeCompare(b, 'es')));
+		persistCatalogSettings();
+		renderEstablishmentFilterOptions();
+		renderCuisineFilterOptions();
+		renderServiceFilterOptions();
+		render();
+		excelImportProgress.textContent = `Listo: se importaron ${imported.length} lugares${skipped ? ` y se omitieron ${skipped} que ya existían` : ''}.`;
+		showToast(`${imported.length} lugares importados${skipped ? ` · ${skipped} existentes` : ''}`);
+		spreadsheetPreviewRows = [];
+		window.setTimeout(() => excelImportDialog.close(), 900);
+	} catch (error) {
+		restaurants = previousRestaurants;
+		({ cuisines, removedCuisines, establishmentTypes, removedEstablishmentTypes, serviceTypes, removedServiceTypes, neighborhoods, removedNeighborhoods, cities, removedCities, provinces, removedProvinces, countries, removedCountries } = catalogSnapshot);
+		excelImportProgress.classList.add('is-error');
+		excelImportProgress.textContent = error instanceof Error ? error.message : 'No se pudo completar la importación';
+		render();
+	} finally {
+		cancelExcelImport.disabled = false;
+		importExcelButton.disabled = spreadsheetPreviewRows.every((row) => Boolean(row.error));
+		importExcelButton.textContent = 'Importar lugares';
+	}
+});
+
 openUrlImportButton.addEventListener('click', () => {
 	openUrlImportButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	urlImportForm.reset();

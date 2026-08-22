@@ -81,6 +81,7 @@ const userInitials = userDisplayName
 							<div class="dropdown-panel actions-panel">
 								<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
 								<button type="button" id="header-import-place"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
+								<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
 								<button type="button" id="header-edit-places"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" id="header-delete-places"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 								<button type="button" id="header-print-directory"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -95,6 +96,7 @@ const userInitials = userDisplayName
 							<div class="dropdown-panel add-panel">
 								<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
 								<button type="button" id="open-url-import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
+								<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
 							</div>
 						</details>
 
@@ -137,6 +139,7 @@ const userInitials = userDisplayName
 								<div class="directory-action-popover">
 									<button type="button" data-open-form>Nuevo lugar</button>
 									<button type="button" id="toolbar-import-url">Importar desde URLs</button>
+									<button type="button" data-open-excel-import>Importar desde Excel</button>
 								</div>
 							</details>
 						</div>
@@ -562,6 +565,30 @@ const userInitials = userDisplayName
 				<div class="mini-dialog-actions">
 					<button id="cancel-name-import" class="secondary-button" type="button">Cancelar</button>
 					<button id="search-name-import" class="primary-button" type="submit">Buscar e importar</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog id="excel-import-dialog" class="mini-dialog excel-import-dialog">
+			<form id="excel-import-form">
+				<h2>Importar desde Excel</h2>
+				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
+				<label for="excel-import-file">Planilla</label>
+				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Lugar, Cocina, Servicios, Etiquetas, Calificación, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Barrio, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
+				<div id="excel-import-preview" class="excel-import-preview" hidden>
+					<strong id="excel-import-summary"></strong>
+					<div class="excel-preview-table-wrap">
+						<table>
+							<thead><tr><th>Fila</th><th>Nombre</th><th>Lugar</th><th>Ciudad</th><th>Estado</th></tr></thead>
+							<tbody id="excel-import-preview-body"></tbody>
+						</table>
+					</div>
+				</div>
+				<div class="mini-dialog-actions">
+					<button id="cancel-excel-import" class="secondary-button" type="button">Cancelar</button>
+					<button id="import-excel-button" class="primary-button" type="submit" disabled>Importar lugares</button>
 				</div>
 			</form>
 		</dialog>
