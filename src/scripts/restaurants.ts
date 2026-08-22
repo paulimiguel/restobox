@@ -39,6 +39,7 @@ type Restaurant = {
 	delivery?: boolean;
 	takeAway?: boolean;
 	glutenFree?: boolean;
+	reservations?: boolean;
 	imageCount: number;
 	createdAt: string;
 };
@@ -106,6 +107,7 @@ type SpreadsheetRestaurant = {
 	delivery: boolean;
 	takeAway: boolean;
 	glutenFree: boolean;
+	reservations: boolean;
 };
 
 type SpreadsheetPreviewRow = { rowNumber: number; data: SpreadsheetRestaurant; error: string };
@@ -304,6 +306,8 @@ const updateDataButton = document.querySelector<HTMLButtonElement>('#update-data
 const toast = document.querySelector<HTMLDivElement>('#toast')!;
 const pasteScheduleHoursButton = document.querySelector<HTMLButtonElement>('#paste-schedule-hours')!;
 const clearScheduleHoursButton = document.querySelector<HTMLButtonElement>('#clear-schedule-hours')!;
+const restaurantNotesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
+const clearRestaurantNotesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-notes')!;
 const openUrlImportButton = document.querySelector<HTMLButtonElement>('#open-url-import')!;
 const urlImportDialog = document.querySelector<HTMLDialogElement>('#url-import-dialog')!;
 const urlImportForm = document.querySelector<HTMLFormElement>('#url-import-form')!;
@@ -1378,7 +1382,7 @@ function setupClearableFields() {
 	const controls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea');
 	controls.forEach((control) => {
 		if (control instanceof HTMLInputElement && ['hidden', 'file', 'checkbox', 'radio'].includes(control.type)) return;
-		if (['cuisine', 'establishment-type', 'service-type', 'tag-input'].includes(control.id)) return;
+		if (['cuisine', 'establishment-type', 'service-type', 'tag-input', 'restaurant-notes'].includes(control.id)) return;
 		const wrapper = document.createElement('div');
 		wrapper.className = 'clearable-control';
 		control.before(wrapper);
@@ -2027,6 +2031,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(restaurant.delivery);
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
+		(form.elements.namedItem('reservations') as HTMLInputElement).checked = Boolean(restaurant.reservations);
 	} else {
 		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
@@ -2203,6 +2208,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		delivery: Boolean(imported.delivery),
 		takeAway: Boolean(imported.takeAway),
 		glutenFree: Boolean(imported.glutenFree),
+		reservations: Boolean(imported.reservations),
 		imageCount: 0,
 		createdAt: new Date().toISOString(),
 	};
@@ -2255,6 +2261,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(imported.delivery);
 	(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(imported.takeAway);
 	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
+	(form.elements.namedItem('reservations') as HTMLInputElement).checked = Boolean(imported.reservations);
 
 	selectedEstablishments = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
 	selectedEstablishments.forEach((type) => {
@@ -2370,7 +2377,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', reserva: 'reservations', reservas: 'reservations',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
@@ -2440,7 +2447,7 @@ function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 	return {
 		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '', score: '',
 		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
-		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false,
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, reservations: false,
 	};
 }
 
@@ -2456,7 +2463,7 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 			const value = cells[index]?.trim() ?? '';
 			if (column === 'establishmentTypes' || column === 'cuisines') data[column] = capitalizedCatalogValues(splitSpreadsheetValues(value));
 			else if (column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
-			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree') data[column] = spreadsheetBoolean(value);
+			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'reservations') data[column] = spreadsheetBoolean(value);
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
@@ -2524,7 +2531,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, reservations: data.reservations, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -2545,6 +2552,7 @@ function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Resta
 	existing.delivery = Boolean(existing.delivery || imported.delivery);
 	existing.takeAway = Boolean(existing.takeAway || imported.takeAway);
 	existing.glutenFree = Boolean(existing.glutenFree || imported.glutenFree);
+	existing.reservations = Boolean(existing.reservations || imported.reservations);
 	return before !== JSON.stringify(existing);
 }
 
@@ -3273,6 +3281,14 @@ clearScheduleHoursButton.addEventListener('click', () => {
 	form.dispatchEvent(new Event('input', { bubbles: true }));
 	showToast('Horarios borrados');
 });
+clearRestaurantNotesButton.addEventListener('click', () => {
+	if (!restaurantNotesInput.value.trim()) return;
+	restaurantNotesInput.value = '';
+	restaurantNotesInput.dispatchEvent(new Event('input', { bubbles: true }));
+	restaurantNotesInput.dispatchEvent(new Event('change', { bubbles: true }));
+	restaurantNotesInput.focus();
+	showToast('Notas borradas');
+});
 pasteTextButton.addEventListener('pointerdown', (event) => {
 	if (pasteTarget) event.preventDefault();
 });
@@ -3948,6 +3964,7 @@ function setBulkEditLists() {
 	document.querySelector<HTMLDivElement>('#bulk-cuisine-options')!.innerHTML = choices(cuisines, 'cuisines');
 	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).sort((a, b) => a.localeCompare(b, 'es'));
 	document.querySelector<HTMLDivElement>('#bulk-tag-options')!.innerHTML = choices(availableTags, 'tags') || '<span class="cuisine-empty">No hay etiquetas guardadas.</span>';
+	document.querySelector<HTMLElement>('#bulk-cuisines-label')!.textContent = 'Seleccionar tipos de cocina';
 	document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = 'Seleccionar etiquetas';
 }
 
@@ -3974,9 +3991,15 @@ editSelectedPlacesButton.addEventListener('click', () => {
 
 cancelBulkEdit.addEventListener('click', () => bulkEditDialog.close());
 bulkEditForm.addEventListener('change', (event) => {
-	if (!(event.target as HTMLInputElement).matches('input[name="tags"]')) return;
-	const count = bulkEditForm.querySelectorAll<HTMLInputElement>('input[name="tags"]:checked').length;
-	document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = count ? `${count} etiquetas seleccionadas` : 'Seleccionar etiquetas';
+	const input = event.target as HTMLInputElement;
+	if (input.matches('input[name="cuisines"]')) {
+		const count = bulkEditForm.querySelectorAll<HTMLInputElement>('input[name="cuisines"]:checked').length;
+		document.querySelector<HTMLElement>('#bulk-cuisines-label')!.textContent = count ? `${count} tipos de cocina seleccionados` : 'Seleccionar tipos de cocina';
+	}
+	if (input.matches('input[name="tags"]')) {
+		const count = bulkEditForm.querySelectorAll<HTMLInputElement>('input[name="tags"]:checked').length;
+		document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = count ? `${count} etiquetas seleccionadas` : 'Seleccionar etiquetas';
+	}
 });
 bulkEditForm.addEventListener('keydown', (event) => {
 	if (event.key === 'Enter') event.preventDefault();
@@ -3988,7 +4011,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -4019,7 +4042,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 			} else if (field === 'tags') {
 				restaurant.tags = listValues(field).join(', ');
 			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
-			else if (field === 'price' || field === 'averagePrice' || field === 'rating') restaurant[field] = value(field);
+			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
 	establishmentTypes.sort((a, b) => a.localeCompare(b, 'es'));
@@ -4150,6 +4173,7 @@ form.addEventListener('submit', async (event) => {
 		delivery: formData.has('delivery'),
 		takeAway: formData.has('takeAway'),
 		glutenFree: formData.has('glutenFree'),
+		reservations: formData.has('reservations'),
 		imageCount: restaurantImages.length,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
