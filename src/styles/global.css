@@ -182,7 +182,7 @@ main { min-width: 0; }
 .user-summary small { color: var(--muted); font-size: 12px; }
 .user-summary small:empty { display: none; }
 .dropdown-separator { height: 1px; margin: 5px -6px; background: var(--line); }
-.content { width: min(1420px, calc(100% - 8vw)); margin: 0 auto; padding: 24px 0 70px; }
+.content { width: min(1420px, calc(100% - 8vw)); margin: 0 auto; padding: 0 0 70px; }
 .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-bottom: 45px; }
 .eyebrow { margin: 0 0 16px; color: var(--accent-text); font-size: 10px; font-weight: 700; letter-spacing: 2px; }
 h1 { margin: 0; font-family: var(--font-display); font-size: clamp(45px, 5.2vw, 71px); font-weight: 400; line-height: .98; letter-spacing: -1.5px; }
@@ -431,7 +431,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
-.restaurant-card-top-actions .visited-button.active svg { stroke-width: 2.5; }
+.restaurant-card-top-actions .visited-button svg { stroke-width: 2.8; }
+.restaurant-card-top-actions .visited-button.active svg { stroke-width: 3; }
 .restaurant-card-top-actions .checked-button .checked-icon, .restaurant-card-list-status .checked-button .checked-icon { opacity: .4; filter: grayscale(1); transition: filter .18s, opacity .18s, transform .18s; }
 .restaurant-card-top-actions .checked-button:hover .checked-icon, .restaurant-card-top-actions .checked-button.active .checked-icon, .restaurant-card-list-status .checked-button:hover .checked-icon, .restaurant-card-list-status .checked-button.active .checked-icon { opacity: 1; filter: none; }
 .restaurant-card-top-actions .view-images-button:hover { color: var(--accent-text); }
@@ -683,7 +684,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .boolean-check-control { display: flex; min-height: 39px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; }
 #panel-details .boolean-check-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
 .characteristics-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.characteristics-checks > label { display: grid; gap: 5px; }
+.characteristics-checks > .boolean-check-control { display: flex; }
 .view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 #panel-information .form-grid { padding-top: 12px; }
 #panel-links .form-grid { padding-top: 12px; }
@@ -780,9 +781,10 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .restaurant-status-option { display: flex !important; min-height: 39px; align-items: center; gap: 7px !important; padding: 6px 12px; border: 1px solid var(--line); border-radius: 7px; background: white; cursor: pointer; }
 .restaurant-status-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .restaurant-status-option svg { width: 18px; color: var(--muted); }
+.restaurant-status-option:has(input[name="visited"]) svg { stroke-width: 2.8; }
 .restaurant-status-option:has(input:checked) { color: var(--accent-text); border-color: var(--forest); background: var(--sage); }
 .restaurant-status-option:has(input[name="favorite"]:checked) svg { color: #ef4444; fill: currentColor; }
-.restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 2.5; }
+.restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 3; }
 .restaurant-status-option:has(input[name="checked"]:checked) { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
 .restaurant-status-option:has(input[name="checked"]:checked) svg { color: #2563eb; stroke-width: 2.5; }
 .checked-status-option .checked-icon { opacity: .4; filter: grayscale(1); transition: filter .18s, opacity .18s; }
@@ -873,6 +875,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-general .favorite-status { color: #ef4444; }
 .view-mode #panel-general .favorite-status svg { fill: currentColor; }
 .view-mode #panel-general .visited-status { color: #22a95b; }
+.view-mode #panel-general .visited-status svg { stroke-width: 2.8; }
 .view-mode #panel-general .checked-status { color: #2563eb; }
 .view-mode #panel-general .location-fields label { grid-template-columns: auto minmax(0, 1fr); }
 .view-mode #panel-general .field-label, .view-mode #panel-general label, .view-mode #panel-general .form-field > label { color: #414a44; font-size: 13px; font-weight: 600; }
@@ -890,8 +893,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-details .establishment-type-field, .view-mode #panel-details .meal-type-field { grid-column: 1 / -1; }
 .view-mode #panel-details .form-grid > label, .view-mode #panel-details .form-grid > .form-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); min-height: 54px; align-items: center; gap: 10px; padding-block: 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-details .price-level-field, .view-mode #panel-details .average-price-field { grid-column: 1 / -1; }
-.view-mode #panel-details .characteristics-checks { grid-template-columns: 1fr; gap: 0; padding: 0; border-bottom: 0; }
-.view-mode #panel-details .characteristics-checks > label { display: grid; grid-template-columns: 135px minmax(0, 1fr); min-height: 54px; align-items: center; gap: 10px; padding-block: 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-details .form-grid > .characteristics-checks { display: flex; min-height: 54px; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding-block: 8px; }
+.view-mode #panel-details .form-grid > .characteristics-checks:not(:has(input:checked)) { display: none; }
+.view-mode #panel-details .characteristics-checks > .boolean-check-control { display: inline-flex; min-height: 0; align-items: center; gap: 7px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 500; }
+.view-mode #panel-details .characteristics-checks > .boolean-check-control:not(:has(input:checked)) { display: none; }
+.view-mode #panel-details .characteristics-checks > .boolean-check-control input { display: none; }
+.view-mode #panel-details .characteristics-checks > .boolean-check-control::before { content: '✓'; color: #22a95b; font-size: 18px; font-weight: 800; line-height: 1; }
 .view-mode #panel-details .form-field > label { display: block; min-height: 0; align-self: center; color: #414a44; font-size: 13px; font-weight: 600; line-height: 1.35; }
 .view-mode #panel-details .select-with-action { display: none; }
 .view-mode #panel-details .cuisine-combobox { display: none; }
@@ -968,7 +975,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.header-brand { width: 104px; height: 66px; flex-basis: 104px; margin-right: 12px; }
 	.header-nav-link { display: none; }
 	.top-actions { gap: 3px; }
-	.content { width: min(100% - 34px, 720px); padding-top: 18px; }
+	.content { width: min(100% - 34px, 720px); padding-top: 0; }
 	.restaurant-row { grid-template-columns: 1.3fr 1fr 90px 65px; }
 	.restaurant-row .row-offering { display: none; }
 }

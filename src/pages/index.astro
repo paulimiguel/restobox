@@ -362,15 +362,19 @@ const userInitials = userDisplayName
 						</div>
 						<div class="form-field tags-field wide">
 							<label for="tag-input">Etiquetas</label>
-							<div class="cuisine-combobox">
-								<input id="tag-input" type="text" maxlength="50" autocomplete="off" placeholder="Escribí una etiqueta y pulsá Enter" />
+							<div id="tag-combobox" class="cuisine-combobox">
+								<div class="select-with-action cuisine-select-actions">
+									<input id="tag-input" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tag-options" placeholder="Elegí una etiqueta o escribí una nueva y pulsá Enter" />
+									<button id="manage-tags" type="button" aria-label="Abrir etiquetas" title="Abrir etiquetas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="9" cy="7" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="11" cy="17" r="1"/></svg></button>
+								</div>
+								<div id="tag-options" class="cuisine-dropdown" role="listbox" hidden></div>
 							</div>
 							<div id="selected-tags" class="selected-options" aria-live="polite"></div>
 						</div>
 						<div class="form-field characteristics-checks wide">
-							<label><span>Delivery</span><span class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Disponible</span></span></label>
-							<label><span>Take away</span><span class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Disponible</span></span></label>
-							<label><span>Sin gluten</span><span class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Disponible</span></span></label>
+							<label class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Delivery</span></label>
+							<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
+							<label class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Sin gluten</span></label>
 						</div>
 						<label class="price-level-field">Nivel de precio
 							<select name="price">
@@ -637,6 +641,10 @@ const userInitials = userDisplayName
 						<label><span>Calificación</span><select name="rating"><option value="">Sin cambios</option><option value="1">1 estrella</option><option value="2">2 estrellas</option><option value="3">3 estrellas</option><option value="4">4 estrellas</option><option value="5">5 estrellas</option></select></label>
 						<label><span>Favorito</span><select name="favorite"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 						<label><span>Visitado</span><select name="visited"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
+						<label><span>Checked</span><select name="checked"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
+						<label><span>Delivery</span><select name="delivery"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
+						<label><span>Take away</span><select name="takeAway"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
+						<label><span>Sin gluten</span><select name="glutenFree"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 					</div>
 				</div>
 				<datalist id="bulk-neighborhoods"></datalist><datalist id="bulk-cities"></datalist><datalist id="bulk-provinces"></datalist><datalist id="bulk-countries"></datalist>

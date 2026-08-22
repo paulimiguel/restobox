@@ -114,6 +114,8 @@ const STORAGE_KEY = 'restobox-restaurants-v1';
 const BACKUP_KEY = 'restobox-restaurants-backups-v1';
 const CUISINES_KEY = 'restobox-cuisines-v1';
 const REMOVED_CUISINES_KEY = 'restobox-removed-cuisines-v1';
+const TAGS_KEY = 'restobox-tags-v1';
+const REMOVED_TAGS_KEY = 'restobox-removed-tags-v1';
 const ESTABLISHMENTS_KEY = 'restobox-establishments-v1';
 const REMOVED_ESTABLISHMENTS_KEY = 'restobox-removed-establishments-v1';
 const SERVICES_KEY = 'restobox-services-v1';
@@ -201,6 +203,9 @@ const countryCombobox = document.querySelector<HTMLDivElement>('#country-combobo
 const countryOptions = document.querySelector<HTMLDivElement>('#country-options')!;
 const selectedCuisinesContainer = document.querySelector<HTMLDivElement>('#selected-cuisines')!;
 const tagInput = document.querySelector<HTMLInputElement>('#tag-input')!;
+const tagCombobox = document.querySelector<HTMLDivElement>('#tag-combobox')!;
+const tagOptions = document.querySelector<HTMLDivElement>('#tag-options')!;
+const manageTagsButton = document.querySelector<HTMLButtonElement>('#manage-tags')!;
 const selectedTagsContainer = document.querySelector<HTMLDivElement>('#selected-tags')!;
 const manageCuisinesButton = document.querySelector<HTMLButtonElement>('#manage-cuisines')!;
 const manageCuisinesDialog = document.querySelector<HTMLDialogElement>('#manage-cuisines-dialog')!;
@@ -322,6 +327,8 @@ if (directoryView === 'compact') directoryView = 'columns-5';
 if (['columns-1', 'columns-2', 'columns-3', 'columns-4'].includes(directoryView)) directoryView = 'columns-5';
 let cuisines: string[] = loadCuisines();
 let removedCuisines: string[] = loadRemovedCuisines();
+let tagCatalog: string[] = loadTags();
+let removedTags: string[] = loadRemovedTags();
 let establishmentTypes: string[] = loadEstablishmentTypes();
 let removedEstablishmentTypes: string[] = loadRemovedEstablishmentTypes();
 let serviceTypes: string[] = loadServiceTypes();
@@ -432,6 +439,7 @@ function persistCatalogSettings() {
 	if (!serverPersistenceReady) return;
 	const value = {
 		cuisines, removedCuisines,
+		tags: tagCatalog, removedTags,
 		establishmentTypes, removedEstablishmentTypes,
 		serviceTypes, removedServiceTypes,
 		neighborhoods, removedNeighborhoods,
@@ -481,6 +489,31 @@ function loadRemovedCuisines(): string[] {
 }
 
 function saveCuisineSettings() {
+	persistCatalogSettings();
+}
+
+function restaurantTags(restaurant: Restaurant) {
+	return restaurant.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
+}
+
+function loadTags(): string[] {
+	try {
+		const stored = JSON.parse(localStorage.getItem(TAGS_KEY) ?? '[]') as string[];
+		const removed = loadRemovedTags().map((item) => item.toLocaleLowerCase('es'));
+		return capitalizedCatalogValues([...stored, ...restaurants.flatMap(restaurantTags)])
+			.filter((item) => !removed.includes(item.toLocaleLowerCase('es')))
+			.sort((a, b) => a.localeCompare(b, 'es'));
+	} catch {
+		return [];
+	}
+}
+
+function loadRemovedTags(): string[] {
+	try { return JSON.parse(localStorage.getItem(REMOVED_TAGS_KEY) ?? '[]') as string[]; }
+	catch { return []; }
+}
+
+function saveTagSettings() {
 	persistCatalogSettings();
 }
 
@@ -850,16 +883,77 @@ function renderSelectedTags() {
 		</span>`).join('');
 }
 
+function renderTagOptions(clearInput = false) {
+	if (clearInput) tagInput.value = '';
+	const query = tagInput.value.trim().toLocaleLowerCase('es');
+	const filtered = tagCatalog.filter((tag) => tag.toLocaleLowerCase('es').includes(query));
+	const hasExactMatch = tagCatalog.some((tag) => tag.toLocaleLowerCase('es') === query);
+	tagOptions.innerHTML = [
+		...filtered.map((tag) => {
+			const selected = selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'));
+			return `
+				<div class="cuisine-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<button type="button" data-select-tag="${safe(tag)}"><span class="cuisine-option-check">✓</span><span>${safe(tag)}</span></button>
+					<button type="button" class="delete-cuisine-option" data-delete-tag="${safe(tag)}" aria-label="Eliminar ${safe(tag)} de la lista" title="Eliminar de la lista">×</button>
+				</div>`;
+		}),
+		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-tag><span>＋</span> Agregar “${safe(tagInput.value.trim())}”</button>`] : []),
+	].join('') || '<p class="cuisine-empty">Sin etiquetas guardadas. Escribí una nueva y pulsá Enter.</p>';
+}
+
+function addTagSelection(tag: string) {
+	const normalizedTag = capitalizeFirstLetter(tag.slice(0, 50));
+	if (!normalizedTag || selectedTags.some((item) => item.toLocaleLowerCase('es') === normalizedTag.toLocaleLowerCase('es'))) {
+		renderTagOptions();
+		return;
+	}
+	selectedTags.push(normalizedTag);
+	renderSelectedTags();
+	renderTagOptions(true);
+	updateDirtyState();
+}
+
 function commitTagInput() {
 	const enteredTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
 	if (!enteredTags.length) return;
 	for (const entered of enteredTags) {
-		const tag = entered.slice(0, 50);
+		const existing = tagCatalog.find((tag) => tag.toLocaleLowerCase('es') === entered.toLocaleLowerCase('es'));
+		const tag = existing ?? capitalizeFirstLetter(entered.slice(0, 50));
+		if (!existing) {
+			tagCatalog.push(tag);
+			tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
+			removedTags = removedTags.filter((item) => item.toLocaleLowerCase('es') !== tag.toLocaleLowerCase('es'));
+		}
 		if (!selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) selectedTags.push(tag);
 	}
 	tagInput.value = '';
+	saveTagSettings();
 	renderSelectedTags();
+	renderTagOptions();
 	updateDirtyState();
+}
+
+function openTagDropdown() {
+	if (tagInput.disabled) return;
+	renderTagOptions();
+	tagOptions.hidden = false;
+	tagInput.setAttribute('aria-expanded', 'true');
+}
+
+function closeTagDropdown() {
+	tagOptions.hidden = true;
+	tagInput.setAttribute('aria-expanded', 'false');
+}
+
+function deleteTagOption(tag: string) {
+	tagCatalog = tagCatalog.filter((item) => item !== tag);
+	removedTags = [...new Set([...removedTags, tag])];
+	selectedTags = selectedTags.filter((item) => item !== tag);
+	saveTagSettings();
+	renderSelectedTags();
+	renderTagOptions();
+	updateDirtyState();
+	showToast('Etiqueta eliminada de la lista');
 }
 
 function addCuisineSelection(cuisine: string) {
@@ -1783,6 +1877,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	updateDirtyState();
 	form.reset();
 	closeCuisineDropdown();
+	closeTagDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
 	closeEstablishmentDropdown();
@@ -1804,6 +1899,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	renderCuisineOptions();
 	selectedTags = restaurant?.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
 	renderSelectedTags();
+	renderTagOptions(true);
 	renderImagePreviews();
 	renderLogoPreview();
 	dialogTitle.textContent = restaurant ? '' : 'Nuevo lugar';
@@ -2594,6 +2690,7 @@ document.querySelectorAll<HTMLElement>('[data-close-form]').forEach((button) => 
 dialog.addEventListener('close', () => {
 	activeRestaurantId = null;
 	closeCuisineDropdown();
+	closeTagDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
 	closeEstablishmentDropdown();
@@ -2756,6 +2853,7 @@ neighborhoodOptions.addEventListener('click', (event) => {
 });
 document.addEventListener('pointerdown', (event) => {
 	if (!cuisineCombobox.contains(event.target as Node)) closeCuisineDropdown();
+	if (!tagCombobox.contains(event.target as Node)) closeTagDropdown();
 	if (!neighborhoodCombobox.contains(event.target as Node)) closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach((kind) => {
 		if (!getLocationOptionState(kind).combobox.contains(event.target as Node)) closeLocationDropdown(kind);
@@ -2772,10 +2870,51 @@ selectedCuisinesContainer.addEventListener('click', (event) => {
 	updateDirtyState();
 });
 
+tagInput.addEventListener('focus', openTagDropdown);
+tagInput.addEventListener('click', openTagDropdown);
+tagInput.addEventListener('input', () => {
+	openTagDropdown();
+	renderTagOptions();
+});
 tagInput.addEventListener('keydown', (event) => {
+	if (event.key === 'Escape') {
+		closeTagDropdown();
+		return;
+	}
 	if (event.key !== 'Enter') return;
 	event.preventDefault();
 	commitTagInput();
+	openTagDropdown();
+});
+tagOptions.addEventListener('click', (event) => {
+	const target = event.target as HTMLElement;
+	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-tag]');
+	if (deleteButton?.dataset.deleteTag) {
+		deleteTagOption(deleteButton.dataset.deleteTag);
+		tagInput.focus();
+		openTagDropdown();
+		return;
+	}
+	const selectButton = target.closest<HTMLButtonElement>('[data-select-tag]');
+	if (selectButton?.dataset.selectTag) {
+		addTagSelection(selectButton.dataset.selectTag);
+		tagInput.focus();
+		openTagDropdown();
+		return;
+	}
+	if (target.closest('[data-create-tag]')) {
+		commitTagInput();
+		tagInput.focus();
+		openTagDropdown();
+	}
+});
+manageTagsButton.addEventListener('click', () => {
+	if (tagOptions.hidden) {
+		openTagDropdown();
+		tagInput.focus();
+	} else {
+		closeTagDropdown();
+	}
 });
 
 selectedTagsContainer.addEventListener('click', (event) => {
@@ -2783,6 +2922,7 @@ selectedTagsContainer.addEventListener('click', (event) => {
 	if (!button) return;
 	selectedTags = selectedTags.filter((tag) => tag !== button.dataset.removeTag);
 	renderSelectedTags();
+	renderTagOptions();
 	updateDirtyState();
 });
 selectedCuisinesContainer.addEventListener('dragstart', (event) => {
@@ -3580,7 +3720,7 @@ function setBulkEditLists() {
 	document.querySelector<HTMLDivElement>('#bulk-establishment-options')!.innerHTML = choices(establishmentTypes, 'establishmentTypes');
 	document.querySelector<HTMLDivElement>('#bulk-service-options')!.innerHTML = choices(serviceTypes, 'mealTypes');
 	document.querySelector<HTMLDivElement>('#bulk-cuisine-options')!.innerHTML = choices(cuisines, 'cuisines');
-	const availableTags = [...new Set(restaurants.flatMap((restaurant) => restaurant.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? []))].sort((a, b) => a.localeCompare(b, 'es'));
+	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).sort((a, b) => a.localeCompare(b, 'es'));
 	document.querySelector<HTMLDivElement>('#bulk-tag-options')!.innerHTML = choices(availableTags, 'tags') || '<span class="cuisine-empty">No hay etiquetas guardadas.</span>';
 	document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = 'Seleccionar etiquetas';
 }
@@ -3622,7 +3762,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'favorite', 'visited'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -3652,7 +3792,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = listValues(field).join(', ');
-			} else if (field === 'favorite' || field === 'visited') restaurant[field] = value(field) === 'true';
+			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating') restaurant[field] = value(field);
 		}
 	}
@@ -3727,6 +3867,12 @@ form.addEventListener('submit', async (event) => {
 	const savedCity = ensureLocationOption('city', data.city);
 	const savedProvince = ensureLocationOption('province', data.province);
 	const savedCountry = ensureLocationOption('country', data.country);
+	const missingTags = selectedTags.filter((tag) => !tagCatalog.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es')));
+	if (missingTags.length) {
+		tagCatalog = capitalizedCatalogValues([...tagCatalog, ...missingTags]).sort((a, b) => a.localeCompare(b, 'es'));
+		removedTags = removedTags.filter((removed) => !missingTags.some((tag) => tag.toLocaleLowerCase('es') === removed.toLocaleLowerCase('es')));
+		saveTagSettings();
+	}
 	const existingIndex = activeRestaurantId
 		? restaurants.findIndex((restaurant) => restaurant.id === activeRestaurantId)
 		: -1;
@@ -4022,6 +4168,8 @@ function applyServerCatalogs(value: unknown) {
 	const catalogs = value as Record<string, unknown>;
 	cuisines = capitalizedCatalogValues(stringArray(catalogs.cuisines, [...DEFAULT_CUISINES]));
 	removedCuisines = stringArray(catalogs.removedCuisines);
+	tagCatalog = capitalizedCatalogValues(stringArray(catalogs.tags, tagCatalog));
+	removedTags = stringArray(catalogs.removedTags);
 	establishmentTypes = capitalizedCatalogValues(stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]));
 	removedEstablishmentTypes = stringArray(catalogs.removedEstablishmentTypes);
 	serviceTypes = stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]);
@@ -4093,6 +4241,8 @@ async function initializeServerPersistence() {
 		if (!applyServerCatalogs(serverSettings.catalogs)) persistCatalogSettings();
 		const removedCuisineNames = new Set(removedCuisines.map((item) => item.toLocaleLowerCase('es')));
 		cuisines = [...new Set([...cuisines, ...restaurants.flatMap(getRestaurantCuisines)])].filter((item) => !removedCuisineNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
+		const removedTagNames = new Set(removedTags.map((item) => item.toLocaleLowerCase('es')));
+		tagCatalog = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).filter((item) => !removedTagNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedEstablishmentNames = new Set(removedEstablishmentTypes.map((item) => item.toLocaleLowerCase('es')));
 		establishmentTypes = [...new Set([...establishmentTypes, ...restaurants.flatMap(getRestaurantEstablishmentTypes)])].filter((item) => !removedEstablishmentNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		serviceTypes = [...new Set([...serviceTypes, ...restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])])].sort((a, b) => a.localeCompare(b, 'es'));
@@ -4101,6 +4251,7 @@ async function initializeServerPersistence() {
 		provinces = [...new Set([...provinces, ...restaurants.map((restaurant) => restaurant.province).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		countries = [...new Set([...countries, ...restaurants.map((restaurant) => restaurant.country).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		renderCuisineOptions();
+		renderTagOptions(true);
 		renderEstablishmentOptions(true);
 		renderServiceOptions(true, true);
 		renderNeighborhoodOptions();
@@ -4127,6 +4278,8 @@ applyTheme(localStorage.getItem('theme') || 'carrot');
 applyFontTheme(localStorage.getItem('font-theme') || 'original');
 renderSelectedCuisines();
 renderCuisineOptions();
+renderSelectedTags();
+renderTagOptions();
 selectedEstablishments = [];
 renderSelectedEstablishments();
 renderEstablishmentOptions(true);
