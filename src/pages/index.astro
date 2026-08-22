@@ -265,10 +265,11 @@ const userInitials = userDisplayName
 						<div class="establishment-lead wide">
 							<div class="primary-image-column">
 								<div id="primary-image-preview" class="primary-image-preview" role="button" tabindex="0" aria-label="Elegir o cambiar el logo" title="Hacé clic para cambiar el logo"></div>
-								<div class="form-field map-status-field" aria-label="Favorito y visitado">
+								<div class="form-field map-status-field" aria-label="Favorito, visitado y checked">
 									<div class="restaurant-status-options">
 										<label class="restaurant-status-option"><input type="checkbox" name="favorite" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg><span>Favorito</span></label>
 										<label class="restaurant-status-option"><input type="checkbox" name="visited" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg><span>Visitado</span></label>
+										<label class="restaurant-status-option checked-status-option"><input type="checkbox" name="checked" /><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg><span>Checked</span></label>
 									</div>
 								</div>
 							</div>
@@ -291,6 +292,7 @@ const userInitials = userDisplayName
 									</div>
 									<div id="view-favorite-status" class="view-status-row" hidden><strong class="favorite-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong></div>
 									<div id="view-visited-status" class="view-status-row" hidden><strong class="visited-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong></div>
+									<div id="view-checked-status" class="view-status-row" hidden><strong class="checked-status"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>Checked</strong></div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 								</div>
 							</div>
@@ -385,7 +387,6 @@ const userInitials = userDisplayName
 								<option value="5">★★★★★ — 5 estrellas</option>
 							</select>
 						</label>
-						<label class="checked-field"><span>checked</span><span class="checked-control"><input name="checked" type="checkbox" /><span>El lugar ya fue chequeado</span></span></label>
 					</div>
 				</section>
 

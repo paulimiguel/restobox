@@ -250,6 +250,7 @@ const openTripAdvisor = document.querySelector<HTMLAnchorElement>('#open-tripadv
 const openWhatsAppWeb = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web')!;
 const viewFavoriteStatus = document.querySelector<HTMLElement>('#view-favorite-status')!;
 const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-status')!;
+const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
 const formTabs = document.querySelectorAll<HTMLButtonElement>('[data-form-tab]');
 const tabPanels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
 const dialogTitle = document.querySelector<HTMLHeadingElement>('#dialog-title')!;
@@ -1790,6 +1791,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	}
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
 	viewVisitedStatus.hidden = !(readOnly && restaurant?.visited);
+	viewCheckedStatus.hidden = !(readOnly && restaurant?.checked);
 	loadScheduleFromText(restaurant?.hours ?? '');
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
