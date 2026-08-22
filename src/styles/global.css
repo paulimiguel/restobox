@@ -115,6 +115,7 @@ button, input, select, textarea { font: inherit; }
 button, select { cursor: pointer; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid rgba(216, 118, 59, .35); outline-offset: 2px; }
 svg { width: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.visited-icon { display: block; width: 18px; height: 18px; object-fit: contain; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
 
 .app-shell { display: block; min-height: 100vh; }
@@ -343,6 +344,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions > button, .restaurant-list.view-columns-5 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions .visited-icon { width: 13px; height: 13px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer { padding-inline: 10px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links a { width: 32px; height: 32px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
@@ -354,6 +356,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions .visited-icon { width: 13px; height: 13px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer { padding: 7px 5px 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links { flex-wrap: wrap; justify-content: center; gap: 3px; overflow: visible; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links a { width: 27px; height: 27px; flex: 0 0 27px; }
@@ -377,6 +380,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
 .restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
 .restaurant-list.view-detail .restaurant-card-top-actions svg { width: 13px; height: 13px; }
+.restaurant-list.view-detail .restaurant-card-top-actions .visited-icon { width: 13px; height: 13px; }
 .restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 76px; align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
 .restaurant-list.view-list .restaurant-card-image { min-height: 112px; }
@@ -422,6 +426,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions > button, .restaurant-card-actions-menu > summary { display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
 .restaurant-card-top-actions > button:hover, .restaurant-card-actions-menu > summary:hover, .restaurant-card-actions-menu[open] > summary { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
 .restaurant-card-top-actions svg { width: 17px; }
+.restaurant-card-top-actions .visited-icon { width: 17px; height: 17px; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
@@ -494,6 +499,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-list .restaurant-card-top-actions { display: none; }
 .restaurant-list.view-list .restaurant-card-top-actions > button, .restaurant-list.view-list .restaurant-card-actions-menu > summary { width: 15px; height: 15px; border-radius: 3px; }
 .restaurant-list.view-list .restaurant-card-top-actions svg { width: 9px; }
+.restaurant-list.view-list .restaurant-card-top-actions .visited-icon { width: 9px; height: 9px; }
 .restaurant-list.view-list .restaurant-card-footer { min-height: 0; padding: 7px 10px; }
 .restaurant-list.view-list .restaurant-card-footer .row-links { flex-wrap: wrap; gap: 4px; overflow: visible; }
 .restaurant-list.view-list .restaurant-card-footer .row-links a { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 7px; }
