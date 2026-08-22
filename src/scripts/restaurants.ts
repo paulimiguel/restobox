@@ -150,16 +150,19 @@ const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-o
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
 const neighborhoodFilterOptions = document.querySelector<HTMLDivElement>('#neighborhood-filter-options')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options')!;
+const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options')!;
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
 const mealFilterLabel = document.querySelector<HTMLElement>('#meal-filter-label')!;
 const cuisineFilterLabel = document.querySelector<HTMLElement>('#cuisine-filter-label')!;
 const neighborhoodFilterLabel = document.querySelector<HTMLElement>('#neighborhood-filter-label')!;
 const tagFilterLabel = document.querySelector<HTMLElement>('#tag-filter-label')!;
+const cityFilterLabel = document.querySelector<HTMLElement>('#city-filter-label')!;
 const establishmentFilterChips = document.querySelector<HTMLDivElement>('#establishment-filter-chips')!;
 const mealFilterChips = document.querySelector<HTMLDivElement>('#meal-filter-chips')!;
 const cuisineFilterChips = document.querySelector<HTMLDivElement>('#cuisine-filter-chips')!;
 const neighborhoodFilterChips = document.querySelector<HTMLDivElement>('#neighborhood-filter-chips')!;
 const tagFilterChips = document.querySelector<HTMLDivElement>('#tag-filter-chips')!;
+const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chips')!;
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
 const visitedFilterButton = document.querySelector<HTMLButtonElement>('#visited-filter')!;
 const checkedFilterButton = document.querySelector<HTMLButtonElement>('#checked-filter')!;
@@ -169,6 +172,8 @@ const takeAwayFilterButton = document.querySelector<HTMLButtonElement>('#take-aw
 const clearDirectoryFiltersButton = document.querySelector<HTMLButtonElement>('#clear-directory-filters')!;
 const filterActionMenu = document.querySelector<HTMLDetailsElement>('.filter-action-menu')!;
 const directoryFilterPanel = document.querySelector<HTMLElement>('#directory-filter-panel')!;
+const directoryActions = document.querySelector<HTMLElement>('.directory-actions')!;
+const topbar = document.querySelector<HTMLElement>('.topbar')!;
 const printPlacesPanel = document.querySelector<HTMLElement>('#print-places-panel')!;
 const selectVisiblePlacesButton = document.querySelector<HTMLButtonElement>('#select-visible-places')!;
 const selectAllPlacesButton = document.querySelector<HTMLButtonElement>('#select-all-places')!;
@@ -186,6 +191,16 @@ const deleteSelectAllButton = document.querySelector<HTMLButtonElement>('#delete
 const deleteClearSelectionButton = document.querySelector<HTMLButtonElement>('#delete-clear-selection')!;
 const deleteSelectedPlacesButton = document.querySelector<HTMLButtonElement>('#delete-selected-places')!;
 const closeDeletePanelButton = document.querySelector<HTMLButtonElement>('#close-delete-panel')!;
+
+function updateDirectoryFilterStickyPosition() {
+	document.documentElement.style.setProperty('--directory-filter-sticky-top', `${topbar.offsetHeight + directoryActions.offsetHeight}px`);
+}
+
+const directoryActionsResizeObserver = new ResizeObserver(updateDirectoryFilterStickyPosition);
+directoryActionsResizeObserver.observe(directoryActions);
+directoryActionsResizeObserver.observe(topbar);
+window.addEventListener('resize', updateDirectoryFilterStickyPosition);
+updateDirectoryFilterStickyPosition();
 const headerEstablishmentOptions = document.querySelector<HTMLDivElement>('#header-establishment-options')!;
 const headerServiceOptions = document.querySelector<HTMLDivElement>('#header-service-options')!;
 const headerCuisineOptions = document.querySelector<HTMLDivElement>('#header-cuisine-options')!;
@@ -351,6 +366,7 @@ let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
 let selectedTagFilters = new Set<string>();
+let selectedCityFilters = new Set<string>();
 let favoriteFilterActive = false;
 let visitedFilterActive = false;
 let checkedFilterActive = false;
@@ -707,6 +723,7 @@ function updateDirectoryFilterLabels() {
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
 	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todos los barrios');
 	tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
+	cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
 	const chips = (values: Set<string>, group: string) => [...values].map((value) => `
 		<span class="filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`).join('');
 	establishmentFilterChips.innerHTML = chips(selectedEstablishmentFilters, 'establishment');
@@ -714,11 +731,13 @@ function updateDirectoryFilterLabels() {
 	cuisineFilterChips.innerHTML = chips(selectedCuisineFilters, 'cuisine');
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
 	tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
+	cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-establishment-filter]').forEach((input) => { input.checked = selectedEstablishmentFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-meal-filter]').forEach((input) => { input.checked = selectedMealFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-cuisine-filter]').forEach((input) => { input.checked = selectedCuisineFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-neighborhood-filter]').forEach((input) => { input.checked = selectedNeighborhoodFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-tag-filter]').forEach((input) => { input.checked = selectedTagFilters.has(input.value); });
+	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-city-filter]').forEach((input) => { input.checked = selectedCityFilters.has(input.value); });
 	favoriteFilterButton.setAttribute('aria-pressed', String(favoriteFilterActive));
 	visitedFilterButton.setAttribute('aria-pressed', String(visitedFilterActive));
 	checkedFilterButton.setAttribute('aria-pressed', String(checkedFilterActive));
@@ -736,6 +755,10 @@ function renderAdditionalFilterOptions() {
 	selectedTagFilters = new Set([...selectedTagFilters].filter((value) => availableTags.includes(value)));
 	tagFilterOptions.innerHTML = availableTags.map((value) => `
 		<label><input type="checkbox" value="${safe(value)}" data-tag-filter${selectedTagFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
+	const availableCities = [...new Set([...cities, ...restaurants.map((restaurant) => restaurant.city).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
+	selectedCityFilters = new Set([...selectedCityFilters].filter((value) => availableCities.includes(value)));
+	cityFilterOptions.innerHTML = availableCities.map((value) => `
+		<label><input type="checkbox" value="${safe(value)}" data-city-filter${selectedCityFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
 	updateDirectoryFilterLabels();
 	headerEstablishmentOptions.innerHTML = establishmentTypes.map((value) => `<button type="button" data-header-filter="establishment" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerServiceOptions.innerHTML = serviceTypes.map((value) => `<button type="button" data-header-filter="meal" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
@@ -1460,6 +1483,7 @@ function render() {
 		const matchesCuisine = !selectedCuisineFilters.size || [...selectedCuisineFilters].some((value) => restaurantCuisines.includes(value));
 		const matchesNeighborhood = !selectedNeighborhoodFilters.size || selectedNeighborhoodFilters.has(restaurant.neighborhood ?? '');
 		const matchesTags = !selectedTagFilters.size || [...selectedTagFilters].some((tag) => restaurantTagValues.includes(tag.toLocaleLowerCase('es')));
+		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
 		const matchesVisited = !visitedFilterActive || Boolean(restaurant.visited);
 		const matchesChecked = !checkedFilterActive || Boolean(restaurant.checked);
@@ -1472,6 +1496,7 @@ function render() {
 			&& matchesCuisine
 			&& matchesNeighborhood
 			&& matchesTags
+			&& matchesCity
 			&& matchesFavorite
 			&& matchesVisited
 			&& matchesChecked
@@ -1555,6 +1580,7 @@ function render() {
 		|| selectedCuisineFilters.size > 0
 		|| selectedNeighborhoodFilters.size > 0
 		|| selectedTagFilters.size > 0
+		|| selectedCityFilters.size > 0
 		|| favoriteFilterActive
 		|| visitedFilterActive
 		|| checkedFilterActive
@@ -3178,7 +3204,9 @@ directoryFilterPanel.addEventListener('change', (event) => {
 				? selectedCuisineFilters
 				: input.hasAttribute('data-neighborhood-filter')
 					? selectedNeighborhoodFilters
-					: selectedTagFilters;
+					: input.hasAttribute('data-tag-filter')
+						? selectedTagFilters
+						: selectedCityFilters;
 	if (input.checked) targetSet.add(input.value);
 	else targetSet.delete(input.value);
 	input.closest<HTMLDetailsElement>('.filter-multiselect')?.removeAttribute('open');
@@ -3197,7 +3225,9 @@ directoryFilterPanel.addEventListener('click', (event) => {
 				? selectedCuisineFilters
 				: button.dataset.removeFilter === 'neighborhood'
 					? selectedNeighborhoodFilters
-					: selectedTagFilters;
+					: button.dataset.removeFilter === 'tag'
+						? selectedTagFilters
+						: selectedCityFilters;
 	targetSet.delete(value);
 	updateDirectoryFilterLabels();
 	render();
@@ -3238,6 +3268,7 @@ function clearDirectoryFilterSelections() {
 	selectedCuisineFilters.clear();
 	selectedNeighborhoodFilters.clear();
 	selectedTagFilters.clear();
+	selectedCityFilters.clear();
 	favoriteFilterActive = false;
 	visitedFilterActive = false;
 	checkedFilterActive = false;
