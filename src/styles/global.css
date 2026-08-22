@@ -671,6 +671,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details .selected-options { gap: 3px 5px; }
 #panel-details .selected-option { padding-block: 3px; }
 #panel-details .rating-select { color: var(--ink); font-weight: 600; letter-spacing: .04em; }
+.checked-control { display: flex; min-height: 39px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; }
+#panel-details .checked-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
+.view-mode #panel-details .checked-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 #panel-information .form-grid { padding-top: 12px; }
 #panel-links .form-grid { padding-top: 12px; }
 #panel-links .view-map-link-field { display: none; }

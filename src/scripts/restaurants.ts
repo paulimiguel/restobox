@@ -34,6 +34,7 @@ type Restaurant = {
 	notes: string;
 	favorite?: boolean;
 	visited?: boolean;
+	checked?: boolean;
 	imageCount: number;
 	createdAt: string;
 };
@@ -1781,6 +1782,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('province') as HTMLInputElement).value = restaurant.province ?? '';
 		(form.elements.namedItem('favorite') as HTMLInputElement).checked = Boolean(restaurant.favorite);
 		(form.elements.namedItem('visited') as HTMLInputElement).checked = Boolean(restaurant.visited);
+		(form.elements.namedItem('checked') as HTMLInputElement).checked = Boolean(restaurant.checked);
 	} else {
 		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
@@ -1951,6 +1953,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		notes: '',
 		favorite: false,
 		visited: false,
+		checked: false,
 		imageCount: 0,
 		createdAt: new Date().toISOString(),
 	};
@@ -2265,7 +2268,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -3693,6 +3696,7 @@ form.addEventListener('submit', async (event) => {
 		notes: data.notes.trim(),
 		favorite: formData.has('favorite'),
 		visited: formData.has('visited'),
+		checked: formData.has('checked'),
 		imageCount: restaurantImages.length,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
