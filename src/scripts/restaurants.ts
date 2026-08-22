@@ -11,6 +11,7 @@ type Restaurant = {
 	mealTypes: string[];
 	price: string;
 	averagePrice: string;
+	score: string;
 	country: string;
 	province: string;
 	city: string;
@@ -35,6 +36,9 @@ type Restaurant = {
 	favorite?: boolean;
 	visited?: boolean;
 	checked?: boolean;
+	delivery?: boolean;
+	takeAway?: boolean;
+	glutenFree?: boolean;
 	imageCount: number;
 	createdAt: string;
 };
@@ -77,6 +81,7 @@ type SpreadsheetRestaurant = {
 	mealTypes: string[];
 	price: string;
 	averagePrice: string;
+	score: string;
 	country: string;
 	province: string;
 	city: string;
@@ -98,6 +103,9 @@ type SpreadsheetRestaurant = {
 	notes: string;
 	favorite: boolean;
 	visited: boolean;
+	delivery: boolean;
+	takeAway: boolean;
+	glutenFree: boolean;
 };
 
 type SpreadsheetPreviewRow = { rowNumber: number; data: SpreadsheetRestaurant; error: string };
@@ -206,6 +214,7 @@ const serviceSelect = document.querySelector<HTMLInputElement>('#service-type')!
 const serviceCombobox = document.querySelector<HTMLDivElement>('#service-combobox')!;
 const serviceOptions = document.querySelector<HTMLDivElement>('#service-options')!;
 const selectedServicesContainer = document.querySelector<HTMLDivElement>('#selected-services')!;
+const averagePriceOptions = document.querySelector<HTMLDataListElement>('#average-price-options')!;
 const logoInput = document.querySelector<HTMLInputElement>('#restaurant-logo')!;
 const logoDropZone = document.querySelector<HTMLDivElement>('#logo-drop-zone')!;
 const logoPreview = document.querySelector<HTMLDivElement>('#logo-preview')!;
@@ -335,6 +344,7 @@ let favoriteFilterActive = false;
 let visitedFilterActive = false;
 let printSelectedIds = new Set<string>();
 let selectionMode: 'print' | 'edit' | 'delete' | null = null;
+let rangeSelectionAnchorId: string | null = null;
 let visibleRestaurantIds: string[] = [];
 let restaurantLogo: RestaurantImage | null = null;
 let previewUrls: string[] = [];
@@ -439,12 +449,26 @@ function persistCatalogSettings() {
 	}).catch(() => showToast('No se pudieron guardar las listas en el servidor'));
 }
 
+function capitalizeFirstLetter(value: string) {
+	const normalized = value.trim();
+	return normalized ? `${normalized.charAt(0).toLocaleUpperCase('es')}${normalized.slice(1)}` : '';
+}
+
+function capitalizedCatalogValues(values: string[]) {
+	const unique = new Map<string, string>();
+	values.map(capitalizeFirstLetter).filter(Boolean).forEach((value) => {
+		const key = value.toLocaleLowerCase('es');
+		if (!unique.has(key)) unique.set(key, value);
+	});
+	return [...unique.values()];
+}
+
 function loadCuisines(): string[] {
 	try {
 		const stored = JSON.parse(localStorage.getItem(CUISINES_KEY) ?? '[]') as string[];
 		const removed = loadRemovedCuisines().map((item) => item.toLocaleLowerCase('es'));
 		const used = restaurants.flatMap(getRestaurantCuisines);
-		return [...new Set([...DEFAULT_CUISINES, ...stored, ...used])]
+		return capitalizedCatalogValues([...DEFAULT_CUISINES, ...stored, ...used])
 			.filter((item) => !removed.includes(item.toLocaleLowerCase('es')));
 	} catch {
 		return [...DEFAULT_CUISINES];
@@ -549,7 +573,7 @@ function loadEstablishmentTypes(): string[] {
 		const stored = JSON.parse(localStorage.getItem(ESTABLISHMENTS_KEY) ?? '[]') as string[];
 		const removed = loadRemovedEstablishmentTypes().map((item) => item.toLocaleLowerCase('es'));
 		const used = restaurants.flatMap(getRestaurantEstablishmentTypes);
-		return [...new Set([...DEFAULT_ESTABLISHMENTS, ...stored, ...used])]
+		return capitalizedCatalogValues([...DEFAULT_ESTABLISHMENTS, ...stored, ...used])
 			.filter((item) => !removed.includes(item.toLocaleLowerCase('es')))
 			.sort((a, b) => a.localeCompare(b, 'es'));
 	} catch {
@@ -611,13 +635,24 @@ function getWhatsAppUrl(phone = '', country = '') {
 }
 
 function getRestaurantCuisines(restaurant: Restaurant) {
-	return restaurant.cuisines?.length ? restaurant.cuisines : restaurant.cuisine ? [restaurant.cuisine] : [];
+	return capitalizedCatalogValues(restaurant.cuisines?.length ? restaurant.cuisines : restaurant.cuisine ? [restaurant.cuisine] : []);
 }
 
 function getRestaurantEstablishmentTypes(restaurant: Restaurant) {
-	return restaurant.establishmentTypes?.length
+	return capitalizedCatalogValues(restaurant.establishmentTypes?.length
 		? restaurant.establishmentTypes
-		: restaurant.establishmentType ? [restaurant.establishmentType] : [];
+		: restaurant.establishmentType ? [restaurant.establishmentType] : []);
+}
+
+function renderAveragePriceOptions() {
+	const values = new Map<string, string>();
+	restaurants.map((restaurant) => restaurant.averagePrice?.trim()).filter(Boolean).forEach((value) => {
+		const key = value.toLocaleLowerCase('es');
+		if (!values.has(key)) values.set(key, value);
+	});
+	averagePriceOptions.innerHTML = [...values.values()]
+		.sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+		.map((value) => `<option value="${safe(value)}"></option>`).join('');
 }
 
 function updateDirectoryFilterLabels() {
@@ -828,12 +863,13 @@ function commitTagInput() {
 }
 
 function addCuisineSelection(cuisine: string) {
-	if (!cuisine) return;
-	if (selectedCuisines.includes(cuisine)) {
+	const normalizedCuisine = capitalizeFirstLetter(cuisine);
+	if (!normalizedCuisine) return;
+	if (selectedCuisines.some((item) => item.toLocaleLowerCase('es') === normalizedCuisine.toLocaleLowerCase('es'))) {
 		renderCuisineOptions();
 		return;
 	}
-	selectedCuisines.push(cuisine);
+	selectedCuisines.push(normalizedCuisine);
 	renderSelectedCuisines();
 	renderCuisineOptions();
 	updateDirtyState();
@@ -868,8 +904,9 @@ function renderSelectedEstablishments() {
 }
 
 function addEstablishmentSelection(type: string) {
-	if (!type || selectedEstablishments.includes(type)) return;
-	selectedEstablishments.push(type);
+	const normalizedType = capitalizeFirstLetter(type);
+	if (!normalizedType || selectedEstablishments.some((item) => item.toLocaleLowerCase('es') === normalizedType.toLocaleLowerCase('es'))) return;
+	selectedEstablishments.push(normalizedType);
 	renderSelectedEstablishments();
 	renderEstablishmentOptions();
 	updateDirtyState();
@@ -883,7 +920,7 @@ function commitEstablishmentInput() {
 		addEstablishmentSelection(existing);
 		return;
 	}
-	const type = entered.slice(0, 50);
+	const type = capitalizeFirstLetter(entered.slice(0, 50));
 	establishmentTypes.push(type);
 	establishmentTypes.sort((a, b) => a.localeCompare(b, 'es'));
 	removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
@@ -1278,7 +1315,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 		(field.closest('.form-field') || field.closest('label'))?.classList.add('view-empty-field');
 	};
 	[
-		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'price', 'averagePrice',
+		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
 		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl',
 		'description', 'notes',
 	].forEach(markNamedField);
@@ -1314,6 +1351,7 @@ function updatePrintPanelState() {
 }
 
 function render() {
+	renderAveragePriceOptions();
 	renderAdditionalFilterOptions();
 	cardPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 	cardPreviewUrls = [];
@@ -1385,6 +1423,7 @@ function render() {
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
+						<button class="checked-button${restaurant.checked ? ' active' : ''}" type="button" data-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Marcar como no chequeado' : 'Marcar como chequeado'}" title="Checked"><img class="checked-icon" src="/icono-checked.png" alt="" /></button>
 						<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
@@ -1407,9 +1446,10 @@ function render() {
 						${restaurant.address ? `<p class="restaurant-card-address">${safe(restaurant.address)}</p>` : '<p class="restaurant-card-address" aria-hidden="true"></p>'}
 						${restaurant.neighborhood ? `<p class="restaurant-card-neighborhood">${safe(restaurant.neighborhood)}</p>` : '<p class="restaurant-card-neighborhood" aria-hidden="true"></p>'}
 					</div>
-					<div class="restaurant-card-list-status" aria-label="Favorito y visitado">
+					<div class="restaurant-card-list-status" aria-label="Favorito, visitado y checked">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
+						<button class="checked-button${restaurant.checked ? ' active' : ''}" type="button" data-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Marcar como no chequeado' : 'Marcar como chequeado'}" title="Checked"><img class="checked-icon" src="/icono-checked.png" alt="" /></button>
 					</div>
 				</div>
 				${links ? `<div class="restaurant-card-footer"><div class="row-links">${links}</div></div>` : ''}
@@ -1784,6 +1824,9 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('favorite') as HTMLInputElement).checked = Boolean(restaurant.favorite);
 		(form.elements.namedItem('visited') as HTMLInputElement).checked = Boolean(restaurant.visited);
 		(form.elements.namedItem('checked') as HTMLInputElement).checked = Boolean(restaurant.checked);
+		(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(restaurant.delivery);
+		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
+		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 	} else {
 		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
@@ -1914,7 +1957,7 @@ async function saveImportedMedia(restaurantId: string, imported: ImportedRestaur
 
 async function saveImportedRestaurant(imported: ImportedRestaurant) {
 	const restaurantId = crypto.randomUUID();
-	const establishmentTypesForImport = [...new Set((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean))];
+	const establishmentTypesForImport = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
 	const importedNeighborhood = ensureNeighborhoodOption(imported.neighborhood);
 	const importedCity = ensureLocationOption('city', imported.city);
 	const importedProvince = ensureLocationOption('province', imported.province);
@@ -1932,6 +1975,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		mealTypes: [],
 		price: imported.price ?? '',
 		averagePrice: imported.averagePrice?.trim() ?? '',
+		score: imported.score?.trim() ?? '',
 		country: importedCountry,
 		province: importedProvince,
 		city: importedCity,
@@ -1956,6 +2000,9 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		favorite: false,
 		visited: false,
 		checked: false,
+		delivery: Boolean(imported.delivery),
+		takeAway: Boolean(imported.takeAway),
+		glutenFree: Boolean(imported.glutenFree),
 		imageCount: 0,
 		createdAt: new Date().toISOString(),
 	};
@@ -2003,8 +2050,13 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('linktreeUrl', imported.linktreeUrl);
 	loadScheduleFromText(imported.hours ?? '');
 	if (['$', '$$', '$$$', '$$$$'].includes(imported.price ?? '')) setImportedField('price', imported.price);
+	setImportedField('averagePrice', imported.averagePrice);
+	setImportedField('score', imported.score);
+	(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(imported.delivery);
+	(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(imported.takeAway);
+	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
 
-	selectedEstablishments = [...new Set((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean))];
+	selectedEstablishments = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
 	selectedEstablishments.forEach((type) => {
 		if (!establishmentTypes.some((item) => item.toLocaleLowerCase('es') === type.toLocaleLowerCase('es'))) establishmentTypes.push(type);
 		removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
@@ -2104,7 +2156,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	cocina: 'cuisines', 'tipo de cocina': 'cuisines', 'tipos de cocina': 'cuisines',
 	servicio: 'mealTypes', servicios: 'mealTypes',
 	etiqueta: 'tags', etiquetas: 'tags', tags: 'tags',
-	calificacion: 'rating', puntuacion: 'rating', rating: 'rating',
+	calificacion: 'rating', rating: 'rating', puntaje: 'score', puntuacion: 'score', score: 'score',
 	precio: 'price', 'nivel de precio': 'price',
 	'precio promedio': 'averagePrice', 'precio promedio por persona': 'averagePrice',
 	pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', barrio: 'neighborhood',
@@ -2118,7 +2170,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
@@ -2186,9 +2238,9 @@ function spreadsheetBoolean(value: string) {
 
 function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 	return {
-		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '',
+		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '', score: '',
 		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
-		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false,
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false,
 	};
 }
 
@@ -2202,11 +2254,13 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 		columns.forEach((column, index) => {
 			if (!column) return;
 			const value = cells[index]?.trim() ?? '';
-			if (column === 'establishmentTypes' || column === 'cuisines' || column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
-			else if (column === 'favorite' || column === 'visited') data[column] = spreadsheetBoolean(value);
+			if (column === 'establishmentTypes' || column === 'cuisines') data[column] = capitalizedCatalogValues(splitSpreadsheetValues(value));
+			else if (column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
+			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree') data[column] = spreadsheetBoolean(value);
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
+		data.score = /^\d+(?:[.,]\d+)?$/.test(data.score) && Number(data.score.replace(',', '.')) <= 10 ? data.score.replace(',', '.') : '';
 		data.price = ['$','$$','$$$','$$$$'].includes(data.price.replace(/\s/g, '')) ? data.price.replace(/\s/g, '') : '';
 		return { rowNumber, data, error: data.name ? '' : 'Falta el nombre' };
 	});
@@ -2254,8 +2308,8 @@ function addSpreadsheetCatalogValue(values: string[], removed: string[], value: 
 
 function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: number): Restaurant {
 	const importedEstablishments = (data.establishmentTypes.length ? data.establishmentTypes : ['Restaurante'])
-		.map((value) => addSpreadsheetCatalogValue(establishmentTypes, removedEstablishmentTypes, value)).filter(Boolean);
-	const importedCuisines = data.cuisines.map((value) => addSpreadsheetCatalogValue(cuisines, removedCuisines, value)).filter(Boolean);
+		.map((value) => addSpreadsheetCatalogValue(establishmentTypes, removedEstablishmentTypes, capitalizeFirstLetter(value))).filter(Boolean);
+	const importedCuisines = data.cuisines.map((value) => addSpreadsheetCatalogValue(cuisines, removedCuisines, capitalizeFirstLetter(value))).filter(Boolean);
 	const importedServices = data.mealTypes.map((value) => addSpreadsheetCatalogValue(serviceTypes, removedServiceTypes, value)).filter(Boolean);
 	const neighborhood = addSpreadsheetCatalogValue(neighborhoods, removedNeighborhoods, data.neighborhood);
 	const city = addSpreadsheetCatalogValue(cities, removedCities, data.city, 60);
@@ -2265,19 +2319,19 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		id: crypto.randomUUID(), name: data.name.trim(), description: data.description.trim(),
 		establishmentType: importedEstablishments[0] ?? '', establishmentTypes: importedEstablishments,
 		cuisine: importedCuisines[0] ?? '', cuisines: importedCuisines, tags: data.tags.trim(), rating: data.rating,
-		mealTypes: importedServices, price: data.price, averagePrice: data.averagePrice.trim(), country, province, city,
+		mealTypes: importedServices, price: data.price, averagePrice: data.averagePrice.trim(), score: data.score, country, province, city,
 		address: data.address.trim(), neighborhood, hasBranches: false, branchAddresses: [], phone: data.phone.trim(), mobile: data.mobile.trim(),
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
 function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Restaurant) {
 	const before = JSON.stringify(existing);
 	const textFields: Array<keyof Restaurant> = [
-		'description', 'establishmentType', 'cuisine', 'tags', 'rating', 'price', 'averagePrice', 'country', 'province', 'city', 'address', 'neighborhood',
+		'description', 'establishmentType', 'cuisine', 'tags', 'rating', 'score', 'price', 'averagePrice', 'country', 'province', 'city', 'address', 'neighborhood',
 		'phone', 'mobile', 'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'tiktokUrl', 'instagramUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'mapUrl', 'hours', 'notes',
 	];
 	textFields.forEach((field) => {
@@ -2288,6 +2342,9 @@ function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Resta
 	if (!existing.mealTypes?.length && imported.mealTypes?.length) existing.mealTypes = imported.mealTypes;
 	existing.favorite = Boolean(existing.favorite || imported.favorite);
 	existing.visited = Boolean(existing.visited || imported.visited);
+	existing.delivery = Boolean(existing.delivery || imported.delivery);
+	existing.takeAway = Boolean(existing.takeAway || imported.takeAway);
+	existing.glutenFree = Boolean(existing.glutenFree || imported.glutenFree);
 	return before !== JSON.stringify(existing);
 }
 
@@ -2555,7 +2612,7 @@ function commitCuisineInput(createIfMissing: boolean) {
 		return;
 	}
 	if (!createIfMissing) return;
-	const cuisine = entered.slice(0, 50);
+	const cuisine = capitalizeFirstLetter(entered.slice(0, 50));
 	cuisines.push(cuisine);
 	cuisines.sort((a, b) => a.localeCompare(b, 'es'));
 	removedCuisines = removedCuisines.filter((item) => item.toLocaleLowerCase('es') !== cuisine.toLocaleLowerCase('es'));
@@ -3397,6 +3454,7 @@ document.querySelector('#header-import-place')?.addEventListener('click', () => 
 document.querySelector('#header-edit-places')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
 	selectionMode = 'edit';
+	rangeSelectionAnchorId = null;
 	printSelectedIds.clear();
 	printPlacesPanel.hidden = true;
 	deletePlacesPanel.hidden = true;
@@ -3409,6 +3467,7 @@ document.querySelector('#header-edit-places')?.addEventListener('click', () => {
 document.querySelector('#header-delete-places')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
 	selectionMode = 'delete';
+	rangeSelectionAnchorId = null;
 	printSelectedIds.clear();
 	printPlacesPanel.hidden = true;
 	editPlacesPanel.hidden = true;
@@ -3439,39 +3498,47 @@ closePrintPanelButton.addEventListener('click', () => {
 });
 
 editSelectVisibleButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	visibleRestaurantIds.forEach((id) => printSelectedIds.add(id));
 	render();
 });
 editSelectAllButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	printSelectedIds = new Set(restaurants.map((restaurant) => restaurant.id));
 	render();
 });
 editClearSelectionButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	printSelectedIds.clear();
 	render();
 });
 closeEditPanelButton.addEventListener('click', () => {
 	editPlacesPanel.hidden = true;
 	selectionMode = null;
+	rangeSelectionAnchorId = null;
 	document.body.classList.remove('print-selection-mode');
 	render();
 });
 
 deleteSelectVisibleButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	visibleRestaurantIds.forEach((id) => printSelectedIds.add(id));
 	render();
 });
 deleteSelectAllButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	printSelectedIds = new Set(restaurants.map((restaurant) => restaurant.id));
 	render();
 });
 deleteClearSelectionButton.addEventListener('click', () => {
+	rangeSelectionAnchorId = null;
 	printSelectedIds.clear();
 	render();
 });
 closeDeletePanelButton.addEventListener('click', () => {
 	deletePlacesPanel.hidden = true;
 	selectionMode = null;
+	rangeSelectionAnchorId = null;
 	document.body.classList.remove('print-selection-mode');
 	render();
 });
@@ -3495,6 +3562,7 @@ deleteSelectedPlacesButton.addEventListener('click', async () => {
 	printSelectedIds.clear();
 	deletePlacesPanel.hidden = true;
 	selectionMode = null;
+	rangeSelectionAnchorId = null;
 	document.body.classList.remove('print-selection-mode');
 	render();
 	showToast(selected.length === 1 ? 'Lugar eliminado' : `${selected.length} lugares eliminados`);
@@ -3530,6 +3598,7 @@ editSelectedPlacesButton.addEventListener('click', () => {
 	if (selected.length === 1) {
 		editPlacesPanel.hidden = true;
 		selectionMode = null;
+		rangeSelectionAnchorId = null;
 		document.body.classList.remove('print-selection-mode');
 		void openForm(selected[0]);
 		return;
@@ -3672,6 +3741,7 @@ form.addEventListener('submit', async (event) => {
 		cuisines: [...selectedCuisines],
 		tags: selectedTags.join(', '),
 		rating: data.rating,
+		score: data.score.trim(),
 		mealTypes: [...selectedServices],
 		price: data.price,
 		averagePrice: data.averagePrice.trim(),
@@ -3699,6 +3769,9 @@ form.addEventListener('submit', async (event) => {
 		favorite: formData.has('favorite'),
 		visited: formData.has('visited'),
 		checked: formData.has('checked'),
+		delivery: formData.has('delivery'),
+		takeAway: formData.has('takeAway'),
+		glutenFree: formData.has('glutenFree'),
 		imageCount: restaurantImages.length,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
@@ -3849,6 +3922,7 @@ list.addEventListener('click', async (event) => {
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
 	const favoriteButton = target.closest<HTMLButtonElement>('[data-favorite]');
 	const visitedButton = target.closest<HTMLButtonElement>('[data-visited]');
+	const checkedButton = target.closest<HTMLButtonElement>('[data-checked]');
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
 	const viewImagesButton = target.closest<HTMLButtonElement>('[data-view-images]');
 	const editButton = target.closest<HTMLButtonElement>('[data-edit]');
@@ -3858,8 +3932,17 @@ list.addEventListener('click', async (event) => {
 	if (printSelectButton) {
 		const id = printSelectButton.dataset.printSelect;
 		if (!id) return;
-		if (printSelectedIds.has(id)) printSelectedIds.delete(id);
+		const rangeMode = selectionMode === 'edit' || selectionMode === 'delete';
+		const anchorIndex = rangeSelectionAnchorId ? visibleRestaurantIds.indexOf(rangeSelectionAnchorId) : -1;
+		const currentIndex = visibleRestaurantIds.indexOf(id);
+		if (rangeMode && event.shiftKey && anchorIndex >= 0 && currentIndex >= 0) {
+			event.preventDefault();
+			const firstIndex = Math.min(anchorIndex, currentIndex);
+			const lastIndex = Math.max(anchorIndex, currentIndex);
+			visibleRestaurantIds.slice(firstIndex, lastIndex + 1).forEach((restaurantId) => printSelectedIds.add(restaurantId));
+		} else if (printSelectedIds.has(id)) printSelectedIds.delete(id);
 		else printSelectedIds.add(id);
+		rangeSelectionAnchorId = id;
 		render();
 		return;
 	}
@@ -3882,6 +3965,17 @@ list.addEventListener('click', async (event) => {
 			saveRestaurants();
 			render();
 			showToast(restaurant.visited ? 'Marcado como visitado' : 'Marcado como no visitado');
+		}
+		return;
+	}
+	if (checkedButton) {
+		const restaurant = restaurants.find((item) => item.id === checkedButton.dataset.checked);
+		if (restaurant) {
+			backupRestaurants();
+			restaurant.checked = !restaurant.checked;
+			saveRestaurants();
+			render();
+			showToast(restaurant.checked ? 'Marcado como chequeado' : 'Marcado como no chequeado');
 		}
 		return;
 	}
@@ -3926,9 +4020,9 @@ function stringArray(value: unknown, fallback: string[] = []) {
 function applyServerCatalogs(value: unknown) {
 	if (!value || typeof value !== 'object') return false;
 	const catalogs = value as Record<string, unknown>;
-	cuisines = stringArray(catalogs.cuisines, [...DEFAULT_CUISINES]);
+	cuisines = capitalizedCatalogValues(stringArray(catalogs.cuisines, [...DEFAULT_CUISINES]));
 	removedCuisines = stringArray(catalogs.removedCuisines);
-	establishmentTypes = stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]);
+	establishmentTypes = capitalizedCatalogValues(stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]));
 	removedEstablishmentTypes = stringArray(catalogs.removedEstablishmentTypes);
 	serviceTypes = stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]);
 	removedServiceTypes = stringArray(catalogs.removedServiceTypes);

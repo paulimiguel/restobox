@@ -180,7 +180,7 @@ const userInitials = userDisplayName
 					<section id="edit-places-panel" class="print-places-panel" aria-label="Editar lugares" hidden>
 						<div class="print-panel-heading">
 							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>
-							<div><strong>Editar lugares</strong><span>Seleccioná uno o varios lugares</span></div>
+							<div><strong>Editar lugares</strong><span>Seleccioná uno o varios lugares · Shift para un rango</span></div>
 						</div>
 						<div class="print-panel-actions edit-selection-actions">
 							<button id="edit-select-visible" type="button">✓ <span>Seleccionar lugares visibles</span></button>
@@ -193,7 +193,7 @@ const userInitials = userDisplayName
 					<section id="delete-places-panel" class="print-places-panel" aria-label="Eliminar lugares" hidden>
 						<div class="print-panel-heading">
 							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>
-							<div><strong>Eliminar lugares</strong><span>Seleccioná uno o varios lugares</span></div>
+							<div><strong>Eliminar lugares</strong><span>Seleccioná uno o varios lugares · Shift para un rango</span></div>
 						</div>
 						<div class="print-panel-actions edit-selection-actions">
 							<button id="delete-select-visible" type="button">✓ <span>Seleccionar lugares visibles</span></button>
@@ -269,7 +269,7 @@ const userInitials = userDisplayName
 									<div class="restaurant-status-options">
 										<label class="restaurant-status-option"><input type="checkbox" name="favorite" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg><span>Favorito</span></label>
 										<label class="restaurant-status-option"><input type="checkbox" name="visited" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg><span>Visitado</span></label>
-										<label class="restaurant-status-option checked-status-option"><input type="checkbox" name="checked" /><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg><span>Checked</span></label>
+										<label class="restaurant-status-option checked-status-option"><input type="checkbox" name="checked" /><img class="checked-icon" src="/icono-checked.png" alt="" /><span>Checked</span></label>
 									</div>
 								</div>
 							</div>
@@ -292,7 +292,7 @@ const userInitials = userDisplayName
 									</div>
 									<div id="view-favorite-status" class="view-status-row" hidden><strong class="favorite-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong></div>
 									<div id="view-visited-status" class="view-status-row" hidden><strong class="visited-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong></div>
-									<div id="view-checked-status" class="view-status-row" hidden><strong class="checked-status"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>Checked</strong></div>
+									<div id="view-checked-status" class="view-status-row" hidden><strong class="checked-status"><img class="checked-icon" src="/icono-checked.png" alt="" />Checked</strong></div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 								</div>
 							</div>
@@ -367,6 +367,11 @@ const userInitials = userDisplayName
 							</div>
 							<div id="selected-tags" class="selected-options" aria-live="polite"></div>
 						</div>
+						<div class="form-field characteristics-checks wide">
+							<label><span>Delivery</span><span class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Disponible</span></span></label>
+							<label><span>Take away</span><span class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Disponible</span></span></label>
+							<label><span>Sin gluten</span><span class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Disponible</span></span></label>
+						</div>
 						<label class="price-level-field">Nivel de precio
 							<select name="price">
 								<option value="">Sin especificar</option>
@@ -376,7 +381,8 @@ const userInitials = userDisplayName
 								<option value="$$$$">$$$$ — Muy lujoso o exclusivo</option>
 							</select>
 						</label>
-						<label class="average-price-field">Precio promedio por persona <input name="averagePrice" type="text" maxlength="100" placeholder="Ej. Entre $20.000 y $30.000" /></label>
+						<label class="average-price-field">Precio promedio por persona <input name="averagePrice" type="text" list="average-price-options" maxlength="100" placeholder="Elegí un valor o escribí uno nuevo" /></label>
+						<datalist id="average-price-options"></datalist>
 						<label>Calificación
 							<select name="rating" class="rating-select">
 								<option value="">Sin calificación</option>
@@ -387,6 +393,7 @@ const userInitials = userDisplayName
 								<option value="5">★★★★★ — 5 estrellas</option>
 							</select>
 						</label>
+						<label>Puntaje <input name="score" type="number" min="0" max="10" step="0.1" placeholder="0 a 10" /></label>
 					</div>
 				</section>
 
@@ -577,7 +584,7 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
 				<label for="excel-import-file">Planilla</label>
 				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
-				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Lugar, Cocina, Servicios, Etiquetas, Calificación, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Barrio, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Lugar, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Calificación, Puntaje, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Barrio, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
 				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div id="excel-import-preview" class="excel-import-preview" hidden>
 					<strong id="excel-import-summary"></strong>
@@ -625,7 +632,7 @@ const userInitials = userDisplayName
 						</details>
 					</div>
 					<label><span>Nivel de precio</span><select name="price"><option value="">Sin cambios</option><option>$</option><option>$$</option><option>$$$</option><option>$$$$</option></select></label>
-					<label><span>Precio promedio por persona</span><input name="averagePrice" placeholder="Sin cambios" /></label>
+					<label><span>Precio promedio por persona</span><input name="averagePrice" list="average-price-options" placeholder="Sin cambios" /></label>
 					<div class="bulk-status-fields">
 						<label><span>Calificación</span><select name="rating"><option value="">Sin cambios</option><option value="1">1 estrella</option><option value="2">2 estrellas</option><option value="3">3 estrellas</option><option value="4">4 estrellas</option><option value="5">5 estrellas</option></select></label>
 						<label><span>Favorito</span><select name="favorite"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
