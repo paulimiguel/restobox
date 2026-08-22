@@ -262,7 +262,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-filter-panel { display: grid; gap: 13px; margin: -10px 0 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 8px 22px rgba(35,45,38,.07); }
 .print-places-panel { position: relative; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 18px; margin: -10px 0 18px; padding: 16px 52px 16px 20px; border: 1px solid var(--line); border-radius: 10px; background: #f1efeb; box-shadow: 0 8px 22px rgba(35,45,38,.07); }
 .print-places-panel[hidden] { display: none; }
-#edit-places-panel, #delete-places-panel { position: sticky; top: 96px; z-index: 35; box-shadow: 0 12px 28px rgba(35,45,38,.16); }
+#print-places-panel, #edit-places-panel, #delete-places-panel { position: sticky; top: 96px; z-index: 35; box-shadow: 0 12px 28px rgba(35,45,38,.16); }
 .print-panel-heading { display: flex; align-items: center; gap: 11px; color: var(--muted); }
 .print-panel-heading > svg { width: 20px; }
 .print-panel-heading div { display: grid; gap: 4px; }
@@ -431,8 +431,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
-.restaurant-card-top-actions .visited-button svg { stroke-width: 2.8; }
-.restaurant-card-top-actions .visited-button.active svg { stroke-width: 3; }
+.restaurant-card-top-actions .visited-button svg { stroke-width: 3.4; }
+.restaurant-card-top-actions .visited-button.active svg { stroke-width: 3.7; }
 .restaurant-card-top-actions .checked-button .checked-icon, .restaurant-card-list-status .checked-button .checked-icon { opacity: .4; filter: grayscale(1); transition: filter .18s, opacity .18s, transform .18s; }
 .restaurant-card-top-actions .checked-button:hover .checked-icon, .restaurant-card-top-actions .checked-button.active .checked-icon, .restaurant-card-list-status .checked-button:hover .checked-icon, .restaurant-card-list-status .checked-button.active .checked-icon { opacity: 1; filter: none; }
 .restaurant-card-top-actions .view-images-button:hover { color: var(--accent-text); }
@@ -971,7 +971,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.menu-button { display: grid; }
 	.topbar { height: 74px; padding: 0 17px; }
 	.directory-actions { top: 74px; }
-	#edit-places-panel, #delete-places-panel { top: 82px; }
+	#print-places-panel, #edit-places-panel, #delete-places-panel { top: 82px; }
 	.header-brand { width: 104px; height: 66px; flex-basis: 104px; margin-right: 12px; }
 	.header-nav-link { display: none; }
 	.top-actions { gap: 3px; }
