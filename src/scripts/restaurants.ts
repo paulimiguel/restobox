@@ -141,6 +141,8 @@ const form = document.querySelector<HTMLFormElement>('#restaurant-form')!;
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
+const directoryOwnerSummary = document.querySelector<HTMLElement>('#directory-owner-summary')!;
+const resultDescription = document.querySelector<HTMLElement>('#result-description')!;
 const searchTermsRow = document.querySelector<HTMLElement>('#search-terms-row')!;
 const searchTermsList = document.querySelector<HTMLElement>('#search-terms')!;
 const clearSearchTermsButton = document.querySelector<HTMLButtonElement>('#clear-search-terms')!;
@@ -166,6 +168,7 @@ const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chi
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
 const visitedFilterButton = document.querySelector<HTMLButtonElement>('#visited-filter')!;
 const checkedFilterButton = document.querySelector<HTMLButtonElement>('#checked-filter')!;
+const uncheckedFilterButton = document.querySelector<HTMLButtonElement>('#unchecked-filter')!;
 const glutenFreeFilterButton = document.querySelector<HTMLButtonElement>('#gluten-free-filter')!;
 const deliveryFilterButton = document.querySelector<HTMLButtonElement>('#delivery-filter')!;
 const takeAwayFilterButton = document.querySelector<HTMLButtonElement>('#take-away-filter')!;
@@ -239,6 +242,9 @@ const serviceCombobox = document.querySelector<HTMLDivElement>('#service-combobo
 const serviceOptions = document.querySelector<HTMLDivElement>('#service-options')!;
 const selectedServicesContainer = document.querySelector<HTMLDivElement>('#selected-services')!;
 const averagePriceOptions = document.querySelector<HTMLDataListElement>('#average-price-options')!;
+const averagePriceInput = document.querySelector<HTMLInputElement>('#average-price')!;
+const averagePriceCombobox = document.querySelector<HTMLDivElement>('#average-price-combobox')!;
+const averagePriceOptionsMenu = document.querySelector<HTMLDivElement>('#average-price-options-menu')!;
 const logoInput = document.querySelector<HTMLInputElement>('#restaurant-logo')!;
 const logoDropZone = document.querySelector<HTMLDivElement>('#logo-drop-zone')!;
 const logoPreview = document.querySelector<HTMLDivElement>('#logo-preview')!;
@@ -348,6 +354,7 @@ let cuisines: string[] = loadCuisines();
 let removedCuisines: string[] = loadRemovedCuisines();
 let tagCatalog: string[] = loadTags();
 let removedTags: string[] = loadRemovedTags();
+let removedAveragePrices: string[] = [];
 let establishmentTypes: string[] = loadEstablishmentTypes();
 let removedEstablishmentTypes: string[] = loadRemovedEstablishmentTypes();
 let serviceTypes: string[] = loadServiceTypes();
@@ -370,6 +377,7 @@ let selectedCityFilters = new Set<string>();
 let favoriteFilterActive = false;
 let visitedFilterActive = false;
 let checkedFilterActive = false;
+let uncheckedFilterActive = false;
 let glutenFreeFilterActive = false;
 let deliveryFilterActive = false;
 let takeAwayFilterActive = false;
@@ -383,7 +391,6 @@ let logoPreviewUrl = '';
 let cardPreviewUrls: string[] = [];
 let cardRenderVersion = 0;
 let draggedImageIndex: number | null = null;
-let draggedCuisineIndex: number | null = null;
 let spreadsheetPreviewRows: SpreadsheetPreviewRow[] = [];
 let imageInsertMode: 'append' | 'primary' = 'append';
 let toastTimer: number | undefined;
@@ -464,6 +471,7 @@ function persistCatalogSettings() {
 	const value = {
 		cuisines, removedCuisines,
 		tags: tagCatalog, removedTags,
+		removedAveragePrices,
 		establishmentTypes, removedEstablishmentTypes,
 		serviceTypes, removedServiceTypes,
 		neighborhoods, removedNeighborhoods,
@@ -703,13 +711,49 @@ function getRestaurantEstablishmentTypes(restaurant: Restaurant) {
 
 function renderAveragePriceOptions() {
 	const values = new Map<string, string>();
+	const removed = new Set(removedAveragePrices.map((value) => value.toLocaleLowerCase('es')));
 	restaurants.map((restaurant) => restaurant.averagePrice?.trim()).filter(Boolean).forEach((value) => {
 		const key = value.toLocaleLowerCase('es');
-		if (!values.has(key)) values.set(key, value);
+		if (!removed.has(key) && !values.has(key)) values.set(key, value);
 	});
-	averagePriceOptions.innerHTML = [...values.values()]
-		.sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
-		.map((value) => `<option value="${safe(value)}"></option>`).join('');
+	const sortedValues = [...values.values()].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+	averagePriceOptions.innerHTML = sortedValues.map((value) => `<option value="${safe(value)}"></option>`).join('');
+	const query = averagePriceInput.value.trim().toLocaleLowerCase('es');
+	const filtered = sortedValues.filter((value) => value.toLocaleLowerCase('es').includes(query));
+	averagePriceOptionsMenu.innerHTML = filtered.map((value) => `
+		<div class="cuisine-dropdown-option" role="option">
+			<button type="button" data-select-average-price="${safe(value)}"><span>${safe(value)}</span></button>
+			<button type="button" class="delete-cuisine-option" data-delete-average-price="${safe(value)}" aria-label="Eliminar ${safe(value)} de la lista" title="Eliminar definitivamente">×</button>
+		</div>`).join('') || '<p class="cuisine-empty">No hay valores guardados.</p>';
+}
+
+function openAveragePriceDropdown() {
+	if (averagePriceInput.disabled) return;
+	renderAveragePriceOptions();
+	averagePriceOptionsMenu.hidden = false;
+	averagePriceInput.setAttribute('aria-expanded', 'true');
+}
+
+function closeAveragePriceDropdown() {
+	averagePriceOptionsMenu.hidden = true;
+	averagePriceInput.setAttribute('aria-expanded', 'false');
+}
+
+async function deleteAveragePriceOption(value: string) {
+	if (!window.confirm(`¿Eliminar definitivamente el precio promedio “${value}”? Se quitará también de los lugares que lo usan.`)) return;
+	backupRestaurants();
+	const normalized = value.toLocaleLowerCase('es');
+	removedAveragePrices = [...new Set([...removedAveragePrices, value])];
+	restaurants.forEach((restaurant) => {
+		if (restaurant.averagePrice?.trim().toLocaleLowerCase('es') === normalized) restaurant.averagePrice = '';
+	});
+	if (averagePriceInput.value.trim().toLocaleLowerCase('es') === normalized) averagePriceInput.value = '';
+	persistCatalogSettings();
+	await saveRestaurants();
+	renderAveragePriceOptions();
+	render();
+	updateDirtyState();
+	showToast('Precio promedio eliminado definitivamente');
 }
 
 function updateDirectoryFilterLabels() {
@@ -718,10 +762,10 @@ function updateDirectoryFilterLabels() {
 		if (values.size === 1) return [...values][0];
 		return `${values.size} seleccionados`;
 	};
-	establishmentFilterLabel.textContent = summary(selectedEstablishmentFilters, 'Todos los lugares');
+	establishmentFilterLabel.textContent = summary(selectedEstablishmentFilters, 'Todas las categorías');
 	mealFilterLabel.textContent = summary(selectedMealFilters, 'Todos los servicios');
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
-	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todos los barrios');
+	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todas las zonas');
 	tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
 	cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
 	const chips = (values: Set<string>, group: string) => [...values].map((value) => `
@@ -741,6 +785,7 @@ function updateDirectoryFilterLabels() {
 	favoriteFilterButton.setAttribute('aria-pressed', String(favoriteFilterActive));
 	visitedFilterButton.setAttribute('aria-pressed', String(visitedFilterActive));
 	checkedFilterButton.setAttribute('aria-pressed', String(checkedFilterActive));
+	uncheckedFilterButton.setAttribute('aria-pressed', String(uncheckedFilterActive));
 	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
@@ -811,7 +856,7 @@ function renderNeighborhoodOptions() {
 				<button type="button" class="delete-cuisine-option" data-delete-neighborhood="${safe(neighborhood)}" aria-label="Eliminar ${safe(neighborhood)} de la lista" title="Eliminar de la lista">×</button>
 			</div>`),
 		...(query && !exact ? [`<button type="button" class="create-cuisine-option" data-create-neighborhood><span>＋</span> Agregar “${safe(neighborhoodInput.value.trim())}”</button>`] : []),
-	].join('') || '<p class="cuisine-empty">Sin barrios guardados. Escribí un nombre y pulsá Enter.</p>';
+	].join('') || '<p class="cuisine-empty">Sin zonas guardadas. Escribí un nombre y pulsá Enter.</p>';
 }
 
 function openNeighborhoodDropdown() {
@@ -832,7 +877,7 @@ function commitNeighborhoodInput() {
 	neighborhoodInput.value = neighborhood;
 	neighborhoodInput.dispatchEvent(new Event('input', { bubbles: true }));
 	renderNeighborhoodOptions();
-	showToast('Barrio agregado');
+	showToast('Zona agregada');
 }
 
 function deleteNeighborhoodOption(neighborhood: string) {
@@ -844,7 +889,7 @@ function deleteNeighborhoodOption(neighborhood: string) {
 	}
 	saveNeighborhoodSettings();
 	renderNeighborhoodOptions();
-	showToast('Barrio eliminado de la lista');
+	showToast('Zona eliminada de la lista');
 }
 
 function renderLocationOptions(kind: LocationOptionKind) {
@@ -902,7 +947,7 @@ function deleteLocationOption(kind: LocationOptionKind, value: string) {
 
 function renderSelectedCuisines() {
 	selectedCuisinesContainer.innerHTML = selectedCuisines.map((cuisine, index) => `
-		<span class="selected-option" draggable="true" data-cuisine-index="${index}" title="Arrastrá para cambiar el orden">
+		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
 			${safe(cuisine)}
 			<input type="hidden" name="cuisines" value="${safe(cuisine)}" />
 			<button type="button" data-remove-cuisine="${safe(cuisine)}" aria-label="Quitar ${safe(cuisine)}" title="Quitar">×</button>
@@ -910,8 +955,8 @@ function renderSelectedCuisines() {
 }
 
 function renderSelectedTags() {
-	selectedTagsContainer.innerHTML = selectedTags.map((tag) => `
-		<span class="selected-option">
+	selectedTagsContainer.innerHTML = selectedTags.map((tag, index) => `
+		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
 			${safe(tag)}
 			<input type="hidden" name="tags" value="${safe(tag)}" />
 			<button type="button" data-remove-tag="${safe(tag)}" aria-label="Quitar ${safe(tag)}" title="Quitar">×</button>
@@ -921,16 +966,20 @@ function renderSelectedTags() {
 function renderTagOptions(clearInput = false) {
 	if (clearInput) tagInput.value = '';
 	const query = tagInput.value.trim().toLocaleLowerCase('es');
-	const filtered = tagCatalog.filter((tag) => tag.toLocaleLowerCase('es').includes(query));
-	const hasExactMatch = tagCatalog.some((tag) => tag.toLocaleLowerCase('es') === query);
+	const removed = new Set(removedTags.map((tag) => tag.toLocaleLowerCase('es')));
+	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags), ...selectedTags])
+		.filter((tag) => !removed.has(tag.toLocaleLowerCase('es')))
+		.sort((a, b) => a.localeCompare(b, 'es'));
+	const filtered = availableTags.filter((tag) => tag.toLocaleLowerCase('es').includes(query));
+	const hasExactMatch = availableTags.some((tag) => tag.toLocaleLowerCase('es') === query);
 	tagOptions.innerHTML = [
 		...filtered.map((tag) => {
 			const selected = selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'));
 			return `
-				<label class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
-					<input type="checkbox" data-tag-option value="${safe(tag)}"${selected ? ' checked' : ''} />
-					<span>${safe(tag)}</span>
-				</label>`;
+				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<label><input type="checkbox" data-tag-option value="${safe(tag)}"${selected ? ' checked' : ''} /><span>${safe(tag)}</span></label>
+					<button type="button" class="delete-tag-option" data-delete-tag="${safe(tag)}" aria-label="Eliminar ${safe(tag)} de la lista" title="Eliminar definitivamente">×</button>
+				</div>`;
 		}),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-tag><span>＋</span> Agregar “${safe(tagInput.value.trim())}”</button>`] : []),
 	].join('') || '<p class="cuisine-empty">Sin etiquetas guardadas. Escribí una nueva y pulsá Enter.</p>';
@@ -968,6 +1017,26 @@ function closeTagDropdown() {
 	tagInput.setAttribute('aria-expanded', 'false');
 }
 
+async function deleteTagOption(tag: string) {
+	if (!window.confirm(`¿Eliminar definitivamente la etiqueta “${tag}”? Se quitará también de los lugares que la usan.`)) return;
+	backupRestaurants();
+	const normalized = tag.toLocaleLowerCase('es');
+	tagCatalog = tagCatalog.filter((item) => item.toLocaleLowerCase('es') !== normalized);
+	removedTags = [...new Set([...removedTags, tag])];
+	selectedTags = selectedTags.filter((item) => item.toLocaleLowerCase('es') !== normalized);
+	restaurants.forEach((restaurant) => {
+		restaurant.tags = restaurantTags(restaurant).filter((item) => item.toLocaleLowerCase('es') !== normalized).join(', ');
+	});
+	selectedTagFilters = new Set([...selectedTagFilters].filter((item) => item.toLocaleLowerCase('es') !== normalized));
+	saveTagSettings();
+	await saveRestaurants();
+	renderSelectedTags();
+	renderTagOptions();
+	render();
+	updateDirtyState();
+	showToast('Etiqueta eliminada definitivamente');
+}
+
 function addCuisineSelection(cuisine: string) {
 	const normalizedCuisine = capitalizeFirstLetter(cuisine);
 	if (!normalizedCuisine) return;
@@ -993,7 +1062,7 @@ function renderEstablishmentOptions(refreshFilter = false, clearInput = true) {
 				<button type="button" class="delete-cuisine-option" data-delete-establishment="${safe(type)}" aria-label="Eliminar ${safe(type)} de la lista" title="Eliminar de la lista">×</button>
 			</div>`),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-establishment><span>＋</span> Agregar “${safe(establishmentSelect.value.trim())}”</button>`] : []),
-	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí un tipo de lugar y pulsá Enter.</p>';
+	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí una categoría y pulsá Enter.</p>';
 	if (refreshFilter) {
 		selectedEstablishmentFilters = new Set([...selectedEstablishmentFilters].filter((type) => establishmentTypes.includes(type)));
 		renderEstablishmentFilterOptions();
@@ -1001,8 +1070,8 @@ function renderEstablishmentOptions(refreshFilter = false, clearInput = true) {
 }
 
 function renderSelectedEstablishments() {
-	selectedEstablishmentsContainer.innerHTML = selectedEstablishments.map((type) => `
-		<span class="selected-option">
+	selectedEstablishmentsContainer.innerHTML = selectedEstablishments.map((type, index) => `
+		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
 			${safe(type)}
 			<input type="hidden" name="establishmentTypes" value="${safe(type)}" />
 			<button type="button" data-remove-establishment="${safe(type)}" aria-label="Quitar ${safe(type)}" title="Quitar">×</button>
@@ -1033,7 +1102,7 @@ function commitEstablishmentInput() {
 	saveEstablishmentSettings();
 	addEstablishmentSelection(type);
 	renderEstablishmentOptions(true);
-	showToast('Tipo de lugar agregado');
+	showToast('Categoría agregada');
 }
 
 function openEstablishmentDropdown() {
@@ -1064,7 +1133,7 @@ function deleteEstablishmentOption(type: string) {
 	renderEstablishmentOptions(true, false);
 	render();
 	updateDirtyState();
-	showToast('Tipo de lugar eliminado');
+	showToast('Categoría eliminada');
 }
 
 function renderServiceOptions(clearInput = true, refreshFilter = false) {
@@ -1087,8 +1156,8 @@ function renderServiceOptions(clearInput = true, refreshFilter = false) {
 }
 
 function renderSelectedServices() {
-	selectedServicesContainer.innerHTML = selectedServices.map((service) => `
-		<span class="selected-option">
+	selectedServicesContainer.innerHTML = selectedServices.map((service, index) => `
+		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
 			${safe(service)}
 			<input type="hidden" name="mealTypes" value="${safe(service)}" />
 			<button type="button" data-remove-service="${safe(service)}" aria-label="Quitar ${safe(service)}" title="Quitar">×</button>
@@ -1486,7 +1555,9 @@ function render() {
 		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
 		const matchesVisited = !visitedFilterActive || Boolean(restaurant.visited);
-		const matchesChecked = !checkedFilterActive || Boolean(restaurant.checked);
+		const matchesChecked = checkedFilterActive
+			? Boolean(restaurant.checked)
+			: uncheckedFilterActive ? !Boolean(restaurant.checked) : true;
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -1510,16 +1581,33 @@ function render() {
 		if (directorySort === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 		return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 	});
+	const isFiltered = normalizedSearchTerms.length > 0
+		|| selectedEstablishmentFilters.size > 0
+		|| selectedMealFilters.size > 0
+		|| selectedCuisineFilters.size > 0
+		|| selectedNeighborhoodFilters.size > 0
+		|| selectedTagFilters.size > 0
+		|| selectedCityFilters.size > 0
+		|| favoriteFilterActive
+		|| visitedFilterActive
+		|| checkedFilterActive
+		|| uncheckedFilterActive
+		|| glutenFreeFilterActive
+		|| deliveryFilterActive
+		|| takeAwayFilterActive;
 	visibleRestaurantIds = filtered.map((restaurant) => restaurant.id);
 	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments');
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
 		button.classList.toggle('active', button.dataset.directoryView === directoryView);
 	});
-	document.querySelector('#result-description')!.textContent = restaurants.length === 1 ? '1 lugar registrado' : `${restaurants.length} lugares registrados`;
+	resultDescription.textContent = isFiltered
+		? (filtered.length === 1 ? '1 lugar encontrado' : `${filtered.length} lugares encontrados`)
+		: (restaurants.length === 1 ? '1 lugar registrado' : `${restaurants.length} lugares registrados`);
+	directoryOwnerSummary.classList.toggle('is-filtered', isFiltered);
 
 	list.innerHTML = filtered.map((restaurant) => {
-		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin tipo de lugar';
+		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
 		const cardCuisines = getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
 		const whatsappUrl = getWhatsAppUrl(restaurant.mobile, restaurant.country);
 		const links = [
@@ -1574,19 +1662,6 @@ function render() {
 	}).join('');
 	void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
 
-	const isFiltered = normalizedSearchTerms.length > 0
-		|| selectedEstablishmentFilters.size > 0
-		|| selectedMealFilters.size > 0
-		|| selectedCuisineFilters.size > 0
-		|| selectedNeighborhoodFilters.size > 0
-		|| selectedTagFilters.size > 0
-		|| selectedCityFilters.size > 0
-		|| favoriteFilterActive
-		|| visitedFilterActive
-		|| checkedFilterActive
-		|| glutenFreeFilterActive
-		|| deliveryFilterActive
-		|| takeAwayFilterActive;
 	emptyState.hidden = filtered.length > 0;
 	list.hidden = filtered.length === 0;
 	document.querySelector('#empty-title')!.textContent = isFiltered ? 'No encontramos resultados' : 'Tu directorio está vacío';
@@ -1906,6 +1981,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	form.reset();
 	closeCuisineDropdown();
 	closeTagDropdown();
+	closeAveragePriceDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
 	closeEstablishmentDropdown();
@@ -2276,14 +2352,14 @@ nameImportForm.addEventListener('submit', async (event) => {
 const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = {
 	nombre: 'name', 'nombre del lugar': 'name', restaurante: 'name',
 	descripcion: 'description', detalle: 'description',
-	lugar: 'establishmentTypes', 'tipo de lugar': 'establishmentTypes', 'tipos de lugar': 'establishmentTypes', categoria: 'establishmentTypes',
+		lugar: 'establishmentTypes', 'tipo de lugar': 'establishmentTypes', 'tipos de lugar': 'establishmentTypes', categoria: 'establishmentTypes', categorias: 'establishmentTypes',
 	cocina: 'cuisines', 'tipo de cocina': 'cuisines', 'tipos de cocina': 'cuisines',
 	servicio: 'mealTypes', servicios: 'mealTypes',
 	etiqueta: 'tags', etiquetas: 'tags', tags: 'tags',
 	calificacion: 'rating', rating: 'rating', puntaje: 'score', puntuacion: 'score', score: 'score',
 	precio: 'price', 'nivel de precio': 'price',
 	'precio promedio': 'averagePrice', 'precio promedio por persona': 'averagePrice',
-	pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', barrio: 'neighborhood',
+		pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', zona: 'neighborhood', barrio: 'neighborhood',
 	telefono: 'phone', 'telefono fijo': 'phone', celular: 'mobile', movil: 'mobile', whatsapp: 'mobile',
 	web: 'website', 'sitio web': 'website', website: 'website', 'pagina web': 'website', 'link a la pagina web': 'website', 'link pagina web': 'website',
 	google: 'googleUrl', 'url google': 'googleUrl', 'link de google': 'googleUrl', 'link a google': 'googleUrl',
@@ -2719,6 +2795,7 @@ dialog.addEventListener('close', () => {
 	activeRestaurantId = null;
 	closeCuisineDropdown();
 	closeTagDropdown();
+	closeAveragePriceDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
 	closeEstablishmentDropdown();
@@ -2882,6 +2959,7 @@ neighborhoodOptions.addEventListener('click', (event) => {
 document.addEventListener('pointerdown', (event) => {
 	if (!cuisineCombobox.contains(event.target as Node)) closeCuisineDropdown();
 	if (!tagCombobox.contains(event.target as Node)) closeTagDropdown();
+	if (!averagePriceCombobox.contains(event.target as Node)) closeAveragePriceDropdown();
 	if (!neighborhoodCombobox.contains(event.target as Node)) closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach((kind) => {
 		if (!getLocationOptionState(kind).combobox.contains(event.target as Node)) closeLocationDropdown(kind);
@@ -2926,7 +3004,14 @@ tagOptions.addEventListener('change', (event) => {
 	renderTagOptions();
 	updateDirtyState();
 });
-tagOptions.addEventListener('click', (event) => {
+tagOptions.addEventListener('click', async (event) => {
+	const deleteButton = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-delete-tag]');
+	if (deleteButton?.dataset.deleteTag) {
+		await deleteTagOption(deleteButton.dataset.deleteTag);
+		tagInput.focus();
+		openTagDropdown();
+		return;
+	}
 	if ((event.target as HTMLElement).closest('[data-create-tag]')) {
 		commitTagInput();
 		tagInput.focus();
@@ -2942,6 +3027,29 @@ manageTagsButton.addEventListener('click', () => {
 	}
 });
 
+averagePriceInput.addEventListener('focus', openAveragePriceDropdown);
+averagePriceInput.addEventListener('click', openAveragePriceDropdown);
+averagePriceInput.addEventListener('input', openAveragePriceDropdown);
+averagePriceInput.addEventListener('keydown', (event) => {
+	if (event.key === 'Escape') closeAveragePriceDropdown();
+});
+averagePriceOptionsMenu.addEventListener('click', async (event) => {
+	const target = event.target as HTMLElement;
+	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-average-price]');
+	if (deleteButton?.dataset.deleteAveragePrice) {
+		await deleteAveragePriceOption(deleteButton.dataset.deleteAveragePrice);
+		averagePriceInput.focus();
+		openAveragePriceDropdown();
+		return;
+	}
+	const selectButton = target.closest<HTMLButtonElement>('[data-select-average-price]');
+	if (!selectButton?.dataset.selectAveragePrice) return;
+	averagePriceInput.value = selectButton.dataset.selectAveragePrice;
+	averagePriceInput.dispatchEvent(new Event('input', { bubbles: true }));
+	closeAveragePriceDropdown();
+	averagePriceInput.focus({ preventScroll: true });
+});
+
 selectedTagsContainer.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-tag]');
 	if (!button) return;
@@ -2950,42 +3058,98 @@ selectedTagsContainer.addEventListener('click', (event) => {
 	renderTagOptions();
 	updateDirtyState();
 });
-selectedCuisinesContainer.addEventListener('dragstart', (event) => {
-	if (form.classList.contains('view-mode') || (event.target as HTMLElement).closest('button')) {
-		event.preventDefault();
-		return;
-	}
-	const option = (event.target as HTMLElement).closest<HTMLElement>('[data-cuisine-index]');
-	if (!option) return;
-	draggedCuisineIndex = Number(option.dataset.cuisineIndex);
-	option.classList.add('dragging');
-	event.dataTransfer!.effectAllowed = 'move';
-});
-selectedCuisinesContainer.addEventListener('dragover', (event) => {
-	if (draggedCuisineIndex === null) return;
-	event.preventDefault();
-	const option = (event.target as HTMLElement).closest<HTMLElement>('[data-cuisine-index]');
-	selectedCuisinesContainer.querySelectorAll('.drag-over').forEach((item) => item.classList.remove('drag-over'));
-	if (option && Number(option.dataset.cuisineIndex) !== draggedCuisineIndex) option.classList.add('drag-over');
-});
-selectedCuisinesContainer.addEventListener('drop', (event) => {
-	event.preventDefault();
-	if (draggedCuisineIndex === null) return;
-	const option = (event.target as HTMLElement).closest<HTMLElement>('[data-cuisine-index]');
-	const targetIndex = option ? Number(option.dataset.cuisineIndex) : selectedCuisines.length - 1;
-	if (targetIndex !== draggedCuisineIndex) {
-		const [moved] = selectedCuisines.splice(draggedCuisineIndex, 1);
-		selectedCuisines.splice(targetIndex, 0, moved);
-		renderSelectedCuisines();
-		renderCuisineOptions();
+function setupSelectedOptionReordering(
+	container: HTMLDivElement,
+	getItems: () => string[],
+	setItems: (items: string[]) => void,
+	renderSelection: () => void,
+	renderOptions: () => void,
+) {
+	let draggedIndex: number | null = null;
+	let touchDrag: { pointerId: number; startX: number; startY: number; index: number; option: HTMLElement; active: boolean } | null = null;
+
+	const clearDragClasses = () => {
+		container.querySelectorAll('.dragging, .drag-over').forEach((item) => item.classList.remove('dragging', 'drag-over'));
+	};
+	const markTarget = (target: EventTarget | null, sourceIndex: number) => {
+		container.querySelectorAll('.drag-over').forEach((item) => item.classList.remove('drag-over'));
+		const option = target instanceof HTMLElement ? target.closest<HTMLElement>('[data-selected-index]') : null;
+		if (option && container.contains(option) && Number(option.dataset.selectedIndex) !== sourceIndex) option.classList.add('drag-over');
+		return option && container.contains(option) ? Number(option.dataset.selectedIndex) : null;
+	};
+	const reorder = (sourceIndex: number, targetIndex: number | null) => {
+		const items = [...getItems()];
+		if (items.length < 2) return;
+		const destination = targetIndex ?? items.length - 1;
+		if (destination === sourceIndex || destination < 0 || destination >= items.length) return;
+		const [moved] = items.splice(sourceIndex, 1);
+		items.splice(destination, 0, moved);
+		setItems(items);
+		renderSelection();
+		renderOptions();
 		updateDirtyState();
-	}
-	draggedCuisineIndex = null;
-});
-selectedCuisinesContainer.addEventListener('dragend', () => {
-	draggedCuisineIndex = null;
-	selectedCuisinesContainer.querySelectorAll('.dragging, .drag-over').forEach((item) => item.classList.remove('dragging', 'drag-over'));
-});
+	};
+
+	container.addEventListener('dragstart', (event) => {
+		if (form.classList.contains('view-mode') || (event.target as HTMLElement).closest('button')) {
+			event.preventDefault();
+			return;
+		}
+		const option = (event.target as HTMLElement).closest<HTMLElement>('[data-selected-index]');
+		if (!option) return;
+		draggedIndex = Number(option.dataset.selectedIndex);
+		option.classList.add('dragging');
+		if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+	});
+	container.addEventListener('dragover', (event) => {
+		if (draggedIndex === null) return;
+		event.preventDefault();
+		markTarget(event.target, draggedIndex);
+	});
+	container.addEventListener('drop', (event) => {
+		event.preventDefault();
+		if (draggedIndex === null) return;
+		const targetIndex = markTarget(event.target, draggedIndex);
+		reorder(draggedIndex, targetIndex);
+		draggedIndex = null;
+		clearDragClasses();
+	});
+	container.addEventListener('dragend', () => {
+		draggedIndex = null;
+		clearDragClasses();
+	});
+
+	container.addEventListener('pointerdown', (event) => {
+		if (event.pointerType === 'mouse' || form.classList.contains('view-mode') || (event.target as HTMLElement).closest('button')) return;
+		const option = (event.target as HTMLElement).closest<HTMLElement>('[data-selected-index]');
+		if (!option) return;
+		touchDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, index: Number(option.dataset.selectedIndex), option, active: false };
+		option.setPointerCapture(event.pointerId);
+	});
+	container.addEventListener('pointermove', (event) => {
+		if (!touchDrag || touchDrag.pointerId !== event.pointerId) return;
+		if (!touchDrag.active && Math.hypot(event.clientX - touchDrag.startX, event.clientY - touchDrag.startY) < 6) return;
+		touchDrag.active = true;
+		event.preventDefault();
+		touchDrag.option.classList.add('dragging');
+		markTarget(document.elementFromPoint(event.clientX, event.clientY), touchDrag.index);
+	});
+	const finishTouchDrag = (event: PointerEvent) => {
+		if (!touchDrag || touchDrag.pointerId !== event.pointerId) return;
+		const targetIndex = touchDrag.active ? markTarget(document.elementFromPoint(event.clientX, event.clientY), touchDrag.index) : null;
+		if (touchDrag.option.hasPointerCapture(event.pointerId)) touchDrag.option.releasePointerCapture(event.pointerId);
+		if (touchDrag.active) reorder(touchDrag.index, targetIndex);
+		touchDrag = null;
+		clearDragClasses();
+	};
+	container.addEventListener('pointerup', finishTouchDrag);
+	container.addEventListener('pointercancel', finishTouchDrag);
+}
+
+setupSelectedOptionReordering(selectedCuisinesContainer, () => selectedCuisines, (items) => { selectedCuisines = items; }, renderSelectedCuisines, renderCuisineOptions);
+setupSelectedOptionReordering(selectedTagsContainer, () => selectedTags, (items) => { selectedTags = items; }, renderSelectedTags, renderTagOptions);
+setupSelectedOptionReordering(selectedEstablishmentsContainer, () => selectedEstablishments, (items) => { selectedEstablishments = items; }, renderSelectedEstablishments, renderEstablishmentOptions);
+setupSelectedOptionReordering(selectedServicesContainer, () => selectedServices, (items) => { selectedServices = items; }, renderSelectedServices, renderServiceOptions);
 establishmentSelect.addEventListener('focus', openEstablishmentDropdown);
 establishmentSelect.addEventListener('click', openEstablishmentDropdown);
 establishmentSelect.addEventListener('input', () => {
@@ -3244,6 +3408,13 @@ visitedFilterButton.addEventListener('click', () => {
 });
 checkedFilterButton.addEventListener('click', () => {
 	checkedFilterActive = !checkedFilterActive;
+	if (checkedFilterActive) uncheckedFilterActive = false;
+	updateDirectoryFilterLabels();
+	render();
+});
+uncheckedFilterButton.addEventListener('click', () => {
+	uncheckedFilterActive = !uncheckedFilterActive;
+	if (uncheckedFilterActive) checkedFilterActive = false;
 	updateDirectoryFilterLabels();
 	render();
 });
@@ -3272,6 +3443,7 @@ function clearDirectoryFilterSelections() {
 	favoriteFilterActive = false;
 	visitedFilterActive = false;
 	checkedFilterActive = false;
+	uncheckedFilterActive = false;
 	glutenFreeFilterActive = false;
 	deliveryFilterActive = false;
 	takeAwayFilterActive = false;
@@ -3927,6 +4099,12 @@ form.addEventListener('submit', async (event) => {
 		removedTags = removedTags.filter((removed) => !missingTags.some((tag) => tag.toLocaleLowerCase('es') === removed.toLocaleLowerCase('es')));
 		saveTagSettings();
 	}
+	const savedAveragePrice = data.averagePrice.trim();
+	if (savedAveragePrice) {
+		const availableAgain = removedAveragePrices.length;
+		removedAveragePrices = removedAveragePrices.filter((value) => value.toLocaleLowerCase('es') !== savedAveragePrice.toLocaleLowerCase('es'));
+		if (removedAveragePrices.length !== availableAgain) persistCatalogSettings();
+	}
 	const existingIndex = activeRestaurantId
 		? restaurants.findIndex((restaurant) => restaurant.id === activeRestaurantId)
 		: -1;
@@ -3944,7 +4122,7 @@ form.addEventListener('submit', async (event) => {
 		score: data.score.trim(),
 		mealTypes: [...selectedServices],
 		price: data.price,
-		averagePrice: data.averagePrice.trim(),
+		averagePrice: savedAveragePrice,
 		country: savedCountry,
 		province: savedProvince,
 		city: savedCity,
@@ -4224,6 +4402,7 @@ function applyServerCatalogs(value: unknown) {
 	removedCuisines = stringArray(catalogs.removedCuisines);
 	tagCatalog = capitalizedCatalogValues(stringArray(catalogs.tags, tagCatalog));
 	removedTags = stringArray(catalogs.removedTags);
+	removedAveragePrices = stringArray(catalogs.removedAveragePrices);
 	establishmentTypes = capitalizedCatalogValues(stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]));
 	removedEstablishmentTypes = stringArray(catalogs.removedEstablishmentTypes);
 	serviceTypes = stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]);

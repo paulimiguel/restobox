@@ -26,6 +26,7 @@ const profilePhotoPreview = document.querySelector<HTMLDivElement>('#profile-pho
 const removeProfilePhoto = document.querySelector<HTMLButtonElement>('#remove-profile-photo')!;
 const userMenuName = document.querySelector<HTMLElement>('#user-menu-name')!;
 const userMenuEmail = document.querySelector<HTMLElement>('#user-menu-email')!;
+const directoryUserName = document.querySelector<HTMLElement>('#directory-user-name')!;
 const userAvatar = document.querySelector<HTMLElement>('.user-dropdown .avatar')!;
 const extensionDialog = document.querySelector<HTMLDialogElement>('#extension-dialog')!;
 const openExtensionButton = document.querySelector<HTMLButtonElement>('#open-extension-dialog')!;
@@ -72,6 +73,7 @@ function renderProfile(user: ProfileUser) {
 	profileName.value = user.name || user.username;
 	profileAlias.value = user.alias || '';
 	userMenuName.textContent = displayName(user);
+	directoryUserName.textContent = displayName(user);
 	userMenuEmail.textContent = user.email || (user.username.includes('@') ? user.username : '');
 	renderPhoto(user);
 }

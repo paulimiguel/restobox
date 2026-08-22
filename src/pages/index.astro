@@ -64,7 +64,7 @@ const userInitials = userDisplayName
 
 						<button class="top-nav-button header-nav-link" id="header-directory" type="button">DIRECTORIO</button>
 						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>LUGAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<summary class="top-nav-button"><span>CATEGORÍA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="header-establishment-options" class="dropdown-panel category-panel"></div>
 						</details>
 						<details class="top-dropdown category-dropdown">
@@ -118,6 +118,10 @@ const userInitials = userDisplayName
 
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
+						<div id="directory-owner-summary" class="directory-owner-summary">
+							<h1>Lugares de <span id="directory-user-name">{userDisplayName}</span></h1>
+							<p id="result-description">Cargando lugares…</p>
+						</div>
 						<div class="directory-actions-left">
 							<div class="action-search-group">
 								<label class="action-search">
@@ -152,7 +156,7 @@ const userInitials = userDisplayName
 									<button type="button" data-directory-view="small-icons"><svg viewBox="0 0 24 24"><path d="M3 3h4v4H3zM10 3h4v4h-4zM17 3h4v4h-4zM3 10h4v4H3zM10 10h4v4h-4zM17 10h4v4h-4zM3 17h4v4H3zM10 17h4v4h-4zM17 17h4v4h-4z"/></svg>Iconos pequeños</button>
 									<button type="button" data-directory-view="detail"><svg viewBox="0 0 24 24"><path d="M4 5h4v4H4zM11 6h9M4 11h4v4H4zM11 12h9M4 17h4v4H4zM11 18h9"/></svg>Detalles</button>
 									<button type="button" data-directory-view="list"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg>Lista</button>
-									<button type="button" data-directory-view="establishments"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg>Tipo de lugar</button>
+									<button type="button" data-directory-view="establishments"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg>Categorías</button>
 									<button type="button" data-directory-view="cuisines"><svg viewBox="0 0 24 24"><path d="M4 5h10l6 6-9 9-7-7Z"/><circle cx="9" cy="10" r="1"/></svg>Tipos de cocina</button>
 								</div>
 							</details>
@@ -205,29 +209,26 @@ const userInitials = userDisplayName
 					</section>
 					<section id="directory-filter-panel" class="directory-filter-panel" aria-label="Filtros del directorio" hidden>
 						<div class="directory-filter-fields">
-							<div class="filter-control"><span>Tipo de lugar</span><details class="filter-multiselect"><summary><span id="establishment-filter-label">Todos los lugares</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="establishment-filter-options" class="filter-checkbox-list"></div></details><div id="establishment-filter-chips" class="filter-chips"></div></div>
+							<div class="filter-control"><span>Categorías</span><details class="filter-multiselect"><summary><span id="establishment-filter-label">Todas las categorías</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="establishment-filter-options" class="filter-checkbox-list"></div></details><div id="establishment-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Servicio</span><details class="filter-multiselect"><summary><span id="meal-filter-label">Todos los servicios</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="meal-filter-options" class="filter-checkbox-list"></div></details><div id="meal-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Tipo de cocina</span><details class="filter-multiselect"><summary><span id="cuisine-filter-label">Todos los tipos de cocina</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="cuisine-filter-options" class="filter-checkbox-list"></div></details><div id="cuisine-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Etiquetas</span><details class="filter-multiselect"><summary><span id="tag-filter-label">Todas las etiquetas</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="tag-filter-options" class="filter-checkbox-list"></div></details><div id="tag-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Ciudad</span><details class="filter-multiselect"><summary><span id="city-filter-label">Todas las ciudades</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="city-filter-options" class="filter-checkbox-list"></div></details><div id="city-filter-chips" class="filter-chips"></div></div>
-							<div class="filter-control"><span>Barrio</span><details class="filter-multiselect"><summary><span id="neighborhood-filter-label">Todos los barrios</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="neighborhood-filter-options" class="filter-checkbox-list"></div></details><div id="neighborhood-filter-chips" class="filter-chips"></div></div>
+							<div class="filter-control"><span>Zona</span><details class="filter-multiselect"><summary><span id="neighborhood-filter-label">Todas las zonas</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="neighborhood-filter-options" class="filter-checkbox-list"></div></details><div id="neighborhood-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-status-buttons" aria-label="Filtros rápidos">
 								<button id="favorite-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favoritos</button>
 								<button id="visited-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitados</button>
-								<button id="checked-filter" type="button" aria-pressed="false"><span class="checked-icon" aria-hidden="true"></span>Chequeados</button>
 								<button id="gluten-free-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M4 4 20 20"/></svg>Sin gluten</button>
 								<button id="delivery-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>Delivery</button>
 								<button id="take-away-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>Take away</button>
-								<button id="clear-directory-filters" class="clear-directory-filters" type="button">Limpiar filtros</button>
+								<button id="checked-filter" type="button" aria-pressed="false"><span class="checked-icon" aria-hidden="true"></span>Checked</button>
+								<button id="unchecked-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>Unchecked</button>
+								<button id="clear-directory-filters" class="clear-directory-filters" type="button">Quitar filtros</button>
 							</div>
 						</div>
 					</section>
 
 					<section class="directory-panel">
-						<div class="panel-heading">
-							<p id="result-description">Tus restaurantes registrados</p>
-						</div>
-
 						<div id="restaurant-list" class="restaurant-list" aria-live="polite"></div>
 						<div id="empty-state" class="empty-state" hidden>
 							<div class="empty-icon"><svg viewBox="0 0 32 32"><path d="M7 7h18v18H7zM11 12h10M11 17h7"/></svg></div>
@@ -281,9 +282,9 @@ const userInitials = userDisplayName
 							<div class="lead-data">
 								<label><span class="field-label">Nombre del lugar <span class="required">*</span></span><input name="name" required maxlength="80" placeholder="Ej. Casa Cavia" /></label>
 								<label>Dirección <input name="address" maxlength="120" placeholder="Calle y número" /></label>
-								<label>Barrio
+								<label>Zona
 									<div id="neighborhood-combobox" class="cuisine-combobox neighborhood-combobox">
-										<input id="neighborhood" name="neighborhood" type="text" maxlength="80" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="neighborhood-options" placeholder="Escribí un barrio y pulsá Enter" />
+										<input id="neighborhood" name="neighborhood" type="text" maxlength="80" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="neighborhood-options" placeholder="Escribí una zona y pulsá Enter" />
 										<div id="neighborhood-options" class="cuisine-dropdown neighborhood-dropdown" role="listbox" hidden></div>
 									</div>
 								</label>
@@ -339,9 +340,9 @@ const userInitials = userDisplayName
 				<section class="tab-panel" id="panel-details" role="tabpanel" aria-labelledby="tab-details" data-tab-panel="details" hidden>
 					<div class="form-grid">
 						<div class="form-field establishment-type-field">
-							<label for="establishment-type">Tipo de lugar</label>
+							<label for="establishment-type">Categorías</label>
 							<div id="establishment-combobox" class="cuisine-combobox establishment-combobox">
-								<input id="establishment-type" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="establishment-options" placeholder="Escribí un tipo de lugar y pulsá Enter" />
+								<input id="establishment-type" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="establishment-options" placeholder="Escribí una categoría y pulsá Enter" />
 								<div id="establishment-options" class="cuisine-dropdown establishment-dropdown" role="listbox" hidden></div>
 							</div>
 							<div id="selected-establishments" class="selected-options" aria-live="polite"></div>
@@ -385,7 +386,12 @@ const userInitials = userDisplayName
 								<option value="$$$$">$$$$ — Muy lujoso o exclusivo</option>
 							</select>
 						</label>
-						<label class="average-price-field">Precio promedio por persona <input name="averagePrice" type="text" list="average-price-options" maxlength="100" placeholder="Elegí un valor o escribí uno nuevo" /></label>
+						<label class="average-price-field">Precio promedio por persona
+							<div id="average-price-combobox" class="cuisine-combobox average-price-combobox">
+								<input id="average-price" name="averagePrice" type="text" maxlength="100" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="average-price-options-menu" placeholder="Elegí un valor o escribí uno nuevo" />
+								<div id="average-price-options-menu" class="cuisine-dropdown average-price-dropdown" role="listbox" hidden></div>
+							</div>
+						</label>
 						<datalist id="average-price-options"></datalist>
 						<label>Calificación
 							<select name="rating" class="rating-select">
@@ -578,7 +584,7 @@ const userInitials = userDisplayName
 				<h2>Importar lugar por nombre</h2>
 				<label for="place-search-name">Nombre del lugar</label>
 				<input id="place-search-name" type="text" maxlength="120" autocomplete="off" placeholder="Ej. Piazza Normandina, Mar del Plata" required />
-				<p class="url-import-help">Podés agregar la ciudad o el barrio para obtener un resultado más preciso.</p>
+				<p class="url-import-help">Podés agregar la ciudad o la zona para obtener un resultado más preciso.</p>
 				<div id="name-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div class="mini-dialog-actions">
 					<button id="cancel-name-import" class="secondary-button" type="button">Cancelar</button>
@@ -593,13 +599,13 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
 				<label for="excel-import-file">Planilla</label>
 				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
-				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Lugar, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Calificación, Puntaje, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Barrio, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Calificación, Puntaje, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
 				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div id="excel-import-preview" class="excel-import-preview" hidden>
 					<strong id="excel-import-summary"></strong>
 					<div class="excel-preview-table-wrap">
 						<table>
-							<thead><tr><th>Fila</th><th>Nombre</th><th>Lugar</th><th>Ciudad</th><th>Estado</th></tr></thead>
+							<thead><tr><th>Fila</th><th>Nombre</th><th>Categorías</th><th>Ciudad</th><th>Estado</th></tr></thead>
 							<tbody id="excel-import-preview-body"></tbody>
 						</table>
 					</div>
@@ -627,11 +633,11 @@ const userInitials = userDisplayName
 				<h2>Editar campos comunes</h2>
 				<p id="bulk-edit-count" class="bulk-edit-help"></p>
 				<div class="bulk-edit-grid">
-					<label><span>Barrio</span><input name="neighborhood" list="bulk-neighborhoods" placeholder="Sin cambios" /></label>
+					<label><span>Zona</span><input name="neighborhood" list="bulk-neighborhoods" placeholder="Sin cambios" /></label>
 					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
 					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
 					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
-					<div class="bulk-choice-field"><span>Tipo de lugar</span><div id="bulk-establishment-options" class="bulk-choice-list"></div></div>
+					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field"><span>Servicio</span><div id="bulk-service-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Tipo de cocina</span><div id="bulk-cuisine-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Etiquetas</span>
