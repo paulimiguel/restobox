@@ -1382,7 +1382,7 @@ function render() {
 					</button>
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
-						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><img class="visited-icon" src="/icono-visitado.png" alt="" /></button>
+						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
 						<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
@@ -1407,7 +1407,7 @@ function render() {
 					</div>
 					<div class="restaurant-card-list-status" aria-label="Favorito y visitado">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
-						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><img class="visited-icon" src="/icono-visitado.png" alt="" /></button>
+						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
 					</div>
 				</div>
 				${links ? `<div class="restaurant-card-footer"><div class="row-links">${links}</div></div>` : ''}
