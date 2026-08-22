@@ -149,19 +149,23 @@ const establishmentFilterOptions = document.querySelector<HTMLDivElement>('#esta
 const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-options')!;
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
 const neighborhoodFilterOptions = document.querySelector<HTMLDivElement>('#neighborhood-filter-options')!;
-const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options')!;
+const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options')!;
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
 const mealFilterLabel = document.querySelector<HTMLElement>('#meal-filter-label')!;
 const cuisineFilterLabel = document.querySelector<HTMLElement>('#cuisine-filter-label')!;
 const neighborhoodFilterLabel = document.querySelector<HTMLElement>('#neighborhood-filter-label')!;
-const cityFilterLabel = document.querySelector<HTMLElement>('#city-filter-label')!;
+const tagFilterLabel = document.querySelector<HTMLElement>('#tag-filter-label')!;
 const establishmentFilterChips = document.querySelector<HTMLDivElement>('#establishment-filter-chips')!;
 const mealFilterChips = document.querySelector<HTMLDivElement>('#meal-filter-chips')!;
 const cuisineFilterChips = document.querySelector<HTMLDivElement>('#cuisine-filter-chips')!;
 const neighborhoodFilterChips = document.querySelector<HTMLDivElement>('#neighborhood-filter-chips')!;
-const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chips')!;
+const tagFilterChips = document.querySelector<HTMLDivElement>('#tag-filter-chips')!;
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
 const visitedFilterButton = document.querySelector<HTMLButtonElement>('#visited-filter')!;
+const checkedFilterButton = document.querySelector<HTMLButtonElement>('#checked-filter')!;
+const glutenFreeFilterButton = document.querySelector<HTMLButtonElement>('#gluten-free-filter')!;
+const deliveryFilterButton = document.querySelector<HTMLButtonElement>('#delivery-filter')!;
+const takeAwayFilterButton = document.querySelector<HTMLButtonElement>('#take-away-filter')!;
 const clearDirectoryFiltersButton = document.querySelector<HTMLButtonElement>('#clear-directory-filters')!;
 const filterActionMenu = document.querySelector<HTMLDetailsElement>('.filter-action-menu')!;
 const directoryFilterPanel = document.querySelector<HTMLElement>('#directory-filter-panel')!;
@@ -346,9 +350,13 @@ let selectedEstablishmentFilters = new Set<string>();
 let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
-let selectedCityFilters = new Set<string>();
+let selectedTagFilters = new Set<string>();
 let favoriteFilterActive = false;
 let visitedFilterActive = false;
+let checkedFilterActive = false;
+let glutenFreeFilterActive = false;
+let deliveryFilterActive = false;
+let takeAwayFilterActive = false;
 let printSelectedIds = new Set<string>();
 let selectionMode: 'print' | 'edit' | 'delete' | null = null;
 let rangeSelectionAnchorId: string | null = null;
@@ -698,21 +706,25 @@ function updateDirectoryFilterLabels() {
 	mealFilterLabel.textContent = summary(selectedMealFilters, 'Todos los servicios');
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
 	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todos los barrios');
-	cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
+	tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
 	const chips = (values: Set<string>, group: string) => [...values].map((value) => `
 		<span class="filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`).join('');
 	establishmentFilterChips.innerHTML = chips(selectedEstablishmentFilters, 'establishment');
 	mealFilterChips.innerHTML = chips(selectedMealFilters, 'meal');
 	cuisineFilterChips.innerHTML = chips(selectedCuisineFilters, 'cuisine');
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
-	cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
+	tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-establishment-filter]').forEach((input) => { input.checked = selectedEstablishmentFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-meal-filter]').forEach((input) => { input.checked = selectedMealFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-cuisine-filter]').forEach((input) => { input.checked = selectedCuisineFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-neighborhood-filter]').forEach((input) => { input.checked = selectedNeighborhoodFilters.has(input.value); });
-	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-city-filter]').forEach((input) => { input.checked = selectedCityFilters.has(input.value); });
+	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-tag-filter]').forEach((input) => { input.checked = selectedTagFilters.has(input.value); });
 	favoriteFilterButton.setAttribute('aria-pressed', String(favoriteFilterActive));
 	visitedFilterButton.setAttribute('aria-pressed', String(visitedFilterActive));
+	checkedFilterButton.setAttribute('aria-pressed', String(checkedFilterActive));
+	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
+	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
+	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
 
 function renderAdditionalFilterOptions() {
@@ -720,10 +732,10 @@ function renderAdditionalFilterOptions() {
 	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].filter((value) => availableNeighborhoods.includes(value)));
 	neighborhoodFilterOptions.innerHTML = availableNeighborhoods.map((value) => `
 		<label><input type="checkbox" value="${safe(value)}" data-neighborhood-filter${selectedNeighborhoodFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
-	const availableCities = [...new Set(restaurants.map((restaurant) => restaurant.city).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-	selectedCityFilters = new Set([...selectedCityFilters].filter((value) => availableCities.includes(value)));
-	cityFilterOptions.innerHTML = availableCities.map((value) => `
-		<label><input type="checkbox" value="${safe(value)}" data-city-filter${selectedCityFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
+	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).sort((a, b) => a.localeCompare(b, 'es'));
+	selectedTagFilters = new Set([...selectedTagFilters].filter((value) => availableTags.includes(value)));
+	tagFilterOptions.innerHTML = availableTags.map((value) => `
+		<label><input type="checkbox" value="${safe(value)}" data-tag-filter${selectedTagFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
 	updateDirectoryFilterLabels();
 	headerEstablishmentOptions.innerHTML = establishmentTypes.map((value) => `<button type="button" data-header-filter="establishment" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerServiceOptions.innerHTML = serviceTypes.map((value) => `<button type="button" data-header-filter="meal" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
@@ -1442,21 +1454,30 @@ function render() {
 		const restaurantEstablishments = getRestaurantEstablishmentTypes(restaurant);
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
+		const restaurantTagValues = restaurantTags(restaurant).map((tag) => tag.toLocaleLowerCase('es'));
 		const matchesEstablishment = !selectedEstablishmentFilters.size || [...selectedEstablishmentFilters].some((value) => restaurantEstablishments.includes(value));
 		const matchesMeal = !selectedMealFilters.size || [...selectedMealFilters].some((value) => restaurantMeals.includes(value));
 		const matchesCuisine = !selectedCuisineFilters.size || [...selectedCuisineFilters].some((value) => restaurantCuisines.includes(value));
 		const matchesNeighborhood = !selectedNeighborhoodFilters.size || selectedNeighborhoodFilters.has(restaurant.neighborhood ?? '');
-		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
+		const matchesTags = !selectedTagFilters.size || [...selectedTagFilters].some((tag) => restaurantTagValues.includes(tag.toLocaleLowerCase('es')));
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
 		const matchesVisited = !visitedFilterActive || Boolean(restaurant.visited);
+		const matchesChecked = !checkedFilterActive || Boolean(restaurant.checked);
+		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
+		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
+		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
 		return matchesTerm
 			&& matchesEstablishment
 			&& matchesMeal
 			&& matchesCuisine
 			&& matchesNeighborhood
-			&& matchesCity
+			&& matchesTags
 			&& matchesFavorite
-			&& matchesVisited;
+			&& matchesVisited
+			&& matchesChecked
+			&& matchesGlutenFree
+			&& matchesDelivery
+			&& matchesTakeAway;
 	});
 	filtered.sort((a, b) => {
 		if (directorySort === 'name-asc') return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
@@ -1533,9 +1554,13 @@ function render() {
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
 		|| selectedNeighborhoodFilters.size > 0
-		|| selectedCityFilters.size > 0
+		|| selectedTagFilters.size > 0
 		|| favoriteFilterActive
-		|| visitedFilterActive;
+		|| visitedFilterActive
+		|| checkedFilterActive
+		|| glutenFreeFilterActive
+		|| deliveryFilterActive
+		|| takeAwayFilterActive;
 	emptyState.hidden = filtered.length > 0;
 	list.hidden = filtered.length === 0;
 	document.querySelector('#empty-title')!.textContent = isFiltered ? 'No encontramos resultados' : 'Tu directorio está vacío';
@@ -3153,7 +3178,7 @@ directoryFilterPanel.addEventListener('change', (event) => {
 				? selectedCuisineFilters
 				: input.hasAttribute('data-neighborhood-filter')
 					? selectedNeighborhoodFilters
-					: selectedCityFilters;
+					: selectedTagFilters;
 	if (input.checked) targetSet.add(input.value);
 	else targetSet.delete(input.value);
 	input.closest<HTMLDetailsElement>('.filter-multiselect')?.removeAttribute('open');
@@ -3172,7 +3197,7 @@ directoryFilterPanel.addEventListener('click', (event) => {
 				? selectedCuisineFilters
 				: button.dataset.removeFilter === 'neighborhood'
 					? selectedNeighborhoodFilters
-					: selectedCityFilters;
+					: selectedTagFilters;
 	targetSet.delete(value);
 	updateDirectoryFilterLabels();
 	render();
@@ -3187,14 +3212,38 @@ visitedFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
+checkedFilterButton.addEventListener('click', () => {
+	checkedFilterActive = !checkedFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
+glutenFreeFilterButton.addEventListener('click', () => {
+	glutenFreeFilterActive = !glutenFreeFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
+deliveryFilterButton.addEventListener('click', () => {
+	deliveryFilterActive = !deliveryFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
+takeAwayFilterButton.addEventListener('click', () => {
+	takeAwayFilterActive = !takeAwayFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
 function clearDirectoryFilterSelections() {
 	selectedEstablishmentFilters.clear();
 	selectedMealFilters.clear();
 	selectedCuisineFilters.clear();
 	selectedNeighborhoodFilters.clear();
-	selectedCityFilters.clear();
+	selectedTagFilters.clear();
 	favoriteFilterActive = false;
 	visitedFilterActive = false;
+	checkedFilterActive = false;
+	glutenFreeFilterActive = false;
+	deliveryFilterActive = false;
+	takeAwayFilterActive = false;
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((input) => { input.checked = false; });
 	updateDirectoryFilterLabels();
 }

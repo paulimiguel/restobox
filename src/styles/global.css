@@ -282,14 +282,17 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-filter-panel[hidden] { display: none; }
 .directory-filter-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 14px; }
 .filter-control { position: relative; display: grid; align-self: start; align-content: start; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 600; }
-.filter-status-buttons { display: flex; align-items: end; gap: 8px; min-height: 57px; }
+.filter-status-buttons { display: flex; grid-column: 1 / -1; flex-wrap: wrap; align-items: end; gap: 8px; min-height: 57px; }
 .filter-status-buttons button { display: inline-flex; height: 39px; align-items: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: white; font-size: 11px; font-weight: 650; transition: color .16s, border-color .16s, background .16s, box-shadow .16s; }
 .filter-status-buttons button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.filter-status-buttons button .checked-icon { width: 18px; height: 18px; opacity: .45; filter: grayscale(1); }
 .filter-status-buttons button:hover { color: var(--accent-text); border-color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, white); }
 .filter-status-buttons button[aria-pressed="true"] { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 14px color-mix(in srgb, var(--forest) 24%, transparent); }
 .filter-status-buttons .clear-directory-filters { width: auto; height: 39px; min-height: 39px; margin-left: auto; white-space: nowrap; }
 #favorite-filter[aria-pressed="true"] svg { color: #ef4444; fill: #ef4444; stroke: #ef4444; }
 #visited-filter[aria-pressed="true"] svg { color: #22a95b; stroke: #22a95b; stroke-width: 2.5; }
+#checked-filter[aria-pressed="true"] { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
+#checked-filter[aria-pressed="true"] .checked-icon { opacity: 1; filter: none; }
 .filter-multiselect { position: relative; }
 .filter-multiselect > summary { display: flex; height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 11px; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; list-style: none; cursor: pointer; }
 .filter-multiselect > summary::-webkit-details-marker { display: none; }
@@ -343,9 +346,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-5 .restaurant-card-body { padding-inline: 11px; }
 .restaurant-list.view-columns-5 .restaurant-card-name { font-size: 18px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-columns-5 .restaurant-card-top-actions > button, .restaurant-list.view-columns-5 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
-.restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
-.restaurant-list.view-columns-5 .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions > button, .restaurant-list.view-columns-5 .restaurant-card-actions-menu > summary { width: 29px; height: 29px; border-radius: 6px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 16px; height: 16px; }
+.restaurant-list.view-columns-5 .restaurant-card-top-actions .checked-icon { width: 17px; height: 17px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer { padding-inline: 10px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links a { width: 32px; height: 32px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
@@ -355,9 +358,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-6 .restaurant-card-establishments { font-size: 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-cuisines { font-size: 9px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
-.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
-.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 28px; height: 28px; border-radius: 6px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 15px; height: 15px; }
+.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 16px; height: 16px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer { padding: 7px 5px 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links { flex-wrap: wrap; justify-content: center; gap: 3px; overflow: visible; }
 .restaurant-list.view-columns-6 .restaurant-card-footer .row-links a { width: 27px; height: 27px; flex: 0 0 27px; }
@@ -379,9 +382,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-footer .row-links svg { width: 18px; height: 18px; }
 .restaurant-list.view-detail .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 18px; height: 18px; }
 .restaurant-list.view-detail .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
-.restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 25px; height: 25px; border-radius: 6px; }
-.restaurant-list.view-detail .restaurant-card-top-actions svg { width: 13px; height: 13px; }
-.restaurant-list.view-detail .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
+.restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 29px; height: 29px; border-radius: 6px; }
+.restaurant-list.view-detail .restaurant-card-top-actions svg { width: 16px; height: 16px; }
+.restaurant-list.view-detail .restaurant-card-top-actions .checked-icon { width: 17px; height: 17px; }
 .restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 114px; align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
 .restaurant-list.view-list .restaurant-card-image { min-height: 112px; }
@@ -424,10 +427,10 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card:hover .restaurant-card-image img { transform: scale(1.05); }
 .restaurant-card-placeholder { font-family: var(--font-display); font-size: 58px; color: var(--accent-text); opacity: .65; }
 .restaurant-card-top-actions { position: absolute; top: 9px; right: 9px; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-.restaurant-card-top-actions > button, .restaurant-card-actions-menu > summary { display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
+.restaurant-card-top-actions > button, .restaurant-card-actions-menu > summary { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
 .restaurant-card-top-actions > button:hover, .restaurant-card-actions-menu > summary:hover, .restaurant-card-actions-menu[open] > summary { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
-.restaurant-card-top-actions svg { width: 17px; }
-.restaurant-card-top-actions .checked-icon { width: 17px; height: 17px; }
+.restaurant-card-top-actions svg { width: 19px; }
+.restaurant-card-top-actions .checked-icon { width: 20px; height: 20px; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
