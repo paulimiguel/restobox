@@ -769,7 +769,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .restaurant-status-option:has(input:checked) { color: var(--accent-text); border-color: var(--forest); background: var(--sage); }
 .restaurant-status-option:has(input[name="favorite"]:checked) svg { color: #ef4444; fill: currentColor; }
 .restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 2.5; }
-.restaurant-status-option:has(input[name="checked"]:checked) svg { color: #22a95b; stroke-width: 2.5; }
+.restaurant-status-option:has(input[name="checked"]:checked) { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
+.restaurant-status-option:has(input[name="checked"]:checked) svg { color: #2563eb; stroke-width: 2.5; }
 .image-field > label { display: flex; align-items: center; justify-content: space-between; }
 .image-field label small { color: var(--muted); font-size: 10px; font-weight: 400; }
 .image-file-input { position: absolute; width: 1px !important; height: 1px !important; padding: 0 !important; opacity: 0; pointer-events: none; }
@@ -855,7 +856,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-general .favorite-status { color: #ef4444; }
 .view-mode #panel-general .favorite-status svg { fill: currentColor; }
 .view-mode #panel-general .visited-status { color: #22a95b; }
-.view-mode #panel-general .checked-status { color: #22a95b; }
+.view-mode #panel-general .checked-status { color: #2563eb; }
 .view-mode #panel-general .location-fields label { grid-template-columns: auto minmax(0, 1fr); }
 .view-mode #panel-general .field-label, .view-mode #panel-general label, .view-mode #panel-general .form-field > label { color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-general .required { display: none; }
