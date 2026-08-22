@@ -282,13 +282,13 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-filter-panel[hidden] { display: none; }
 .directory-filter-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 14px; }
 .filter-control { position: relative; display: grid; align-self: start; align-content: start; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 600; }
-.filter-status-buttons { display: flex; grid-column: 1 / -1; flex-wrap: wrap; align-items: end; gap: 8px; min-height: 57px; }
-.filter-status-buttons button { display: inline-flex; height: 39px; align-items: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: white; font-size: 11px; font-weight: 650; transition: color .16s, border-color .16s, background .16s, box-shadow .16s; }
+.filter-status-buttons { display: flex; min-height: 39px; grid-column: 1 / -1; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+.filter-status-buttons button { display: inline-flex; width: 140px; height: 39px; flex: 0 0 140px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: white; font-size: 11px; font-weight: 650; transition: color .16s, border-color .16s, background .16s, box-shadow .16s; }
 .filter-status-buttons button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 .filter-status-buttons button .checked-icon { width: 18px; height: 18px; opacity: .45; filter: grayscale(1); }
 .filter-status-buttons button:hover { color: var(--accent-text); border-color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, white); }
 .filter-status-buttons button[aria-pressed="true"] { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 14px color-mix(in srgb, var(--forest) 24%, transparent); }
-.filter-status-buttons .clear-directory-filters { width: auto; height: 39px; min-height: 39px; margin-left: auto; white-space: nowrap; }
+.filter-status-buttons .clear-directory-filters { width: 140px; height: 39px; min-height: 39px; margin-left: auto; white-space: nowrap; }
 #favorite-filter[aria-pressed="true"] svg { color: #ef4444; fill: #ef4444; stroke: #ef4444; }
 #visited-filter[aria-pressed="true"] svg { color: #22a95b; stroke: #22a95b; stroke-width: 2.5; }
 #checked-filter[aria-pressed="true"] { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
