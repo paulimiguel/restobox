@@ -525,10 +525,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .empty-state p { max-width: 340px; margin: 0 auto 20px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
 dialog { width: min(896px, calc(100% - 30px)); max-height: calc(100vh - 30px); padding: 0; border: 0; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 80px rgba(15,30,23,.25); }
-#restaurant-dialog { overflow: hidden; }
-#restaurant-dialog:has(> form.view-mode), #restaurant-dialog:has(> form.editing-record) { height: min(760px, calc(100vh - 30px)); }
-#restaurant-dialog > form.view-mode, #restaurant-dialog > form.editing-record { display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
-#restaurant-dialog > form.view-mode .tab-panel, #restaurant-dialog > form.editing-record .tab-panel { min-height: 0; overflow-y: auto; }
+#restaurant-dialog { height: min(760px, calc(100vh - 30px)); overflow: hidden; }
+#restaurant-dialog > form { display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
+#restaurant-dialog > form .tab-panel { min-height: 0; overflow-y: auto; }
 dialog form { max-height: calc(100vh - 30px); overflow-y: auto; }
 dialog::backdrop { background: rgba(15,32,25,.55); backdrop-filter: blur(3px); }
 dialog[open] { animation: dialog-in .18s ease-out; }
