@@ -892,25 +892,13 @@ function renderTagOptions(clearInput = false) {
 		...filtered.map((tag) => {
 			const selected = selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'));
 			return `
-				<div class="cuisine-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
-					<button type="button" data-select-tag="${safe(tag)}"><span class="cuisine-option-check">✓</span><span>${safe(tag)}</span></button>
-					<button type="button" class="delete-cuisine-option" data-delete-tag="${safe(tag)}" aria-label="Eliminar ${safe(tag)} de la lista" title="Eliminar de la lista">×</button>
-				</div>`;
+				<label class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<input type="checkbox" data-tag-option value="${safe(tag)}"${selected ? ' checked' : ''} />
+					<span>${safe(tag)}</span>
+				</label>`;
 		}),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-tag><span>＋</span> Agregar “${safe(tagInput.value.trim())}”</button>`] : []),
 	].join('') || '<p class="cuisine-empty">Sin etiquetas guardadas. Escribí una nueva y pulsá Enter.</p>';
-}
-
-function addTagSelection(tag: string) {
-	const normalizedTag = capitalizeFirstLetter(tag.slice(0, 50));
-	if (!normalizedTag || selectedTags.some((item) => item.toLocaleLowerCase('es') === normalizedTag.toLocaleLowerCase('es'))) {
-		renderTagOptions();
-		return;
-	}
-	selectedTags.push(normalizedTag);
-	renderSelectedTags();
-	renderTagOptions(true);
-	updateDirtyState();
 }
 
 function commitTagInput() {
@@ -943,17 +931,6 @@ function openTagDropdown() {
 function closeTagDropdown() {
 	tagOptions.hidden = true;
 	tagInput.setAttribute('aria-expanded', 'false');
-}
-
-function deleteTagOption(tag: string) {
-	tagCatalog = tagCatalog.filter((item) => item !== tag);
-	removedTags = [...new Set([...removedTags, tag])];
-	selectedTags = selectedTags.filter((item) => item !== tag);
-	saveTagSettings();
-	renderSelectedTags();
-	renderTagOptions();
-	updateDirtyState();
-	showToast('Etiqueta eliminada de la lista');
 }
 
 function addCuisineSelection(cuisine: string) {
@@ -2886,23 +2863,20 @@ tagInput.addEventListener('keydown', (event) => {
 	commitTagInput();
 	openTagDropdown();
 });
+tagOptions.addEventListener('change', (event) => {
+	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-tag-option]');
+	if (!checkbox) return;
+	if (checkbox.checked) {
+		if (!selectedTags.some((tag) => tag.toLocaleLowerCase('es') === checkbox.value.toLocaleLowerCase('es'))) selectedTags.push(checkbox.value);
+	} else {
+		selectedTags = selectedTags.filter((tag) => tag.toLocaleLowerCase('es') !== checkbox.value.toLocaleLowerCase('es'));
+	}
+	renderSelectedTags();
+	renderTagOptions();
+	updateDirtyState();
+});
 tagOptions.addEventListener('click', (event) => {
-	const target = event.target as HTMLElement;
-	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-tag]');
-	if (deleteButton?.dataset.deleteTag) {
-		deleteTagOption(deleteButton.dataset.deleteTag);
-		tagInput.focus();
-		openTagDropdown();
-		return;
-	}
-	const selectButton = target.closest<HTMLButtonElement>('[data-select-tag]');
-	if (selectButton?.dataset.selectTag) {
-		addTagSelection(selectButton.dataset.selectTag);
-		tagInput.focus();
-		openTagDropdown();
-		return;
-	}
-	if (target.closest('[data-create-tag]')) {
+	if ((event.target as HTMLElement).closest('[data-create-tag]')) {
 		commitTagInput();
 		tagInput.focus();
 		openTagDropdown();
