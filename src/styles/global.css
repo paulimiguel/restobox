@@ -1107,7 +1107,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-actions-left > .new-establishment-menu { display: none; }
 	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.action-search input { font-size: 16px; }
-	.directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; }
+	.directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+	.directory-filter-fields .filter-control, .directory-filter-fields .filter-multiselect { width: 100%; min-width: 0; }
+	.directory-filter-fields .filter-multiselect > summary { width: 100%; }
 	.directory-filter-panel .clear-directory-filters { width: 100%; justify-self: stretch; }
 	.filter-status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 8px; }
 	.filter-status-buttons button, .filter-status-buttons .clear-directory-filters { width: 100%; min-width: 0; height: 42px; margin-left: 0; padding: 0 5px; gap: 4px; font-size: 9px; white-space: normal; }
