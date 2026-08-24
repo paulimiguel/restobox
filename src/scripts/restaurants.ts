@@ -177,6 +177,7 @@ const glutenFreeFilterButton = document.querySelector<HTMLButtonElement>('#glute
 const deliveryFilterButton = document.querySelector<HTMLButtonElement>('#delivery-filter')!;
 const takeAwayFilterButton = document.querySelector<HTMLButtonElement>('#take-away-filter')!;
 const clearDirectoryFiltersButton = document.querySelector<HTMLButtonElement>('#clear-directory-filters')!;
+const closeDirectoryFilterPanelButton = document.querySelector<HTMLButtonElement>('#close-directory-filter-panel')!;
 const filterActionMenu = document.querySelector<HTMLDetailsElement>('.filter-action-menu')!;
 const directoryFilterPanel = document.querySelector<HTMLElement>('#directory-filter-panel')!;
 const directoryActions = document.querySelector<HTMLElement>('.directory-actions')!;
@@ -3572,6 +3573,10 @@ function clearDirectoryFilterSelections() {
 clearDirectoryFiltersButton.addEventListener('click', () => {
 	clearDirectoryFilterSelections();
 	render();
+});
+closeDirectoryFilterPanelButton.addEventListener('click', () => {
+	filterActionMenu.removeAttribute('open');
+	directoryFilterPanel.hidden = true;
 });
 toolbarImportUrl.addEventListener('click', () => openUrlImportButton.click());
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {

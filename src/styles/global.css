@@ -309,6 +309,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .filter-popover .clear-directory-filters { width: 100%; min-height: 36px; border: 1px solid var(--line); color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, white); font-weight: 600; text-align: center; }
 .filter-popover .clear-directory-filters:hover { color: var(--button-ink); border-color: var(--forest); background: var(--forest); }
 .directory-filter-panel { position: sticky; top: var(--directory-filter-sticky-top, 190px); z-index: 31; isolation: isolate; display: grid; gap: 13px; margin: -18px 0 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--sage); box-shadow: 0 8px 22px rgba(35,45,38,.12); }
+.close-directory-filter-panel { display: none; }
 .print-places-panel { position: relative; isolation: isolate; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 18px; margin: -10px 0 18px; padding: 16px 52px 16px 20px; border: 1px solid var(--line); border-radius: 10px; background: #f1efeb; box-shadow: 0 8px 22px rgba(35,45,38,.07); }
 .print-places-panel[hidden] { display: none; }
 #print-places-panel, #edit-places-panel, #delete-places-panel { position: sticky; top: 88px; z-index: 35; box-shadow: 0 12px 28px rgba(35,45,38,.16); }
@@ -1111,8 +1112,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-filter-fields .filter-control, .directory-filter-fields .filter-multiselect { width: 100%; min-width: 0; }
 	.directory-filter-fields .filter-multiselect > summary { width: 100%; }
 	.directory-filter-panel .clear-directory-filters { width: 100%; justify-self: stretch; }
+	.close-directory-filter-panel { display: grid; width: 36px; height: 36px; place-items: center; justify-self: end; padding: 0; border: 0; border-radius: 7px; color: var(--muted); background: white; font-size: 24px; line-height: 1; }
+	.close-directory-filter-panel:hover { color: var(--accent-text); background: color-mix(in srgb, var(--forest) 22%, white); }
 	.filter-status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 8px; }
 	.filter-status-buttons button, .filter-status-buttons .clear-directory-filters { width: 100%; min-width: 0; height: 42px; margin-left: 0; padding: 0 5px; gap: 4px; font-size: 9px; white-space: normal; }
+	.filter-status-buttons .clear-directory-filters { grid-column: 2 / 4; font-size: 11px; font-weight: 700; }
 	.filter-status-buttons button svg { width: 15px; height: 15px; flex: 0 0 15px; }
 	.filter-status-buttons button .checked-icon { width: 16px; height: 16px; flex-basis: 16px; }
 	.directory-action-menu > summary { height: 43px; }
