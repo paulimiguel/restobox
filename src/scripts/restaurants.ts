@@ -1618,7 +1618,6 @@ function render() {
 		|| deliveryFilterActive
 		|| takeAwayFilterActive;
 	visibleRestaurantIds = filtered.map((restaurant) => restaurant.id);
-	directoryActions.dataset.directoryView = directoryView;
 	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments');
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {

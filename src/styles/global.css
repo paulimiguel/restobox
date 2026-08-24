@@ -1101,8 +1101,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.actions-dropdown { display: none; }
 	.hero { align-items: flex-start; flex-direction: column; }
 	.hero .primary-button { width: 100%; }
-	.directory-actions { grid-template-columns: 1fr; gap: 10px; padding: 11px; }
-	.directory-actions[data-directory-view='columns-5'] { padding-inline: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+	.directory-actions { grid-template-columns: 1fr; gap: 10px; padding: 11px 0; border: 0; border-radius: 0; background: var(--paper); box-shadow: none; }
 	.directory-actions-left { grid-template-columns: 1fr; }
 	.directory-actions-left > .new-establishment-menu { display: none; }
 	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
