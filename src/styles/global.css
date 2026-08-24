@@ -1112,7 +1112,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-filter-fields .filter-control, .directory-filter-fields .filter-multiselect { width: 100%; min-width: 0; }
 	.directory-filter-fields .filter-multiselect > summary { width: 100%; }
 	.directory-filter-panel .clear-directory-filters { width: 100%; justify-self: stretch; }
-	.close-directory-filter-panel { display: grid; width: 36px; height: 36px; place-items: center; justify-self: end; padding: 0; border: 0; border-radius: 7px; color: var(--muted); background: white; font-size: 24px; line-height: 1; }
+	.close-directory-filter-panel { position: absolute; top: 10px; right: 10px; display: grid; width: 22px; height: 22px; place-items: center; padding: 0; border: 0; border-radius: 5px; color: var(--muted); background: white; font-size: 17px; line-height: 1; }
 	.close-directory-filter-panel:hover { color: var(--accent-text); background: color-mix(in srgb, var(--forest) 22%, white); }
 	.filter-status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 8px; }
 	.filter-status-buttons button, .filter-status-buttons .clear-directory-filters { width: 100%; min-width: 0; height: 42px; margin-left: 0; padding: 0 5px; gap: 4px; font-size: 9px; white-space: normal; }
