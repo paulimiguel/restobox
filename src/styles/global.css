@@ -1107,8 +1107,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-actions-left > .new-establishment-menu { display: none; }
 	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.action-search input { font-size: 16px; }
-	.directory-filter-fields { grid-template-columns: 1fr; }
+	.directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; }
 	.directory-filter-panel .clear-directory-filters { width: 100%; justify-self: stretch; }
+	.filter-status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 8px; }
+	.filter-status-buttons button, .filter-status-buttons .clear-directory-filters { width: 100%; min-width: 0; height: 42px; margin-left: 0; padding: 0 5px; gap: 4px; font-size: 9px; white-space: normal; }
+	.filter-status-buttons button svg { width: 15px; height: 15px; flex: 0 0 15px; }
+	.filter-status-buttons button .checked-icon { width: 16px; height: 16px; flex-basis: 16px; }
 	.directory-action-menu > summary { height: 43px; }
 	.directory-action-popover { right: auto; left: 0; }
 	.view-options :is([data-directory-view='columns-6'], [data-directory-view='establishments'], [data-directory-view='cuisines']) { display: none; }
