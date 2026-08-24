@@ -1166,7 +1166,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-list .restaurant-card-address { font-size: 14px; }
 	.restaurant-list.view-list .restaurant-card-neighborhood { font-size: 12px; }
 	.restaurant-list.view-list :is(.restaurant-card-name, .restaurant-card-establishments, .restaurant-card-cuisines, .restaurant-card-address, .restaurant-card-neighborhood) { overflow: visible; text-overflow: clip; white-space: normal; }
-	.restaurant-list.view-list .restaurant-card-location { min-height: 0; grid-row: 2; grid-column: 1; padding: 5px 0 0; }
+	.restaurant-list.view-list .restaurant-card-location { min-height: 0; grid-row: 2; grid-column: 1; padding: 5px 0 0; border-top: 0; }
 	.restaurant-list.view-list .restaurant-card-list-status { width: 32px; grid-row: 1 / 3; grid-column: 2; flex-direction: column; justify-content: center; }
 	.restaurant-list.view-list .restaurant-card-footer { display: none; }
 	.restaurant-list.view-cuisines .restaurant-card-body { grid-template-columns: 1fr; }
