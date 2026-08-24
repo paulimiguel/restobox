@@ -1122,10 +1122,21 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-columns-1 .restaurant-card-image { min-height: 0; aspect-ratio: 1; }
 	.restaurant-list.view-columns-1 .restaurant-card-body { padding: 16px; }
 	.restaurant-list.view-columns-1 .restaurant-card-footer { min-height: 0; padding: 12px 16px; border-top: 1px solid var(--line); border-left: 0; }
+	.restaurant-list.view-columns-1 .restaurant-card-name { font-size: 27px; }
+	.restaurant-list:is(.view-columns-2, .view-columns-3, .view-columns-4, .view-detail) .restaurant-card-name { font-size: 28px; }
+	.restaurant-list.view-columns-5 .restaurant-card-name { font-size: 23px; }
+	.restaurant-list.view-columns-6 .restaurant-card-name, .restaurant-list.view-list .restaurant-card-name { font-size: 22px; }
+	.restaurant-list.view-small-icons .restaurant-card-name { font-size: 15px; }
+	.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-name { font-size: 21px; }
+	.restaurant-list:not(.view-small-icons) .restaurant-card-establishments { font-size: 15px; }
+	.restaurant-list:not(.view-small-icons) .restaurant-card-cuisines { font-size: 14px; }
+	.restaurant-list.view-cuisines .restaurant-card-cuisines, .restaurant-list.view-establishments .restaurant-card-establishments { font-size: 16px; }
 	.restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { grid-template-columns: 1fr; }
 	.restaurant-list.view-detail .restaurant-card-image, .restaurant-list.view-list .restaurant-card-image { aspect-ratio: 1; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-body { grid-template-columns: 1fr; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-location { padding-top: 10px; padding-left: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-left: 0; }
+	.restaurant-list:is(.view-columns-1, .view-detail, .view-list) .restaurant-card-address { font-size: 16px; }
+	.restaurant-list:is(.view-columns-1, .view-detail, .view-list) .restaurant-card-neighborhood { font-size: 14px; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-list-status { justify-content: flex-start; }
 	.restaurant-list.view-cuisines .restaurant-card-body { grid-template-columns: 1fr; }
 	.form-grid { grid-template-columns: 1fr; padding-inline: 20px; }
