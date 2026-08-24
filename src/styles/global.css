@@ -142,6 +142,37 @@ main { min-width: 0; }
 .avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--button-ink); background: var(--forest); font-size: 11px; font-weight: 700; }
 .avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 .menu-button { display: none; margin-right: 12px; padding: 7px; border: 0; background: transparent; color: var(--ink); }
+.mobile-menu-button { display: none; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #6f6965; background: transparent; }
+.mobile-menu-button:hover { color: var(--accent-text); background: var(--sage); }
+.mobile-menu-button svg { width: 28px; height: 28px; }
+.mobile-menu-layer { position: fixed; inset: 0; z-index: 80; }
+.mobile-menu-layer[hidden] { display: none; }
+.mobile-menu-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: rgba(20,24,22,.42); animation: mobile-menu-fade-in .2s ease-out; }
+.mobile-main-menu { position: absolute; inset: 0 0 0 auto; width: min(88vw, 360px); overflow-y: auto; color: #6f6965; background: white; box-shadow: -18px 0 45px rgba(20,24,22,.18); animation: mobile-menu-slide-in .22s ease-out; }
+.mobile-menu-heading { display: flex; min-height: 70px; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.mobile-menu-heading h2 { margin: 0; color: #6f6965; font-size: 20px; }
+.mobile-menu-heading button { display: grid; width: 40px; height: 40px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #6f6965; background: transparent; }
+.mobile-menu-heading button:hover { color: var(--accent-text); background: var(--sage); }
+.mobile-menu-heading svg { width: 22px; }
+.mobile-menu-nav { padding: 16px; }
+.mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button { display: flex; width: 100%; min-height: 44px; align-items: center; gap: 12px; padding: 9px 12px; border: 0; border-radius: 7px; color: #6f6965; background: transparent; text-align: left; font-size: 14px; font-weight: 700; letter-spacing: .4px; }
+.mobile-menu-item, .mobile-menu-section > summary { margin: 2px 0; }
+.mobile-menu-item:hover, .mobile-menu-section > summary:hover, .mobile-menu-options button:hover { color: var(--accent-text); background: var(--sage); }
+.mobile-menu-item svg, .mobile-menu-options button svg { width: 19px; height: 19px; flex: 0 0 auto; }
+.mobile-menu-section { border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.mobile-menu-section:first-child { border-top: 0; }
+.mobile-menu-section > summary { justify-content: space-between; list-style: none; cursor: pointer; }
+.mobile-menu-section > summary::-webkit-details-marker { display: none; }
+.mobile-menu-section > summary svg { width: 17px; transition: transform .18s; }
+.mobile-menu-section[open] > summary svg { transform: rotate(180deg); }
+.mobile-menu-options { padding: 0 0 8px 8px; }
+.mobile-menu-options:empty::after { content: "Sin opciones"; display: block; padding: 8px 12px; color: var(--muted); font-size: 12px; }
+.mobile-menu-options button { min-height: 40px; font-size: 13px; font-weight: 500; letter-spacing: 0; }
+.mobile-theme-options button span { width: 16px; height: 16px; flex: 0 0 auto; border: 1px solid rgba(0,0,0,.08); border-radius: 50%; background: var(--swatch); }
+.mobile-menu-options button.active { color: var(--accent-text); background: var(--sage); }
+body.mobile-menu-open { overflow: hidden; }
+@keyframes mobile-menu-fade-in { from { opacity: 0; } }
+@keyframes mobile-menu-slide-in { from { transform: translateX(100%); } }
 .top-actions { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: 10px; margin-left: auto; }
 .top-dropdown { position: relative; }
 .top-dropdown summary { list-style: none; cursor: pointer; }
@@ -1044,6 +1075,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.content { width: min(100% - 34px, 720px); padding-top: 0; }
 	.restaurant-row { grid-template-columns: 1.3fr 1fr 90px 65px; }
 	.restaurant-row .row-offering { display: none; }
+}
+
+@media (max-width: 1279px) {
+	.top-actions > :not(.mobile-menu-button):not(.user-dropdown) { display: none; }
+	.mobile-menu-button { display: grid; }
+	.top-actions { gap: 4px; }
 }
 
 @media (min-width: 981px) and (max-width: 1250px) {

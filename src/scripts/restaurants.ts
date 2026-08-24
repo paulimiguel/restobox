@@ -211,6 +211,9 @@ updateDirectoryFilterStickyPosition();
 const headerEstablishmentOptions = document.querySelector<HTMLDivElement>('#header-establishment-options')!;
 const headerServiceOptions = document.querySelector<HTMLDivElement>('#header-service-options')!;
 const headerCuisineOptions = document.querySelector<HTMLDivElement>('#header-cuisine-options')!;
+const mobileEstablishmentOptions = document.querySelector<HTMLDivElement>('#mobile-establishment-options')!;
+const mobileServiceOptions = document.querySelector<HTMLDivElement>('#mobile-service-options')!;
+const mobileCuisineOptions = document.querySelector<HTMLDivElement>('#mobile-cuisine-options')!;
 const toolbarImportUrl = document.querySelector<HTMLButtonElement>('#toolbar-import-url')!;
 const openExcelImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-excel-import]')];
 const cuisineSelect = document.querySelector<HTMLInputElement>('#cuisine')!;
@@ -822,6 +825,9 @@ function renderAdditionalFilterOptions() {
 	headerEstablishmentOptions.innerHTML = establishmentTypes.map((value) => `<button type="button" data-header-filter="establishment" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerServiceOptions.innerHTML = serviceTypes.map((value) => `<button type="button" data-header-filter="meal" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerCuisineOptions.innerHTML = cuisines.map((value) => `<button type="button" data-header-filter="cuisine" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
+	mobileEstablishmentOptions.innerHTML = headerEstablishmentOptions.innerHTML;
+	mobileServiceOptions.innerHTML = headerServiceOptions.innerHTML;
+	mobileCuisineOptions.innerHTML = headerCuisineOptions.innerHTML;
 }
 
 function renderEstablishmentFilterOptions() {
@@ -3839,8 +3845,52 @@ imagePreviews.addEventListener('dragend', () => {
 	imagePreviews.querySelectorAll('.dragging, .drag-over').forEach((item) => item.classList.remove('dragging', 'drag-over'));
 });
 
-document.querySelector('#menu-button')?.addEventListener('click', () => document.body.classList.toggle('menu-open'));
-document.querySelectorAll('.nav-item').forEach((link) => link.addEventListener('click', () => document.body.classList.remove('menu-open')));
+const mobileMenuButton = document.querySelector<HTMLButtonElement>('#mobile-menu-button')!;
+const mobileMenuLayer = document.querySelector<HTMLElement>('#mobile-menu-layer')!;
+const mobileMainMenu = document.querySelector<HTMLElement>('#mobile-main-menu')!;
+
+function openMobileMenu() {
+	mobileMenuLayer.hidden = false;
+	document.body.classList.add('mobile-menu-open');
+	mobileMenuButton.setAttribute('aria-expanded', 'true');
+	mobileMainMenu.querySelector<HTMLButtonElement>('[data-close-mobile-menu]')?.focus();
+}
+
+function closeMobileMenu({ restoreFocus = true } = {}) {
+	if (mobileMenuLayer.hidden) return;
+	mobileMenuLayer.hidden = true;
+	document.body.classList.remove('mobile-menu-open');
+	mobileMenuButton.setAttribute('aria-expanded', 'false');
+	mobileMainMenu.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((section) => section.removeAttribute('open'));
+	if (restoreFocus) mobileMenuButton.focus();
+}
+
+mobileMenuButton.addEventListener('click', openMobileMenu);
+document.querySelectorAll<HTMLElement>('[data-close-mobile-menu]').forEach((control) => control.addEventListener('click', () => closeMobileMenu()));
+mobileMenuLayer.addEventListener('click', (event) => {
+	const actionButton = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-mobile-menu-action]');
+	if (actionButton) {
+		const actionTargets: Record<string, string> = {
+			search: '#main-search-button',
+			directory: '#header-directory',
+			import: '#header-import-place',
+			edit: '#header-edit-places',
+			delete: '#header-delete-places',
+			print: '#header-print-directory',
+		};
+		const targetSelector = actionTargets[actionButton.dataset.mobileMenuAction ?? ''];
+		closeMobileMenu({ restoreFocus: false });
+		if (targetSelector) document.querySelector<HTMLButtonElement>(targetSelector)?.click();
+		return;
+	}
+	if ((event.target as HTMLElement).closest('[data-open-form], [data-open-excel-import]')) closeMobileMenu({ restoreFocus: false });
+});
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'Escape' && !mobileMenuLayer.hidden) closeMobileMenu();
+});
+window.addEventListener('resize', () => {
+	if (window.innerWidth >= 1280) closeMobileMenu({ restoreFocus: false });
+});
 
 const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-theme-value]');
 const fontThemeButtons = document.querySelectorAll<HTMLButtonElement>('[data-font-theme-value]');
@@ -3898,7 +3948,7 @@ document.querySelector('#header-directory')?.addEventListener('click', () => {
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-document.querySelector('.top-actions')?.addEventListener('click', (event) => {
+document.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-header-filter]');
 	const value = button?.dataset.headerFilterValue;
 	if (!button || !value) return;
@@ -3911,6 +3961,7 @@ document.querySelector('.top-actions')?.addEventListener('click', (event) => {
 			: selectedCuisineFilters;
 	targetSet.add(value);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	closeMobileMenu({ restoreFocus: false });
 	render();
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });

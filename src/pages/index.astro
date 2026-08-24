@@ -100,6 +100,9 @@ const userInitials = userDisplayName
 							</div>
 						</details>
 
+						<button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Abrir men&uacute;" aria-controls="mobile-main-menu" aria-expanded="false" title="Men&uacute;">
+							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+						</button>
 						<details class="top-dropdown user-dropdown">
 							<summary class="avatar" aria-label="Menú de usuario" title="Usuario">
 								{currentUser?.profilePhoto ? <img id="header-profile-photo" src={currentUser.profilePhoto} alt="" /> : <span id="header-profile-initials">{userInitials}</span>}
@@ -115,6 +118,68 @@ const userInitials = userDisplayName
 						</details>
 					</nav>
 				</header>
+
+				<div class="mobile-menu-layer" id="mobile-menu-layer" hidden>
+					<button class="mobile-menu-backdrop" type="button" data-close-mobile-menu aria-label="Cerrar men&uacute;"></button>
+					<aside class="mobile-main-menu" id="mobile-main-menu" role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title">
+						<header class="mobile-menu-heading">
+							<h2 id="mobile-menu-title">Men&uacute;</h2>
+							<button type="button" data-close-mobile-menu aria-label="Cerrar men&uacute;" title="Cerrar">
+								<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+							</button>
+						</header>
+						<nav class="mobile-menu-nav" aria-label="Men&uacute; principal m&oacute;vil">
+							<details class="mobile-menu-section">
+								<summary><span>TEMA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options mobile-theme-options">
+									<button type="button" data-theme-value="aguamarina"><span style="--swatch:#A5D8E8"></span>Aguamarina</button>
+									<button type="button" data-theme-value="carrot"><span style="--swatch:#FC7813"></span>Carrot</button>
+									<button type="button" data-theme-value="frutilla"><span style="--swatch:#F90344"></span>Frutilla</button>
+									<button type="button" data-theme-value="grises"><span style="--swatch:#B4B7BC"></span>Grises</button>
+									<button type="button" data-theme-value="pasteles"><span style="--swatch:#F7B9C3"></span>Pasteles</button>
+									<button type="button" data-theme-value="salmon"><span style="--swatch:#E26666"></span>Salm&oacute;n</button>
+									<button type="button" data-theme-value="tierra"><span style="--swatch:#E1C097"></span>Tierra</button>
+									<button type="button" data-theme-value="violetas"><span style="--swatch:#A089BF"></span>Violetas</button>
+								</div>
+							</details>
+							<details class="mobile-menu-section">
+								<summary><span>FUENTE</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options">
+									<button type="button" data-font-theme-value="original">Original</button>
+									<button type="button" data-font-theme-value="moderna">Moderna</button>
+									<button type="button" data-font-theme-value="elegante">Elegante</button>
+									<button type="button" data-font-theme-value="amable">Amable</button>
+									<button type="button" data-font-theme-value="clasica">Cl&aacute;sica</button>
+								</div>
+							</details>
+							<button class="mobile-menu-item" type="button" data-mobile-menu-action="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>BUSCAR</button>
+							<button class="mobile-menu-item" type="button" data-mobile-menu-action="directory">DIRECTORIO</button>
+							<details class="mobile-menu-section">
+								<summary><span>CATEGOR&Iacute;A</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div id="mobile-establishment-options" class="mobile-menu-options"></div>
+							</details>
+							<details class="mobile-menu-section">
+								<summary><span>SERVICIO</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div id="mobile-service-options" class="mobile-menu-options"></div>
+							</details>
+							<details class="mobile-menu-section">
+								<summary><span>COCINA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div id="mobile-cuisine-options" class="mobile-menu-options"></div>
+							</details>
+							<details class="mobile-menu-section">
+								<summary><span>ACCIONES</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options">
+									<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
+									<button type="button" data-mobile-menu-action="import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
+									<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
+									<button type="button" data-mobile-menu-action="edit"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
+									<button type="button" data-mobile-menu-action="delete"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
+									<button type="button" data-mobile-menu-action="print"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
+								</div>
+							</details>
+						</nav>
+					</aside>
+				</div>
 
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
