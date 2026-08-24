@@ -1081,6 +1081,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.top-actions > :not(.mobile-menu-button):not(.user-dropdown) { display: none; }
 	.mobile-menu-button { display: grid; }
 	.top-actions { gap: 4px; }
+	.restaurant-list.view-detail .restaurant-card-list-status { display: none !important; }
 }
 
 @media (min-width: 981px) and (max-width: 1250px) {
@@ -1141,7 +1142,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list:is(.view-columns-1, .view-detail, .view-list) .restaurant-card-neighborhood { font-size: 16px; }
 	.restaurant-list.view-detail .restaurant-card-neighborhood { overflow: visible; text-overflow: clip; white-space: normal; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-list-status { justify-content: flex-start; }
-	.restaurant-list.view-detail .restaurant-card-list-status { display: none; }
 	.restaurant-list.view-list .restaurant-card { min-height: 118px; grid-template-columns: 92px minmax(0, 1fr); align-items: stretch; }
 	.restaurant-list.view-list .restaurant-card-media, .restaurant-list.view-list .restaurant-card-open, .restaurant-list.view-list .restaurant-card-image { width: 92px; height: 100%; min-height: 118px; aspect-ratio: auto; }
 	.restaurant-list.view-list .restaurant-card-body { grid-template-columns: minmax(0, 1fr) 32px; grid-template-rows: auto auto; align-content: center; gap: 6px 10px; padding: 10px 12px; }
