@@ -1157,6 +1157,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-list-status { justify-content: flex-start; }
 	.restaurant-list.view-list .restaurant-card { min-height: 118px; grid-template-columns: 92px minmax(0, 1fr); align-items: stretch; }
 	.restaurant-list.view-list .restaurant-card-media, .restaurant-list.view-list .restaurant-card-open, .restaurant-list.view-list .restaurant-card-image { width: 92px; height: 100%; min-height: 118px; aspect-ratio: auto; }
+	.restaurant-list.view-list .restaurant-card-image img { padding: 6px; object-fit: contain; }
 	.restaurant-list.view-list .restaurant-card-body { grid-template-columns: minmax(0, 1fr) 32px; grid-template-rows: auto auto; align-content: center; gap: 6px 10px; padding: 10px 12px; }
 	.restaurant-list.view-list .restaurant-card-identity { grid-row: 1; grid-column: 1; }
 	.restaurant-list.view-list .restaurant-card-name { font-size: 20px; }
