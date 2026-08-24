@@ -358,6 +358,9 @@ let directoryView = localStorage.getItem('restobox-directory-view') || 'columns-
 if (directoryView === 'normal') directoryView = 'columns-5';
 if (directoryView === 'compact') directoryView = 'columns-5';
 if (['columns-1', 'columns-2', 'columns-3', 'columns-4'].includes(directoryView)) directoryView = 'columns-5';
+const mobileDirectoryViewQuery = window.matchMedia('(max-width: 640px)');
+const unavailableMobileDirectoryViews = new Set(['columns-6', 'establishments', 'cuisines']);
+if (mobileDirectoryViewQuery.matches && unavailableMobileDirectoryViews.has(directoryView)) directoryView = 'columns-5';
 let cuisines: string[] = loadCuisines();
 let removedCuisines: string[] = loadRemovedCuisines();
 let tagCatalog: string[] = loadTags();
@@ -3577,6 +3580,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((b
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	render();
 }));
+mobileDirectoryViewQuery.addEventListener('change', (event) => {
+	if (!event.matches || !unavailableMobileDirectoryViews.has(directoryView)) return;
+	directoryView = 'columns-5';
+	render();
+});
 document.querySelectorAll<HTMLButtonElement>('[data-directory-sort-key]').forEach((button) => button.addEventListener('click', () => {
 	const key = button.dataset.directorySortKey || 'date';
 	if (key === 'date') directorySort = directorySort === 'recent' ? 'oldest' : 'recent';
