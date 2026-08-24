@@ -40,6 +40,7 @@ type Restaurant = {
 	takeAway?: boolean;
 	glutenFree?: boolean;
 	reservations?: boolean;
+	modality?: 'store' | 'gastronomy';
 	imageCount: number;
 	createdAt: string;
 };
@@ -145,6 +146,8 @@ const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
 const directoryOwnerSummary = document.querySelector<HTMLElement>('#directory-owner-summary')!;
 const resultDescription = document.querySelector<HTMLElement>('#result-description')!;
+const directoryActiveFilters = document.querySelector<HTMLElement>('#directory-active-filters')!;
+const directoryActiveFilterChips = document.querySelector<HTMLElement>('#directory-active-filter-chips')!;
 const searchTermsRow = document.querySelector<HTMLElement>('#search-terms-row')!;
 const searchTermsList = document.querySelector<HTMLElement>('#search-terms')!;
 const clearSearchTermsButton = document.querySelector<HTMLButtonElement>('#clear-search-terms')!;
@@ -255,6 +258,7 @@ const removeLogoButton = document.querySelector<HTMLButtonElement>('#remove-logo
 const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images')!;
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
+const pasteImageButton = document.querySelector<HTMLButtonElement>('#paste-image')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
 const imageHelp = document.querySelector<HTMLElement>('.image-field label small')!;
@@ -306,8 +310,6 @@ const updateDataButton = document.querySelector<HTMLButtonElement>('#update-data
 const toast = document.querySelector<HTMLDivElement>('#toast')!;
 const pasteScheduleHoursButton = document.querySelector<HTMLButtonElement>('#paste-schedule-hours')!;
 const clearScheduleHoursButton = document.querySelector<HTMLButtonElement>('#clear-schedule-hours')!;
-const restaurantNotesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
-const clearRestaurantNotesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-notes')!;
 const openUrlImportButton = document.querySelector<HTMLButtonElement>('#open-url-import')!;
 const urlImportDialog = document.querySelector<HTMLDialogElement>('#url-import-dialog')!;
 const urlImportForm = document.querySelector<HTMLFormElement>('#url-import-form')!;
@@ -394,6 +396,8 @@ let previewUrls: string[] = [];
 let logoPreviewUrl = '';
 let cardPreviewUrls: string[] = [];
 let cardRenderVersion = 0;
+const cardImageSources = new Map<string, string[]>();
+const cardImageIndexes = new Map<string, number>();
 let draggedImageIndex: number | null = null;
 let spreadsheetPreviewRows: SpreadsheetPreviewRow[] = [];
 let imageInsertMode: 'append' | 'primary' = 'append';
@@ -777,6 +781,13 @@ function updateDirectoryFilterLabels() {
 	establishmentFilterChips.innerHTML = chips(selectedEstablishmentFilters, 'establishment');
 	mealFilterChips.innerHTML = chips(selectedMealFilters, 'meal');
 	cuisineFilterChips.innerHTML = chips(selectedCuisineFilters, 'cuisine');
+	directoryActiveFilterChips.innerHTML = [
+		...selectedEstablishmentFilters].map((value) => ({ value, group: 'establishment' }))
+		.concat([...selectedMealFilters].map((value) => ({ value, group: 'meal' })))
+		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
+		.map(({ value, group }) => `<span class="directory-active-filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`)
+		.join('');
+	directoryActiveFilters.hidden = directoryActiveFilterChips.childElementCount === 0;
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
 	tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
 	cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
@@ -1382,7 +1393,7 @@ function setupClearableFields() {
 	const controls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea');
 	controls.forEach((control) => {
 		if (control instanceof HTMLInputElement && ['hidden', 'file', 'checkbox', 'radio'].includes(control.type)) return;
-		if (['cuisine', 'establishment-type', 'service-type', 'tag-input', 'restaurant-notes'].includes(control.id)) return;
+		if (['cuisine', 'establishment-type', 'service-type', 'tag-input'].includes(control.id)) return;
 		const wrapper = document.createElement('div');
 		wrapper.className = 'clearable-control';
 		control.before(wrapper);
@@ -1582,6 +1593,8 @@ function render() {
 	filtered.sort((a, b) => {
 		if (directorySort === 'name-asc') return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
 		if (directorySort === 'name-desc') return b.name.localeCompare(a.name, 'es', { sensitivity: 'base' });
+		if (directorySort === 'zone-asc') return (a.neighborhood ?? '').localeCompare(b.neighborhood ?? '', 'es', { sensitivity: 'base' }) || a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+		if (directorySort === 'zone-desc') return (b.neighborhood ?? '').localeCompare(a.neighborhood ?? '', 'es', { sensitivity: 'base' }) || a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
 		if (directorySort === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 		return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 	});
@@ -1604,6 +1617,13 @@ function render() {
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
 		button.classList.toggle('active', button.dataset.directoryView === directoryView);
+	});
+	document.querySelectorAll<HTMLButtonElement>('[data-directory-sort-key]').forEach((button) => {
+		const key = button.dataset.directorySortKey;
+		const active = (key === 'date' && ['recent', 'oldest'].includes(directorySort)) || directorySort.startsWith(`${key}-`);
+		button.classList.toggle('active', active);
+		button.classList.toggle('descending', active && (directorySort === 'recent' || directorySort.endsWith('-desc')));
+		button.setAttribute('aria-pressed', String(active));
 	});
 	resultDescription.textContent = isFiltered
 		? (filtered.length === 1 ? '1 lugar encontrado' : `${filtered.length} lugares encontrados`)
@@ -1629,6 +1649,10 @@ function render() {
 					<button class="restaurant-card-open" type="button" data-view="${restaurant.id}" aria-label="Ver ${safe(restaurant.name)}">
 						<div class="restaurant-card-image" data-card-logo="${restaurant.id}"><span class="restaurant-card-placeholder">${safe(restaurant.name.charAt(0).toUpperCase())}</span></div>
 					</button>
+					<div class="restaurant-card-image-navigation" data-card-image-navigation="${restaurant.id}" hidden>
+						<button type="button" data-card-image-direction="-1" data-card-image-restaurant="${restaurant.id}" aria-label="Imagen anterior de ${safe(restaurant.name)}" title="Imagen anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+						<button type="button" data-card-image-direction="1" data-card-image-restaurant="${restaurant.id}" aria-label="Imagen siguiente de ${safe(restaurant.name)}" title="Imagen siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+					</div>
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
@@ -1702,23 +1726,57 @@ async function getServerMedia(restaurantId?: string, kind?: 'image' | 'logo'): P
 }
 
 async function hydrateRestaurantCardLogos(visibleRestaurants: Restaurant[], renderVersion: number) {
-	try {
-		const logos = await getServerMedia(undefined, 'logo');
-		if (renderVersion !== cardRenderVersion) return;
-		const visibleIds = new Set(visibleRestaurants.map((restaurant) => restaurant.id));
-		const targets = new Map([...list.querySelectorAll<HTMLElement>('[data-card-logo]')]
-			.map((element) => [element.dataset.cardLogo!, element]));
-		logos.filter((logo) => visibleIds.has(logo.restaurantId)).forEach((logo) => {
-			const target = targets.get(logo.restaurantId);
-			if (!target) return;
-			const image = document.createElement('img');
-			image.src = logo.url;
-			image.alt = 'Imagen principal del restaurante';
-			target.replaceChildren(image);
-		});
-	} catch {
-		/* Si no se puede leer el logo, la tarjeta conserva la inicial. */
-	}
+	const galleryRequest = ['columns-5', 'columns-6'].includes(directoryView)
+		? getServerMedia(undefined, 'image')
+		: Promise.resolve([] as ServerMedia[]);
+	const [logoResult, imageResult] = await Promise.allSettled([
+		getServerMedia(undefined, 'logo'),
+		galleryRequest,
+	]);
+	if (renderVersion !== cardRenderVersion) return;
+	const logos = logoResult.status === 'fulfilled' ? logoResult.value : [];
+	const images = imageResult.status === 'fulfilled' ? imageResult.value : [];
+	const visibleIds = new Set(visibleRestaurants.map((restaurant) => restaurant.id));
+	const logosByRestaurant = new Map(logos.filter((logo) => visibleIds.has(logo.restaurantId)).map((logo) => [logo.restaurantId, logo.url]));
+	const imagesByRestaurant = new Map<string, string[]>();
+	images.filter((image) => visibleIds.has(image.restaurantId))
+		.sort((a, b) => a.order - b.order)
+		.forEach((image) => imagesByRestaurant.set(image.restaurantId, [...(imagesByRestaurant.get(image.restaurantId) ?? []), image.url]));
+	cardImageSources.clear();
+	cardImageIndexes.clear();
+	visibleRestaurants.forEach((restaurant) => {
+		const sources = [logosByRestaurant.get(restaurant.id), ...(imagesByRestaurant.get(restaurant.id) ?? [])]
+			.filter((source): source is string => Boolean(source));
+		const target = list.querySelector<HTMLElement>(`[data-card-logo="${CSS.escape(restaurant.id)}"]`);
+		if (!target) return;
+		if (!sources.length) {
+			if (logoResult.status === 'fulfilled' && imageResult.status === 'fulfilled') {
+				target.classList.add('card-image-empty');
+				target.title = 'Arrastrá una imagen para agregarla';
+			}
+			return;
+		}
+		cardImageSources.set(restaurant.id, sources);
+		cardImageIndexes.set(restaurant.id, 0);
+		const image = document.createElement('img');
+		image.src = sources[0];
+		image.alt = `Imagen 1 de ${sources.length} de ${restaurant.name}`;
+		image.loading = 'lazy';
+		target.replaceChildren(image);
+		if (sources.length > 1) list.querySelector<HTMLElement>(`[data-card-image-navigation="${CSS.escape(restaurant.id)}"]`)?.removeAttribute('hidden');
+	});
+}
+
+function moveCardImage(restaurantId: string, direction: number) {
+	const sources = cardImageSources.get(restaurantId);
+	if (!sources || sources.length < 2) return;
+	const nextIndex = ((cardImageIndexes.get(restaurantId) ?? 0) + direction + sources.length) % sources.length;
+	cardImageIndexes.set(restaurantId, nextIndex);
+	const image = list.querySelector<HTMLImageElement>(`[data-card-logo="${CSS.escape(restaurantId)}"] img`);
+	const restaurant = restaurants.find((item) => item.id === restaurantId);
+	if (!image) return;
+	image.src = sources[nextIndex];
+	image.alt = `Imagen ${nextIndex + 1} de ${sources.length}${restaurant ? ` de ${restaurant.name}` : ''}`;
 }
 
 async function getRestaurantImages(restaurantId: string): Promise<StoredImage[]> {
@@ -1860,6 +1918,7 @@ function renderImagePreviews() {
 	imageDropZone.classList.toggle('full', isFull);
 	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá o pegá aquí las imágenes';
 	imageDropZone.setAttribute('aria-disabled', String(isFull));
+	pasteImageButton.disabled = isFull;
 	updateDirtyState();
 }
 
@@ -1945,6 +2004,40 @@ function addPastedImages(dataTransfer: DataTransfer) {
 		return;
 	}
 	void addDroppedWebImage(dataTransfer);
+}
+
+async function pasteImagesFromClipboard() {
+	if (restaurantImages.length >= MAX_IMAGES) {
+		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
+		return;
+	}
+	if (!navigator.clipboard?.read) {
+		showToast('Este navegador no permite pegar con el botón; usá Ctrl+V');
+		return;
+	}
+	pasteImageButton.disabled = true;
+	try {
+		const clipboardItems = await navigator.clipboard.read();
+		const files: File[] = [];
+		for (const item of clipboardItems) {
+			const imageType = item.types.find((type) => type.startsWith('image/'));
+			if (!imageType) continue;
+			const blob = await item.getType(imageType);
+			const extension = imageType.split('/')[1]?.replace('+xml', '') || 'png';
+			files.push(new File([blob], `imagen-portapapeles-${Date.now()}-${files.length + 1}.${extension}`, { type: imageType }));
+		}
+		if (!files.length) {
+			showToast('El portapapeles no contiene una imagen');
+			return;
+		}
+		const available = MAX_IMAGES - restaurantImages.length;
+		addImageFiles(files);
+		showToast(Math.min(files.length, available) === 1 ? 'Imagen pegada' : `${Math.min(files.length, available)} imágenes pegadas`);
+	} catch {
+		showToast('No se pudo acceder al portapapeles; permití el acceso o usá Ctrl+V');
+	} finally {
+		pasteImageButton.disabled = restaurantImages.length >= MAX_IMAGES;
+	}
 }
 
 async function addDroppedWebLogo(dataTransfer: DataTransfer) {
@@ -2209,6 +2302,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		takeAway: Boolean(imported.takeAway),
 		glutenFree: Boolean(imported.glutenFree),
 		reservations: Boolean(imported.reservations),
+		modality: 'gastronomy',
 		imageCount: 0,
 		createdAt: new Date().toISOString(),
 	};
@@ -2531,7 +2625,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, reservations: data.reservations, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, reservations: data.reservations, modality: 'gastronomy', imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -3281,14 +3375,6 @@ clearScheduleHoursButton.addEventListener('click', () => {
 	form.dispatchEvent(new Event('input', { bubbles: true }));
 	showToast('Horarios borrados');
 });
-clearRestaurantNotesButton.addEventListener('click', () => {
-	if (!restaurantNotesInput.value.trim()) return;
-	restaurantNotesInput.value = '';
-	restaurantNotesInput.dispatchEvent(new Event('input', { bubbles: true }));
-	restaurantNotesInput.dispatchEvent(new Event('change', { bubbles: true }));
-	restaurantNotesInput.focus();
-	showToast('Notas borradas');
-});
 pasteTextButton.addEventListener('pointerdown', (event) => {
 	if (pasteTarget) event.preventDefault();
 });
@@ -3397,20 +3483,29 @@ directoryFilterPanel.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-filter]');
 	const value = button?.dataset.filterValue;
 	if (!button || !value) return;
-	const targetSet = button.dataset.removeFilter === 'establishment'
+	removeDirectoryFilter(button.dataset.removeFilter, value);
+});
+function removeDirectoryFilter(group: string | undefined, value: string) {
+	const targetSet = group === 'establishment'
 		? selectedEstablishmentFilters
-		: button.dataset.removeFilter === 'meal'
+		: group === 'meal'
 			? selectedMealFilters
-		: button.dataset.removeFilter === 'cuisine'
+			: group === 'cuisine'
 				? selectedCuisineFilters
-				: button.dataset.removeFilter === 'neighborhood'
+				: group === 'neighborhood'
 					? selectedNeighborhoodFilters
-					: button.dataset.removeFilter === 'tag'
+					: group === 'tag'
 						? selectedTagFilters
 						: selectedCityFilters;
 	targetSet.delete(value);
 	updateDirectoryFilterLabels();
 	render();
+}
+directoryActiveFilterChips.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-filter]');
+	const value = button?.dataset.filterValue;
+	if (!button || !value) return;
+	removeDirectoryFilter(button.dataset.removeFilter, value);
 });
 favoriteFilterButton.addEventListener('click', () => {
 	favoriteFilterActive = !favoriteFilterActive;
@@ -3478,8 +3573,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((b
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	render();
 }));
-document.querySelectorAll<HTMLButtonElement>('[data-directory-sort]').forEach((button) => button.addEventListener('click', () => {
-	directorySort = button.dataset.directorySort || 'recent';
+document.querySelectorAll<HTMLButtonElement>('[data-directory-sort-key]').forEach((button) => button.addEventListener('click', () => {
+	const key = button.dataset.directorySortKey || 'date';
+	if (key === 'date') directorySort = directorySort === 'recent' ? 'oldest' : 'recent';
+	else if (directorySort.startsWith(`${key}-`)) directorySort = directorySort.endsWith('-asc') ? `${key}-desc` : `${key}-asc`;
+	else directorySort = `${key}-asc`;
 	localStorage.setItem('restobox-directory-sort', directorySort);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	render();
@@ -3602,6 +3700,7 @@ imageDropZone.addEventListener('keydown', (event) => {
 		imageInput.click();
 	}
 });
+pasteImageButton.addEventListener('click', () => void pasteImagesFromClipboard());
 
 primaryImagePreview.addEventListener('click', () => logoInput.click());
 primaryImagePreview.addEventListener('keydown', (event) => {
@@ -4011,7 +4110,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'modality', 'reservations', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -4041,7 +4140,8 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = listValues(field).join(', ');
-			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
+			} else if (field === 'modality') restaurant.modality = value(field) === 'store' ? 'store' : 'gastronomy';
+			else if (field === 'reservations' || field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
@@ -4174,6 +4274,7 @@ form.addEventListener('submit', async (event) => {
 		takeAway: formData.has('takeAway'),
 		glutenFree: formData.has('glutenFree'),
 		reservations: formData.has('reservations'),
+		modality: data.modality === 'store' ? 'store' : 'gastronomy',
 		imageCount: restaurantImages.length,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
@@ -4319,8 +4420,44 @@ async function viewRestaurantImages(restaurantId: string) {
 	}
 }
 
+function getDroppedCardImageUrl(dataTransfer: DataTransfer) {
+	const htmlUrl = dataTransfer.getData('text/html').match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] ?? '';
+	const uri = dataTransfer.getData('text/uri-list').split(/\r?\n/).find((value) => value && !value.startsWith('#')) ?? '';
+	return [uri, htmlUrl, dataTransfer.getData('text/plain').trim()].find((value) => /^https?:\/\//i.test(value)) ?? '';
+}
+
+async function saveDroppedCardImage(target: HTMLElement, dataTransfer: DataTransfer) {
+	const restaurantId = target.dataset.cardLogo;
+	if (!restaurantId || !target.classList.contains('card-image-empty')) return;
+	target.classList.remove('card-image-empty', 'external-dragging');
+	target.classList.add('uploading-card-image');
+	try {
+		let file = [...dataTransfer.files].find((candidate) => candidate.type.startsWith('image/')) ?? null;
+		if (!file) {
+			const url = getDroppedCardImageUrl(dataTransfer);
+			if (url) file = await downloadImportedImage(url, 'imagen-arrastrada');
+		}
+		if (!file) {
+			showToast('No se reconoció una imagen');
+			target.classList.add('card-image-empty');
+			return;
+		}
+		await uploadRestaurantMedia(restaurantId, 'logo', [{
+			id: crypto.randomUUID(), restaurantId, blob: file, order: 0, isNew: true,
+		}]);
+		showToast('Imagen principal agregada');
+		render();
+	} catch {
+		target.classList.add('card-image-empty');
+		showToast('No se pudo guardar la imagen');
+	} finally {
+		target.classList.remove('uploading-card-image');
+	}
+}
+
 list.addEventListener('click', async (event) => {
 	const target = event.target as HTMLElement;
+	const cardImageButton = target.closest<HTMLButtonElement>('[data-card-image-direction]');
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
 	const favoriteButton = target.closest<HTMLButtonElement>('[data-favorite]');
 	const visitedButton = target.closest<HTMLButtonElement>('[data-visited]');
@@ -4331,6 +4468,10 @@ list.addEventListener('click', async (event) => {
 	const duplicateButton = target.closest<HTMLButtonElement>('[data-duplicate]');
 	const printButton = target.closest<HTMLButtonElement>('[data-print]');
 	const deleteButton = target.closest<HTMLButtonElement>('[data-delete]');
+	if (cardImageButton?.dataset.cardImageRestaurant) {
+		moveCardImage(cardImageButton.dataset.cardImageRestaurant, Number(cardImageButton.dataset.cardImageDirection));
+		return;
+	}
 	if (printSelectButton) {
 		const id = printSelectButton.dataset.printSelect;
 		if (!id) return;
@@ -4413,6 +4554,25 @@ list.addEventListener('click', async (event) => {
 		deleteButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 		if (deleteButton.dataset.delete) await removeRestaurant(deleteButton.dataset.delete);
 	}
+});
+
+list.addEventListener('dragover', (event) => {
+	if (!['columns-5', 'columns-6'].includes(directoryView)) return;
+	const target = (event.target as HTMLElement).closest<HTMLElement>('[data-card-logo].card-image-empty');
+	if (!target) return;
+	event.preventDefault();
+	if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+	target.classList.add('external-dragging');
+});
+list.addEventListener('dragleave', (event) => {
+	const target = (event.target as HTMLElement).closest<HTMLElement>('[data-card-logo].external-dragging');
+	if (target && !target.contains(event.relatedTarget as Node | null)) target.classList.remove('external-dragging');
+});
+list.addEventListener('drop', (event) => {
+	const target = (event.target as HTMLElement).closest<HTMLElement>('[data-card-logo].card-image-empty');
+	if (!target || !event.dataTransfer || !['columns-5', 'columns-6'].includes(directoryView)) return;
+	event.preventDefault();
+	void saveDroppedCardImage(target, event.dataTransfer);
 });
 
 function stringArray(value: unknown, fallback: string[] = []) {
