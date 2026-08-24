@@ -302,11 +302,6 @@ const userInitials = userDisplayName
 									</div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 									<label class="boolean-check-control reservations-check-control"><input name="reservations" type="checkbox" /><span>Reservas</span></label>
-									<div class="modality-field" role="radiogroup" aria-label="Modalidad del lugar">
-										<span>Modalidad</span>
-										<label class="modality-option"><input name="modality" type="radio" value="store" /><span>Tienda</span></label>
-										<label class="modality-option"><input name="modality" type="radio" value="gastronomy" checked /><span>Gastronomía</span></label>
-									</div>
 									<div id="view-favorite-status" class="view-status-row" hidden><strong class="favorite-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong></div>
 									<div id="view-visited-status" class="view-status-row" hidden><strong class="visited-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong></div>
 									<div id="view-checked-status" class="view-status-row" hidden><strong class="checked-status"><span class="checked-icon" aria-hidden="true"></span>Checked</strong></div>
@@ -642,7 +637,6 @@ const userInitials = userDisplayName
 					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
 					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
 					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
-					<label><span>Modalidad</span><select name="modality"><option value="">Sin cambios</option><option value="store">Tienda</option><option value="gastronomy">Gastronomía</option></select></label>
 					<label><span>Reservas</span><select name="reservations"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field"><span>Servicios</span><div id="bulk-service-options" class="bulk-choice-list"></div></div>

@@ -903,10 +903,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .lead-data { display: grid; gap: 13px; }
 .lead-contacts { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 .lead-contacts .reservations-check-control { display: flex; width: fit-content; min-height: 30px; grid-column: 1; gap: 7px; padding: 5px 9px; font-size: 11px; }
-.modality-field { display: flex; min-height: 30px; grid-column: 2; align-items: center; gap: 10px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 11px; }
-.modality-field > span { margin-right: 2px; color: #505852; font-weight: 600; }
-.modality-field .modality-option { display: flex; min-height: 0; grid-template-columns: none; align-items: center; gap: 5px; color: var(--ink); font-size: 11px; font-weight: 400; cursor: pointer; }
-.modality-option input { width: 14px; height: 14px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
 .view-status-row { display: none; }
 .location-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 27px; border-top: 1px solid var(--line); background: #f8f6f0; }
@@ -932,11 +928,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-general .reservations-check-control:not(:has(input:checked)) { display: none; }
 .view-mode #panel-general .reservations-check-control input { display: none; }
 .view-mode #panel-general .reservations-check-control::before { content: '✓'; color: #22a95b; font-size: 18px; font-weight: 800; line-height: 1; }
-.view-mode #panel-general .modality-field { display: flex; min-height: 37px; grid-column: 1; align-items: center; gap: 10px; padding: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); background: transparent; }
-.view-mode #panel-general .modality-field > span { width: 145px; flex: 0 0 145px; color: #414a44; font-size: 13px; }
-.view-mode #panel-general .modality-option { color: var(--ink); font-size: 14px; }
-.view-mode #panel-general .modality-option:has(input:not(:checked)) { display: none; }
-.view-mode #panel-general .modality-option input { display: none; }
 .view-mode #panel-general label, .view-mode #panel-general .form-field { display: grid; grid-template-columns: 155px minmax(0, 1fr); min-height: 37px; align-items: center; gap: 11px; font-size: 13px; }
 .view-mode #panel-general .form-field > label { display: block; min-height: 0; }
 .view-mode #panel-general .lead-data > label, .view-mode #panel-general .lead-contacts > label, .view-mode #panel-general .lead-contacts > .form-field { border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
@@ -1115,7 +1106,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.establishment-lead { grid-template-columns: 1fr; }
 	.primary-image-preview { width: 100%; max-width: 230px; height: auto; aspect-ratio: 1; }
 	.lead-contacts, .location-fields { grid-template-columns: 1fr; }
-	.modality-field { grid-column: 1; }
 	.view-mode #panel-general .establishment-lead { grid-template-columns: 1fr; }
 	.dialog-heading, .dialog-actions { padding-inline: 20px; }
 	#dialog-record-name { display: none; }

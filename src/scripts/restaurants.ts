@@ -40,7 +40,6 @@ type Restaurant = {
 	takeAway?: boolean;
 	glutenFree?: boolean;
 	reservations?: boolean;
-	modality?: 'store' | 'gastronomy';
 	imageCount: number;
 	createdAt: string;
 };
@@ -2302,7 +2301,6 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		takeAway: Boolean(imported.takeAway),
 		glutenFree: Boolean(imported.glutenFree),
 		reservations: Boolean(imported.reservations),
-		modality: 'gastronomy',
 		imageCount: 0,
 		createdAt: new Date().toISOString(),
 	};
@@ -2625,7 +2623,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, reservations: data.reservations, modality: 'gastronomy', imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, reservations: data.reservations, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -4110,7 +4108,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'modality', 'reservations', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'reservations', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -4140,8 +4138,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = listValues(field).join(', ');
-			} else if (field === 'modality') restaurant.modality = value(field) === 'store' ? 'store' : 'gastronomy';
-			else if (field === 'reservations' || field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
+			} else if (field === 'reservations' || field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
@@ -4274,7 +4271,6 @@ form.addEventListener('submit', async (event) => {
 		takeAway: formData.has('takeAway'),
 		glutenFree: formData.has('glutenFree'),
 		reservations: formData.has('reservations'),
-		modality: data.modality === 'store' ? 'store' : 'gastronomy',
 		imageCount: restaurantImages.length,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
