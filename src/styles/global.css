@@ -1103,7 +1103,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.hero .primary-button { width: 100%; }
 	.directory-actions { grid-template-columns: 1fr; gap: 10px; padding: 11px; }
 	.directory-actions-left { grid-template-columns: 1fr; }
-	.directory-actions-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+	.directory-actions-left > .new-establishment-menu { display: none; }
+	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.directory-filter-fields { grid-template-columns: 1fr; }
 	.directory-filter-panel .clear-directory-filters { width: 100%; justify-self: stretch; }
 	.directory-action-menu > summary { height: 43px; }
