@@ -1137,6 +1137,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { grid-template-columns: 1fr; }
 	.restaurant-list.view-detail .restaurant-card-image, .restaurant-list.view-list .restaurant-card-image { aspect-ratio: 1; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-body { grid-template-columns: 1fr; }
+	.restaurant-list.view-detail .restaurant-card-body { padding-bottom: 8px; }
+	.restaurant-list.view-detail .restaurant-card-footer { padding-top: 6px; }
 	.restaurant-list:is(.view-detail, .view-list) .restaurant-card-location { grid-template-rows: auto auto; padding-top: 10px; padding-left: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-left: 0; }
 	.restaurant-list:is(.view-columns-1, .view-detail, .view-list) .restaurant-card-address { font-size: 18px; }
 	.restaurant-list:is(.view-columns-1, .view-detail, .view-list) .restaurant-card-neighborhood { font-size: 16px; }
