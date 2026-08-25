@@ -1683,6 +1683,7 @@ function render() {
 						<button class="restaurant-card-name" type="button" data-view="${restaurant.id}">${safe(restaurant.name)}</button>
 						<p class="restaurant-card-establishments">${safe(cardEstablishments)}</p>
 						<p class="restaurant-card-cuisines">${safe(cardCuisines)}</p>
+						${restaurant.averagePrice?.trim() ? `<p class="restaurant-card-average-price">Promedio por persona: ${safe(restaurant.averagePrice.trim())}</p>` : ''}
 					</div>
 					<div class="restaurant-card-location">
 						${restaurant.address ? `<p class="restaurant-card-address">${safe(restaurant.address)}</p>` : '<p class="restaurant-card-address" aria-hidden="true"></p>'}
