@@ -63,11 +63,9 @@ type ServerMedia = {
 	url: string;
 };
 
-type ImportedRestaurant = Partial<Omit<Restaurant, 'id' | 'createdAt' | 'imageCount' | 'mealTypes'>> & {
+type ImportedRestaurant = Partial<Omit<Restaurant, 'id' | 'createdAt' | 'imageCount'>> & {
 	establishmentTypes?: string[];
 	cuisines?: string[];
-	logo?: string;
-	images?: string[];
 	sourceUrl?: string;
 	collectionUrls?: string[];
 };
@@ -2249,22 +2247,11 @@ async function fetchImportedRestaurant(url: string) {
 	return result;
 }
 
-async function saveImportedMedia(restaurantId: string, imported: ImportedRestaurant) {
-	const [logoFile, imageFiles] = await Promise.all([
-		imported.logo ? downloadImportedImage(imported.logo, 'logo-importado') : Promise.resolve(null),
-		Promise.all((imported.images ?? []).slice(0, MAX_IMAGES).map((url, index) => downloadImportedImage(url, `imagen-importada-${index + 1}`))),
-	]);
-	const validImages = imageFiles.filter((file): file is File => Boolean(file));
-	if (!logoFile && !validImages.length) return 0;
-	const images: RestaurantImage[] = validImages.map((file, order) => ({ id: crypto.randomUUID(), restaurantId, blob: file, order, isNew: true }));
-	await uploadRestaurantMedia(restaurantId, 'image', images);
-	if (logoFile) await uploadRestaurantMedia(restaurantId, 'logo', [{ id: crypto.randomUUID(), restaurantId, blob: logoFile, order: 0, isNew: true }]);
-	return validImages.length;
-}
-
 async function saveImportedRestaurant(imported: ImportedRestaurant) {
 	const restaurantId = crypto.randomUUID();
 	const establishmentTypesForImport = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
+	const cuisinesForImport = capitalizedCatalogValues((imported.cuisines ?? []).filter(Boolean));
+	const servicesForImport = capitalizedCatalogValues((imported.mealTypes ?? []).filter(Boolean));
 	const importedNeighborhood = ensureNeighborhoodOption(imported.neighborhood);
 	const importedCity = ensureLocationOption('city', imported.city);
 	const importedProvince = ensureLocationOption('province', imported.province);
@@ -2275,11 +2262,11 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		description: imported.description?.trim() ?? '',
 		establishmentType: establishmentTypesForImport[0] ?? '',
 		establishmentTypes: establishmentTypesForImport,
-		cuisine: '',
-		cuisines: [],
+		cuisine: cuisinesForImport[0] ?? '',
+		cuisines: cuisinesForImport,
 		tags: imported.tags?.trim() ?? '',
 		rating: imported.rating?.trim() ?? '',
-		mealTypes: [],
+		mealTypes: servicesForImport,
 		price: imported.price ?? '',
 		averagePrice: imported.averagePrice?.trim() ?? '',
 		score: imported.score?.trim() ?? '',
@@ -2319,10 +2306,17 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		if (!establishmentTypes.some((item) => item.toLocaleLowerCase('es') === type.toLocaleLowerCase('es'))) establishmentTypes.push(type);
 		removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
 	});
+	cuisinesForImport.forEach((cuisine) => {
+		if (!cuisines.some((item) => item.toLocaleLowerCase('es') === cuisine.toLocaleLowerCase('es'))) cuisines.push(cuisine);
+		removedCuisines = removedCuisines.filter((item) => item.toLocaleLowerCase('es') !== cuisine.toLocaleLowerCase('es'));
+	});
+	servicesForImport.forEach((service) => {
+		if (!serviceTypes.some((item) => item.toLocaleLowerCase('es') === service.toLocaleLowerCase('es'))) serviceTypes.push(service);
+		removedServiceTypes = removedServiceTypes.filter((item) => item.toLocaleLowerCase('es') !== service.toLocaleLowerCase('es'));
+	});
 	saveEstablishmentSettings();
-	await saveRestaurants();
-	const imageCount = await saveImportedMedia(restaurantId, imported).catch(() => 0);
-	restaurant.imageCount = imageCount;
+	saveCuisineSettings();
+	saveServiceSettings();
 	await saveRestaurants();
 	return restaurant;
 }
@@ -2370,13 +2364,25 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 		if (!establishmentTypes.some((item) => item.toLocaleLowerCase('es') === type.toLocaleLowerCase('es'))) establishmentTypes.push(type);
 		removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
 	});
-	selectedCuisines = [];
+	selectedCuisines = capitalizedCatalogValues((imported.cuisines ?? []).filter(Boolean));
+	selectedServices = capitalizedCatalogValues((imported.mealTypes ?? []).filter(Boolean));
+	selectedCuisines.forEach((cuisine) => {
+		if (!cuisines.some((item) => item.toLocaleLowerCase('es') === cuisine.toLocaleLowerCase('es'))) cuisines.push(cuisine);
+		removedCuisines = removedCuisines.filter((item) => item.toLocaleLowerCase('es') !== cuisine.toLocaleLowerCase('es'));
+	});
+	selectedServices.forEach((service) => {
+		if (!serviceTypes.some((item) => item.toLocaleLowerCase('es') === service.toLocaleLowerCase('es'))) serviceTypes.push(service);
+		removedServiceTypes = removedServiceTypes.filter((item) => item.toLocaleLowerCase('es') !== service.toLocaleLowerCase('es'));
+	});
 	saveEstablishmentSettings();
 	saveCuisineSettings();
+	saveServiceSettings();
 	renderSelectedEstablishments();
 	renderEstablishmentOptions(true);
 	renderSelectedCuisines();
 	renderCuisineOptions();
+	renderSelectedServices();
+	renderServiceOptions();
 
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
@@ -2392,14 +2398,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	updateClearButtons();
 	form.dispatchEvent(new Event('input', { bubbles: true }));
 
-	const [logoFile, imageFiles] = await Promise.all([
-		imported.logo ? downloadImportedImage(imported.logo, 'logo-importado') : Promise.resolve(null),
-		Promise.all((imported.images ?? []).slice(0, MAX_IMAGES).map((url, index) => downloadImportedImage(url, `imagen-importada-${index + 1}`))),
-	]);
-	if (logoFile) setRestaurantLogo(logoFile);
-	const validImages = imageFiles.filter((file): file is File => Boolean(file));
-	if (validImages.length) addImageFiles(validImages);
-	showToast(`Importación lista para revisar${validImages.length ? ` · ${validImages.length} imágenes` : ''}`);
+	showToast('Importación lista para revisar');
 }
 
 document.querySelectorAll<HTMLElement>('[data-open-form]').forEach((button) => button.addEventListener('click', () => {

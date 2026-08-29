@@ -82,14 +82,55 @@ function typesOf(node: Record<string, unknown>) {
 	return (Array.isArray(node['@type']) ? node['@type'] : [node['@type']]).map(text);
 }
 
-function imageValues(value: unknown, base: string): string[] {
-	if (Array.isArray(value)) return value.flatMap((item) => imageValues(item, base));
-	if (value && typeof value === 'object') {
-		const item = value as Record<string, unknown>;
-		return imageValues(item.url ?? item.contentUrl, base);
-	}
-	const url = absolute(value, base);
-	return url ? [url] : [];
+function textValues(value: unknown): string[] {
+	if (Array.isArray(value)) return value.flatMap(textValues);
+	const valueText = text(value);
+	return valueText ? valueText.split(/[,;|]/).map((item) => item.trim()).filter(Boolean) : [];
+}
+
+function normalizedText(value: string) {
+	return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+}
+
+function uniqueValues(values: string[]) {
+	return [...new Map(values
+		.map((value) => value.trim())
+		.filter(Boolean)
+		.map((value) => [normalizedText(value), value])).values()];
+}
+
+function schemaBoolean(value: unknown): boolean | undefined {
+	if (typeof value === 'boolean') return value;
+	const normalized = normalizedText(text(value));
+	if (['true', '1', 'yes', 'si'].includes(normalized)) return true;
+	if (['false', '0', 'no'].includes(normalized)) return false;
+	return undefined;
+}
+
+function hasTypedAction(value: unknown, actionType: string) {
+	return collectNodes(value).some((node) => typesOf(node).includes(actionType));
+}
+
+function normalizeCuisine(value: string) {
+	const translations: Record<string, string> = {
+		argentine: 'Argentina', argentinian: 'Argentina', italian: 'Italiana', japanese: 'Japonesa',
+		chinese: 'China', mexican: 'Mexicana', spanish: 'Española', french: 'Francesa', peruvian: 'Peruana',
+		mediterranean: 'Mediterránea', vegetarian: 'Vegetariana', vegan: 'Vegana', seafood: 'Mariscos',
+	};
+	const trimmed = value.trim();
+	return translations[normalizedText(trimmed)] ?? trimmed.charAt(0).toLocaleUpperCase('es') + trimmed.slice(1);
+}
+
+function normalizePriceRange(value: unknown) {
+	const source = text(value).trim();
+	const dollars = source.match(/\${1,4}/)?.[0];
+	if (dollars) return dollars;
+	const normalized = normalizedText(source);
+	if (/gratis|free|econom|barato|inexpensive/.test(normalized)) return '$';
+	if (/moderad|medio|moderate/.test(normalized)) return '$$';
+	if (/muy caro|very expensive/.test(normalized)) return '$$$$';
+	if (/caro|expensive/.test(normalized)) return '$$$';
+	return '';
 }
 
 function formatHours(value: unknown): string {
@@ -170,8 +211,18 @@ export const POST: APIRoute = async ({ request }) => {
 		$('script[type="application/ld+json"]').each((_, element) => {
 			try { collectNodes(JSON.parse($(element).text()), nodes); } catch { /* JSON-LD inválido. */ }
 		});
-		const businessTypes = new Set(['Restaurant', 'FoodEstablishment', 'LocalBusiness', 'CafeOrCoffeeShop', 'BarOrPub']);
-		const schema = nodes.find((node) => typesOf(node).some((type) => businessTypes.has(type))) ?? {};
+		const businessTypes = new Set([
+			'Restaurant', 'FoodEstablishment', 'LocalBusiness', 'CafeOrCoffeeShop', 'BarOrPub',
+			'Bakery', 'Brewery', 'Distillery', 'FastFoodRestaurant', 'IceCreamShop', 'Winery',
+		]);
+		const schema = nodes
+			.filter((node) => typesOf(node).some((type) => businessTypes.has(type)))
+			.sort((left, right) => {
+				const score = (node: Record<string, unknown>) => typesOf(node).reduce((total, type) => total
+					+ (type === 'LocalBusiness' ? 1 : type === 'FoodEstablishment' ? 2 : businessTypes.has(type) ? 4 : 0), 0)
+					+ (text(node.address) ? 1 : 0) + (text(node.telephone) ? 1 : 0);
+				return score(right) - score(left);
+			})[0] ?? {};
 		const addressValue = schema.address;
 		const address = addressValue && typeof addressValue === 'object' ? addressValue as Record<string, unknown> : {};
 		const meta = (property: string) => $(`meta[property="${property}"], meta[name="${property}"]`).first().attr('content')?.trim() ?? '';
@@ -186,46 +237,45 @@ export const POST: APIRoute = async ({ request }) => {
 			const parsed = new URL(whatsappLink);
 			whatsapp = parsed.hostname.includes('wa.me') ? parsed.pathname.replace(/\D/g, '') : (parsed.searchParams.get('phone') ?? '').replace(/\D/g, '');
 		}
-		const htmlLogo = $('img').filter((_, element) => /logo/i.test(`${$(element).attr('alt') ?? ''} ${$(element).attr('id') ?? ''} ${$(element).attr('class') ?? ''}`)).first();
-		const logo = imageValues(schema.logo, finalUrl.href)[0] || absolute(htmlLogo.attr('src'), finalUrl.href);
-		const images = [...new Set([
-			...imageValues(schema.image, finalUrl.href),
-			absolute(meta('og:image'), finalUrl.href),
-			...$('img[src]').map((_, element) => {
-				const image = $(element);
-				const width = Number(image.attr('width') ?? 0);
-				const height = Number(image.attr('height') ?? 0);
-				if ((width > 0 && width < 100) || (height > 0 && height < 100)) return '';
-				return absolute(image.attr('src'), finalUrl.href);
-			}).get(),
-		].filter((item) => item && item !== logo && !/[\/_](?:w|h)_?\d{1,2}(?:[,/_]|$)/i.test(item)))].slice(0, 12);
 		const schemaTypes = typesOf(schema);
 		const establishmentTypes = [
 			...(schemaTypes.includes('Restaurant') || schemaTypes.includes('FoodEstablishment') ? ['Restaurante'] : []),
 			...(schemaTypes.includes('CafeOrCoffeeShop') ? ['Café'] : []),
 			...(schemaTypes.includes('BarOrPub') ? ['Bar', 'Pub'] : []),
+			...(schemaTypes.includes('Bakery') ? ['Panadería'] : []),
+			...(schemaTypes.includes('Brewery') ? ['Cervecería'] : []),
+			...(schemaTypes.includes('Distillery') ? ['Destilería'] : []),
+			...(schemaTypes.includes('FastFoodRestaurant') ? ['Comida rápida'] : []),
+			...(schemaTypes.includes('IceCreamShop') ? ['Heladería'] : []),
+			...(schemaTypes.includes('Winery') ? ['Bodega'] : []),
 		];
 		const importingFromWoki = /(^|\.)wokiapp\.com$/i.test(finalUrl.hostname);
 		const website = importingFromWoki ? '' : absolute(schema.url, finalUrl.href) || finalUrl.href;
 		const contentRoot = $('body').clone();
 		contentRoot.find('script, style, noscript, nav, header, footer, svg').remove();
 		const pageText = contentRoot.text().replace(/\s+/g, ' ').trim();
-		const normalizedPageText = pageText.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
-		const rawKeywords = [text(schema.keywords), meta('keywords'), text(schema.servesCuisine)]
+		const normalizedPageText = normalizedText(pageText);
+		const rawKeywords = [text(schema.keywords), meta('keywords')]
 			.flatMap((value) => value.split(/[,;|]/))
 			.map((value) => value.trim())
 			.filter((value) => value.length >= 3 && value.length <= 35);
+		const cuisines = uniqueValues(textValues(schema.servesCuisine)
+			.map(normalizeCuisine)
+			.filter((value) => value.length >= 3 && value.length <= 50))
+			.slice(0, 12);
+		const mealTypes = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Poscena']
+			.filter((meal) => normalizedPageText.includes(normalizedText(meal)));
 		const foodKeywords = [
-			'Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Poscena', 'Café', 'Sushi', 'Parrilla',
+			'Café', 'Sushi', 'Parrilla',
 			'Pastas', 'Pizzas', 'Hamburguesas', 'Mariscos', 'Pescados', 'Carnes', 'Vegano', 'Vegetariano',
 			'Celíaco', 'Sin gluten', 'Comida rápida', 'Comida saludable', 'Coctelería', 'Cervecería', 'Vinos',
-		].filter((keyword) => normalizedPageText.includes(keyword.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es')));
+		].filter((keyword) => normalizedPageText.includes(normalizedText(keyword)));
 		const stopWords = new Set([
 			'para', 'desde', 'hasta', 'como', 'esta', 'este', 'estos', 'estas', 'entre', 'sobre', 'todos', 'todas',
 			'nuestro', 'nuestra', 'nuestros', 'nuestras', 'tambien', 'donde', 'cuando', 'contacto', 'inicio', 'menu',
 			'reservas', 'reserva', 'restaurante', 'pagina', 'cookies', 'privacy', 'politica', 'instagram', 'facebook',
 		]);
-		const nameWords = new Set((text(schema.name) || meta('og:title')).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').match(/[a-z]{4,}/g) ?? []);
+		const nameWords = new Set(normalizedText(text(schema.name) || meta('og:title')).match(/[a-z]{4,}/g) ?? []);
 		const frequencies = new Map<string, number>();
 		for (const word of normalizedPageText.match(/[a-z]{5,}/g) ?? []) {
 			if (stopWords.has(word) || nameWords.has(word)) continue;
@@ -247,6 +297,15 @@ export const POST: APIRoute = async ({ request }) => {
 		const rating = Number.isFinite(ratingValue) && ratingValue > 0
 			? String(Math.min(5, Math.max(1, Math.round(ratingValue))))
 			: '';
+		const contactPoint = schema.contactPoint && typeof schema.contactPoint === 'object'
+			? schema.contactPoint as Record<string, unknown>
+			: {};
+		const delivery = hasTypedAction(schema.potentialAction, 'OrderAction')
+			|| /\b(delivery|envios? a domicilio|entrega a domicilio)\b/.test(normalizedPageText);
+		const takeAway = /\b(take[ -]?away|takeout|para llevar|retiro por (?:el )?local|retir[ao] en (?:el )?local|pick[ -]?up)\b/.test(normalizedPageText);
+		const reservations = schemaBoolean(schema.acceptsReservations)
+			?? (hasTypedAction(schema.potentialAction, 'ReserveAction') || /\b(reservas?|reservar|reserva tu mesa|book a table)\b/.test(normalizedPageText));
+		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
 		return json({
 			name: text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim(),
 			description: (text(schema.description) || meta('description') || meta('og:description')).slice(0, 500),
@@ -255,7 +314,7 @@ export const POST: APIRoute = async ({ request }) => {
 			city: text(address.addressLocality) || $('[itemprop="addressLocality"]').first().text().trim(),
 			province: text(address.addressRegion) || $('[itemprop="addressRegion"]').first().text().trim(),
 			country: normalizeCountry(text(address.addressCountry) || $('[itemprop="addressCountry"]').first().text().trim()),
-			phone: text(schema.telephone) || $('[itemprop="telephone"]').first().text().trim(),
+			phone: text(schema.telephone) || text(contactPoint.telephone) || $('[itemprop="telephone"]').first().text().trim(),
 			mobile: importingFromWoki ? '' : whatsapp,
 			website,
 			googleUrl: findAllLink(/google\.[^/]+\/(?:search|maps)|g\.page/i),
@@ -268,13 +327,16 @@ export const POST: APIRoute = async ({ request }) => {
 			tripAdvisorUrl: findAllLink(/tripadvisor\./i),
 			linktreeUrl: findAllLink(/linktr\.ee/i),
 			hours: formatHours(schema.openingHours ?? schema.openingHoursSpecification).slice(0, 500),
-			price: text(schema.priceRange),
+			price: normalizePriceRange(schema.priceRange),
 			tags,
 			rating,
-			cuisines: [],
-			establishmentTypes: establishmentTypes.length ? establishmentTypes : ['Restaurante'],
-			logo,
-			images,
+			cuisines,
+			mealTypes,
+			establishmentTypes: uniqueValues(establishmentTypes.length ? establishmentTypes : ['Restaurante']),
+			delivery,
+			takeAway,
+			glutenFree,
+			reservations,
 			sourceUrl: finalUrl.href,
 		});
 	} catch (error) {
