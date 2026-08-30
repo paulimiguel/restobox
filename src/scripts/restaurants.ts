@@ -867,23 +867,35 @@ function renderCuisineOptions(clearInput = true) {
 	renderCuisineFilterOptions();
 }
 
-function renderNeighborhoodOptions() {
-	const query = neighborhoodInput.value.trim().toLocaleLowerCase('es');
+function renderNeighborhoodOptions(showAllWhenSelected = false) {
+	const entered = neighborhoodInput.value.trim();
+	const enteredKey = entered.toLocaleLowerCase('es');
+	const exact = neighborhoods.find((neighborhood) => neighborhood.toLocaleLowerCase('es') === enteredKey);
+	const query = showAllWhenSelected && exact ? '' : enteredKey;
 	const filtered = neighborhoods.filter((neighborhood) => neighborhood.toLocaleLowerCase('es').includes(query));
-	const exact = neighborhoods.find((neighborhood) => neighborhood.toLocaleLowerCase('es') === query);
+	const optionCards = filtered.map((neighborhood) => {
+		const selected = exact === neighborhood;
+		return `
+			<div class="neighborhood-option-card${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+				<label title="${safe(neighborhood)}">
+					<input type="radio" name="neighborhood-choice" data-select-neighborhood="${safe(neighborhood)}" aria-label="Seleccionar zona ${safe(neighborhood)}"${selected ? ' checked' : ''} />
+					<span>${safe(neighborhood)}</span>
+				</label>
+				<button type="button" class="delete-neighborhood-option" data-delete-neighborhood="${safe(neighborhood)}" aria-label="Eliminar ${safe(neighborhood)} de la lista" title="Eliminar de la lista">×</button>
+			</div>`;
+	}).join('');
+	const createOption = entered && !exact
+		? `<button type="button" class="create-cuisine-option" data-create-neighborhood><span>＋</span> Agregar “${safe(entered)}”</button>`
+		: '';
 	neighborhoodOptions.innerHTML = [
-		...filtered.map((neighborhood) => `
-			<div class="cuisine-dropdown-option${exact === neighborhood ? ' selected' : ''}" role="option" aria-selected="${exact === neighborhood}">
-				<button type="button" data-select-neighborhood="${safe(neighborhood)}"><span class="cuisine-option-check">✓</span><span>${safe(neighborhood)}</span></button>
-				<button type="button" class="delete-cuisine-option" data-delete-neighborhood="${safe(neighborhood)}" aria-label="Eliminar ${safe(neighborhood)} de la lista" title="Eliminar de la lista">×</button>
-			</div>`),
-		...(query && !exact ? [`<button type="button" class="create-cuisine-option" data-create-neighborhood><span>＋</span> Agregar “${safe(neighborhoodInput.value.trim())}”</button>`] : []),
-	].join('') || '<p class="cuisine-empty">Sin zonas guardadas. Escribí un nombre y pulsá Enter.</p>';
+		optionCards ? `<div class="neighborhood-option-grid">${optionCards}</div>` : '',
+		createOption,
+	].join('') || '<p class="cuisine-empty">Todavía no hay zonas. Escribí un nombre y pulsá Enter para crear la primera.</p>';
 }
 
 function openNeighborhoodDropdown() {
 	if (neighborhoodInput.disabled) return;
-	renderNeighborhoodOptions();
+	renderNeighborhoodOptions(true);
 	neighborhoodOptions.hidden = false;
 	neighborhoodInput.setAttribute('aria-expanded', 'true');
 }
@@ -3008,9 +3020,9 @@ neighborhoodOptions.addEventListener('click', (event) => {
 		openNeighborhoodDropdown();
 		return;
 	}
-	const selectButton = target.closest<HTMLButtonElement>('[data-select-neighborhood]');
-	if (selectButton?.dataset.selectNeighborhood) {
-		neighborhoodInput.value = selectButton.dataset.selectNeighborhood;
+	const selectOption = target.closest<HTMLInputElement>('[data-select-neighborhood]');
+	if (selectOption?.dataset.selectNeighborhood) {
+		neighborhoodInput.value = selectOption.dataset.selectNeighborhood;
 		neighborhoodInput.dispatchEvent(new Event('input', { bubbles: true }));
 		closeNeighborhoodDropdown();
 		neighborhoodInput.focus({ preventScroll: true });

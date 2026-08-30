@@ -817,6 +817,17 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .cuisine-combobox { position: relative; }
 .cuisine-dropdown { position: absolute; top: calc(100% + 5px); right: 49px; left: 0; z-index: 30; max-height: 240px; padding: 5px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: 0 12px 28px rgba(30,42,35,.16); }
 .neighborhood-dropdown, .location-dropdown, .establishment-dropdown, .service-dropdown, .average-price-dropdown { right: 0; }
+.neighborhood-dropdown { left: auto; width: min(460px, calc(100vw - 48px)); max-height: 280px; padding: 8px; }
+.neighborhood-option-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 6px; }
+.neighborhood-option-card { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) 25px; align-items: center; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: 7px; background: white; transition: border-color .16s, background .16s; }
+.neighborhood-option-card:hover, .neighborhood-option-card:focus-within { border-color: color-mix(in srgb, var(--forest) 45%, var(--line)); background: color-mix(in srgb, var(--sage) 52%, white); }
+.neighborhood-option-card.selected { color: var(--accent-text); border-color: var(--forest); background: color-mix(in srgb, var(--sage) 78%, white); }
+.neighborhood-option-card > label { display: flex; min-width: 0; min-height: 35px; align-items: center; gap: 7px; padding: 6px 3px 6px 8px; cursor: pointer; }
+.neighborhood-option-card input { width: 15px !important; height: 15px !important; flex: 0 0 auto; margin: 0; padding: 0; accent-color: var(--forest); }
+.neighborhood-option-card span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.neighborhood-option-card .delete-neighborhood-option { display: grid; width: 23px; height: 23px; place-items: center; padding: 0; border: 0; border-radius: 5px; color: var(--muted); background: transparent; font-size: 16px; line-height: 1; cursor: pointer; }
+.neighborhood-option-card .delete-neighborhood-option:hover { color: #b33b32; background: #fff0ee; }
+.neighborhood-dropdown > .create-cuisine-option { margin-top: 7px; }
 .cuisine-dropdown[hidden] { display: none; }
 .tag-dropdown { display: grid; max-height: 360px; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 6px; padding: 8px; }
 .tag-dropdown-option { display: grid; min-width: 0; min-height: 34px; grid-template-columns: minmax(0, 1fr) 25px; align-items: center; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: 7px; color: var(--ink); background: white; font-size: 11px; font-weight: 500; }
