@@ -515,6 +515,18 @@ function capitalizedCatalogValues(values: string[]) {
 	return [...unique.values()];
 }
 
+function mergeUniqueValues(currentValues: string[], addedValues: string[]) {
+	const merged = [...currentValues];
+	const existing = new Set(currentValues.map((value) => value.toLocaleLowerCase('es')));
+	addedValues.forEach((value) => {
+		const key = value.toLocaleLowerCase('es');
+		if (existing.has(key)) return;
+		existing.add(key);
+		merged.push(value);
+	});
+	return merged;
+}
+
 function loadCuisines(): string[] {
 	try {
 		const stored = JSON.parse(localStorage.getItem(CUISINES_KEY) ?? '[]') as string[];
@@ -1078,10 +1090,21 @@ function closeTagDropdown() {
 	tagInput.setAttribute('aria-expanded', 'false');
 }
 
+function confirmAssociatedPlacesDeletion(optionLabel: string, option: string, isAssociated: (restaurant: Restaurant) => boolean) {
+	const associatedPlaces = restaurants.filter(isAssociated).length;
+	if (!associatedPlaces) return true;
+	const placeLabel = associatedPlaces === 1 ? 'lugar' : 'lugares';
+	const associatedLabel = associatedPlaces === 1 ? 'asociado' : 'asociados';
+	const reference = associatedPlaces === 1 ? 'ese lugar' : 'esos lugares';
+	return window.confirm(`Hay ${associatedPlaces} ${placeLabel} ${associatedLabel} a ${optionLabel} “${option}”. Si eliminás esta opción, también se quitará de ${reference}.\n\n¿Querés continuar?`);
+}
+
 async function deleteTagOption(tag: string) {
-	if (!window.confirm(`¿Eliminar definitivamente la etiqueta “${tag}”? Se quitará también de los lugares que la usan.`)) return;
-	backupRestaurants();
 	const normalized = tag.toLocaleLowerCase('es');
+	if (!confirmAssociatedPlacesDeletion('la etiqueta', tag, (restaurant) => (
+		restaurantTags(restaurant).some((item) => item.toLocaleLowerCase('es') === normalized)
+	))) return;
+	backupRestaurants();
 	tagCatalog = tagCatalog.filter((item) => item.toLocaleLowerCase('es') !== normalized);
 	removedTags = [...new Set([...removedTags, tag])];
 	selectedTags = selectedTags.filter((item) => item.toLocaleLowerCase('es') !== normalized);
@@ -1182,6 +1205,9 @@ function closeEstablishmentDropdown() {
 }
 
 function deleteEstablishmentOption(type: string) {
+	if (!confirmAssociatedPlacesDeletion('la categoría', type, (restaurant) => (
+		getRestaurantEstablishmentTypes(restaurant).includes(type)
+	))) return;
 	backupRestaurants();
 	establishmentTypes = establishmentTypes.filter((item) => item !== type);
 	removedEstablishmentTypes = [...new Set([...removedEstablishmentTypes, type])];
@@ -1270,6 +1296,9 @@ function closeServiceDropdown() {
 }
 
 function deleteServiceOption(service: string) {
+	if (!confirmAssociatedPlacesDeletion('el servicio', service, (restaurant) => (
+		(restaurant.mealTypes ?? []).includes(service)
+	))) return;
 	backupRestaurants();
 	serviceTypes = serviceTypes.filter((item) => item !== service);
 	removedServiceTypes = [...new Set([...removedServiceTypes, service])];
@@ -3694,6 +3723,9 @@ document.querySelector<HTMLButtonElement>('#header-cuisines')?.addEventListener(
 });
 closeManageCuisines.addEventListener('click', () => manageCuisinesDialog.close());
 function deleteCuisineOption(cuisine: string) {
+	if (!confirmAssociatedPlacesDeletion('el tipo de cocina', cuisine, (restaurant) => (
+		getRestaurantCuisines(restaurant).includes(cuisine)
+	))) return;
 	backupRestaurants();
 	cuisines = cuisines.filter((item) => item !== cuisine);
 	removedCuisines = [...new Set([...removedCuisines, cuisine])];
@@ -4188,7 +4220,7 @@ function setBulkEditLists() {
 function openBulkEditDialog() {
 	bulkEditForm.reset();
 	bulkEditForm.querySelectorAll<HTMLDetailsElement>('details').forEach((details) => details.removeAttribute('open'));
-	bulkEditCount.textContent = `${printSelectedIds.size} lugares seleccionados. Completá únicamente los campos que quieras reemplazar en todos.`;
+	bulkEditCount.textContent = `${printSelectedIds.size} lugares seleccionados. Completá únicamente los campos que quieras modificar. Las categorías, servicios, tipos de cocina y etiquetas se agregarán sin quitar las existentes.`;
 	setBulkEditLists();
 	bulkEditDialog.showModal();
 }
@@ -4243,21 +4275,23 @@ bulkEditForm.addEventListener('submit', async (event) => {
 			if (field === 'neighborhood') restaurant.neighborhood = ensureNeighborhoodOption(value(field));
 			else if (field === 'city' || field === 'province' || field === 'country') restaurant[field] = ensureLocationOption(field, value(field));
 			else if (field === 'establishmentTypes') {
-				const values = listValues(field);
-				values.forEach((item) => { if (!establishmentTypes.some((type) => type.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) establishmentTypes.push(item); });
+				const addedValues = listValues(field);
+				addedValues.forEach((item) => { if (!establishmentTypes.some((type) => type.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) establishmentTypes.push(item); });
+				const values = mergeUniqueValues(getRestaurantEstablishmentTypes(restaurant), addedValues);
 				restaurant.establishmentTypes = values;
 				restaurant.establishmentType = values[0] ?? '';
 			} else if (field === 'mealTypes') {
-				const values = listValues(field);
-				values.forEach((item) => { if (!serviceTypes.some((service) => service.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) serviceTypes.push(item); });
-				restaurant.mealTypes = values;
+				const addedValues = listValues(field);
+				addedValues.forEach((item) => { if (!serviceTypes.some((service) => service.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) serviceTypes.push(item); });
+				restaurant.mealTypes = mergeUniqueValues(restaurant.mealTypes ?? [], addedValues);
 			} else if (field === 'cuisines') {
-				const values = listValues(field);
-				values.forEach((item) => { if (!cuisines.some((cuisine) => cuisine.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) cuisines.push(item); });
+				const addedValues = listValues(field);
+				addedValues.forEach((item) => { if (!cuisines.some((cuisine) => cuisine.toLocaleLowerCase('es') === item.toLocaleLowerCase('es'))) cuisines.push(item); });
+				const values = mergeUniqueValues(getRestaurantCuisines(restaurant), addedValues);
 				restaurant.cuisines = values;
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
-				restaurant.tags = listValues(field).join(', ');
+				restaurant.tags = mergeUniqueValues(restaurantTags(restaurant), listValues(field)).join(', ');
 			} else if (field === 'reservations' || field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
