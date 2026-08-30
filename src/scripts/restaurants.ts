@@ -856,11 +856,14 @@ function renderCuisineOptions(clearInput = true) {
 	const filtered = cuisines.filter((cuisine) => cuisine.toLocaleLowerCase('es').includes(query));
 	const hasExactMatch = cuisines.some((cuisine) => cuisine.toLocaleLowerCase('es') === query);
 	cuisineOptions.innerHTML = [
-		...filtered.map((cuisine) => `
-			<div class="cuisine-dropdown-option${selectedCuisines.includes(cuisine) ? ' selected' : ''}" role="option" aria-selected="${selectedCuisines.includes(cuisine)}">
-				<button type="button" data-select-cuisine="${safe(cuisine)}"><span class="cuisine-option-check">✓</span><span>${safe(cuisine)}</span></button>
-				<button type="button" class="delete-cuisine-option" data-dropdown-delete-cuisine="${safe(cuisine)}" aria-label="Eliminar ${safe(cuisine)} de la lista" title="Eliminar de la lista">×</button>
-			</div>`),
+		...filtered.map((cuisine) => {
+			const selected = selectedCuisines.includes(cuisine);
+			return `
+				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<label><input type="checkbox" data-cuisine-option value="${safe(cuisine)}"${selected ? ' checked' : ''} /><span>${safe(cuisine)}</span></label>
+					<button type="button" class="delete-tag-option" data-dropdown-delete-cuisine="${safe(cuisine)}" aria-label="Eliminar ${safe(cuisine)} de la lista" title="Eliminar de la lista">×</button>
+				</div>`;
+		}),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-cuisine><span>＋</span> Agregar “${safe(cuisineSelect.value.trim())}”</button>`] : []),
 	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí un nombre y pulsá Enter.</p>';
 	selectedCuisineFilters = new Set([...selectedCuisineFilters].filter((cuisine) => cuisines.includes(cuisine)));
@@ -1090,11 +1093,14 @@ function renderEstablishmentOptions(refreshFilter = false, clearInput = true) {
 	const filtered = establishmentTypes.filter((type) => type.toLocaleLowerCase('es').includes(query));
 	const hasExactMatch = establishmentTypes.some((type) => type.toLocaleLowerCase('es') === query);
 	establishmentOptions.innerHTML = [
-		...filtered.map((type) => `
-			<div class="cuisine-dropdown-option${selectedEstablishments.includes(type) ? ' selected' : ''}" role="option" aria-selected="${selectedEstablishments.includes(type)}">
-				<button type="button" data-select-establishment="${safe(type)}"><span class="cuisine-option-check">✓</span><span>${safe(type)}</span></button>
-				<button type="button" class="delete-cuisine-option" data-delete-establishment="${safe(type)}" aria-label="Eliminar ${safe(type)} de la lista" title="Eliminar de la lista">×</button>
-			</div>`),
+		...filtered.map((type) => {
+			const selected = selectedEstablishments.includes(type);
+			return `
+				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<label><input type="checkbox" data-establishment-option value="${safe(type)}"${selected ? ' checked' : ''} /><span>${safe(type)}</span></label>
+					<button type="button" class="delete-tag-option" data-delete-establishment="${safe(type)}" aria-label="Eliminar ${safe(type)} de la lista" title="Eliminar de la lista">×</button>
+				</div>`;
+		}),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-establishment><span>＋</span> Agregar “${safe(establishmentSelect.value.trim())}”</button>`] : []),
 	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí una categoría y pulsá Enter.</p>';
 	if (refreshFilter) {
@@ -1176,11 +1182,14 @@ function renderServiceOptions(clearInput = true, refreshFilter = false) {
 	const filtered = serviceTypes.filter((service) => service.toLocaleLowerCase('es').includes(query));
 	const hasExactMatch = serviceTypes.some((service) => service.toLocaleLowerCase('es') === query);
 	serviceOptions.innerHTML = [
-		...filtered.map((service) => `
-			<div class="cuisine-dropdown-option${selectedServices.includes(service) ? ' selected' : ''}" role="option" aria-selected="${selectedServices.includes(service)}">
-				<button type="button" data-select-service="${safe(service)}"><span class="cuisine-option-check">✓</span><span>${safe(service)}</span></button>
-				<button type="button" class="delete-cuisine-option" data-delete-service="${safe(service)}" aria-label="Eliminar ${safe(service)} de la lista" title="Eliminar de la lista">×</button>
-			</div>`),
+		...filtered.map((service) => {
+			const selected = selectedServices.includes(service);
+			return `
+				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<label><input type="checkbox" data-service-option value="${safe(service)}"${selected ? ' checked' : ''} /><span>${safe(service)}</span></label>
+					<button type="button" class="delete-tag-option" data-delete-service="${safe(service)}" aria-label="Eliminar ${safe(service)} de la lista" title="Eliminar de la lista">×</button>
+				</div>`;
+		}),
 		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-service><span>＋</span> Agregar “${safe(serviceSelect.value.trim())}”</button>`] : []),
 	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí un servicio y pulsá Enter.</p>';
 	if (refreshFilter) {
@@ -2972,18 +2981,22 @@ cuisineSelect.addEventListener('keydown', (event) => {
 		openCuisineDropdown();
 	}
 });
+cuisineOptions.addEventListener('change', (event) => {
+	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-cuisine-option]');
+	if (!checkbox) return;
+	if (checkbox.checked) addCuisineSelection(checkbox.value);
+	else {
+		selectedCuisines = selectedCuisines.filter((cuisine) => cuisine !== checkbox.value);
+		renderSelectedCuisines();
+		renderCuisineOptions();
+		updateDirtyState();
+	}
+});
 cuisineOptions.addEventListener('click', (event) => {
 	const target = event.target as HTMLElement;
 	const deleteButton = target.closest<HTMLButtonElement>('[data-dropdown-delete-cuisine]');
 	if (deleteButton?.dataset.dropdownDeleteCuisine) {
 		deleteCuisineOption(deleteButton.dataset.dropdownDeleteCuisine);
-		cuisineSelect.focus();
-		openCuisineDropdown();
-		return;
-	}
-	const selectButton = target.closest<HTMLButtonElement>('[data-select-cuisine]');
-	if (selectButton?.dataset.selectCuisine) {
-		addCuisineSelection(selectButton.dataset.selectCuisine);
 		cuisineSelect.focus();
 		openCuisineDropdown();
 		return;
@@ -3288,18 +3301,22 @@ establishmentSelect.addEventListener('keydown', (event) => {
 		openEstablishmentDropdown();
 	}
 });
+establishmentOptions.addEventListener('change', (event) => {
+	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-establishment-option]');
+	if (!checkbox) return;
+	if (checkbox.checked) addEstablishmentSelection(checkbox.value);
+	else {
+		selectedEstablishments = selectedEstablishments.filter((type) => type !== checkbox.value);
+		renderSelectedEstablishments();
+		renderEstablishmentOptions();
+		updateDirtyState();
+	}
+});
 establishmentOptions.addEventListener('click', (event) => {
 	const target = event.target as HTMLElement;
 	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-establishment]');
 	if (deleteButton?.dataset.deleteEstablishment) {
 		deleteEstablishmentOption(deleteButton.dataset.deleteEstablishment);
-		establishmentSelect.focus();
-		openEstablishmentDropdown();
-		return;
-	}
-	const selectButton = target.closest<HTMLButtonElement>('[data-select-establishment]');
-	if (selectButton?.dataset.selectEstablishment) {
-		addEstablishmentSelection(selectButton.dataset.selectEstablishment);
 		establishmentSelect.focus();
 		openEstablishmentDropdown();
 		return;
@@ -3335,18 +3352,22 @@ serviceSelect.addEventListener('keydown', (event) => {
 		openServiceDropdown();
 	}
 });
+serviceOptions.addEventListener('change', (event) => {
+	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-service-option]');
+	if (!checkbox) return;
+	if (checkbox.checked) addServiceSelection(checkbox.value);
+	else {
+		selectedServices = selectedServices.filter((service) => service !== checkbox.value);
+		renderSelectedServices();
+		renderServiceOptions();
+		updateDirtyState();
+	}
+});
 serviceOptions.addEventListener('click', (event) => {
 	const target = event.target as HTMLElement;
 	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-service]');
 	if (deleteButton?.dataset.deleteService) {
 		deleteServiceOption(deleteButton.dataset.deleteService);
-		serviceSelect.focus();
-		openServiceDropdown();
-		return;
-	}
-	const selectButton = target.closest<HTMLButtonElement>('[data-select-service]');
-	if (selectButton?.dataset.selectService) {
-		addServiceSelection(selectButton.dataset.selectService);
 		serviceSelect.focus();
 		openServiceDropdown();
 		return;

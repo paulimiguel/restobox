@@ -414,7 +414,7 @@ const userInitials = userDisplayName
 							<label for="establishment-type">Categorías</label>
 							<div id="establishment-combobox" class="cuisine-combobox establishment-combobox">
 								<input id="establishment-type" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="establishment-options" placeholder="Escribí una categoría y pulsá Enter" />
-								<div id="establishment-options" class="cuisine-dropdown establishment-dropdown" role="listbox" hidden></div>
+								<div id="establishment-options" class="cuisine-dropdown tag-dropdown establishment-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
 							</div>
 							<div id="selected-establishments" class="selected-options" aria-live="polite"></div>
 						</div>
@@ -422,7 +422,7 @@ const userInitials = userDisplayName
 							<label for="service-type">Servicios</label>
 							<div id="service-combobox" class="cuisine-combobox service-combobox">
 								<input id="service-type" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="service-options" placeholder="Escribí un servicio y pulsá Enter" />
-								<div id="service-options" class="cuisine-dropdown service-dropdown" role="listbox" hidden></div>
+								<div id="service-options" class="cuisine-dropdown tag-dropdown service-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
 							</div>
 							<div id="selected-services" class="selected-options" aria-live="polite"></div>
 						</div>
@@ -433,7 +433,7 @@ const userInitials = userDisplayName
 									<input id="cuisine" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="cuisine-options" placeholder="Escribí un tipo de cocina y pulsá Enter" />
 									<button id="manage-cuisines" type="button" aria-label="Abrir tipos de cocina" title="Abrir tipos de cocina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="9" cy="7" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="11" cy="17" r="1"/></svg></button>
 								</div>
-								<div id="cuisine-options" class="cuisine-dropdown" role="listbox" hidden></div>
+								<div id="cuisine-options" class="cuisine-dropdown tag-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
 							</div>
 							<div id="selected-cuisines" class="selected-options" aria-live="polite"></div>
 						</div>
@@ -444,7 +444,7 @@ const userInitials = userDisplayName
 									<input id="tag-input" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tag-options" placeholder="Elegí una etiqueta o escribí una nueva y pulsá Enter" />
 									<button id="manage-tags" type="button" aria-label="Abrir etiquetas" title="Abrir etiquetas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="9" cy="7" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="11" cy="17" r="1"/></svg></button>
 								</div>
-								<div id="tag-options" class="cuisine-dropdown tag-dropdown" role="listbox" hidden></div>
+								<div id="tag-options" class="cuisine-dropdown tag-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
 							</div>
 							<div id="selected-tags" class="selected-options" aria-live="polite"></div>
 						</div>
