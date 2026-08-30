@@ -1460,6 +1460,13 @@ function updateDirtyState() {
 	updateDataButton.disabled = !(formChanged || imagesChanged || logoChanged);
 }
 
+function updateRestaurantRecordNavigation() {
+	const visibleIndex = activeRestaurantId ? visibleRestaurantIds.indexOf(activeRestaurantId) : -1;
+	restaurantRecordNavigation.hidden = visibleIndex < 0;
+	previousRestaurantButton.disabled = visibleIndex <= 0;
+	nextRestaurantButton.disabled = visibleIndex < 0 || visibleIndex >= visibleRestaurantIds.length - 1;
+}
+
 function updateClearButton(control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
 	const button = control.parentElement?.querySelector<HTMLButtonElement>('.clear-field-button');
 	if (button) button.hidden = control.value.length === 0;
@@ -2188,10 +2195,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	dialogTitle.hidden = Boolean(restaurant);
 	dialogRecordName.textContent = restaurant?.name ?? '';
 	dialogRecordName.hidden = !restaurant;
-	const visibleIndex = restaurant ? visibleRestaurantIds.indexOf(restaurant.id) : -1;
-	restaurantRecordNavigation.hidden = !readOnly || visibleIndex < 0;
-	previousRestaurantButton.disabled = visibleIndex <= 0;
-	nextRestaurantButton.disabled = visibleIndex < 0 || visibleIndex >= visibleRestaurantIds.length - 1;
+	updateRestaurantRecordNavigation();
 	if (restaurant) {
 		Object.entries(restaurant).forEach(([key, value]) => {
 			if (['mealTypes', 'cuisine', 'cuisines', 'establishmentType', 'establishmentTypes'].includes(key)) return;
@@ -2947,20 +2951,24 @@ urlImportForm.addEventListener('submit', async (event) => {
 	}
 });
 function navigateVisibleRestaurant(direction: -1 | 1) {
-	if (!activeRestaurantId || !form.classList.contains('view-mode')) return;
+	if (!activeRestaurantId) return;
+	const readOnly = form.classList.contains('view-mode');
+	const editing = form.classList.contains('editing-record');
+	if (!readOnly && !editing) return;
+	if (editing && !updateDataButton.disabled && !window.confirm('Hay cambios sin guardar. Si cambiás de lugar, se perderán. ¿Querés continuar?')) return;
 	const currentIndex = visibleRestaurantIds.indexOf(activeRestaurantId);
 	const targetId = visibleRestaurantIds[currentIndex + direction];
 	const target = restaurants.find((restaurant) => restaurant.id === targetId);
 	if (!target) return;
 	const activeTab = [...formTabs].find((tab) => tab.classList.contains('active'))?.dataset.formTab ?? 'general';
-	void openForm(target, true, activeTab);
+	void openForm(target, readOnly, activeTab);
 }
 previousRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(-1));
 nextRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(1));
 viewEditButton.addEventListener('click', () => {
 	form.classList.remove('view-mode');
 	form.classList.add('editing-record');
-	restaurantRecordNavigation.hidden = true;
+	updateRestaurantRecordNavigation();
 	placeMapField(false);
 	updateViewEmptyFields(false);
 	viewEditButton.hidden = true;
@@ -4456,6 +4464,7 @@ form.addEventListener('submit', async (event) => {
 	if (keepOpen) {
 		activeRestaurantId = restaurant.id;
 		form.classList.add('editing-record');
+		updateRestaurantRecordNavigation();
 		(form.elements.namedItem('id') as HTMLInputElement).value = restaurant.id;
 		dialogTitle.textContent = '';
 		dialogTitle.hidden = true;
