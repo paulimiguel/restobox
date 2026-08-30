@@ -695,6 +695,30 @@ function safe(value = '') {
 	return node.innerHTML;
 }
 
+function normalizeImportedAddress(address = '', city = '') {
+	const trimmedAddress = address.trim();
+	const normalizedCity = city.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+	if (!trimmedAddress || !normalizedCity) return trimmedAddress;
+	const parts = trimmedAddress.split(/\s*(?:,|\s+-\s+)\s*/).filter(Boolean);
+	if (parts.length < 2) return trimmedAddress;
+	const withoutCity = parts.filter((part) => {
+		const normalizedPart = part.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es')
+			.replace(/^[a-z]?\d{4}[a-z]{0,3}\s+/, '')
+			.trim();
+		return normalizedPart !== normalizedCity;
+	});
+	return withoutCity.join(', ');
+}
+
+function importedWhatsAppNumber(phone = '', mobile = '') {
+	const trimmedMobile = mobile.trim();
+	if (trimmedMobile) return trimmedMobile;
+	const trimmedPhone = phone.trim();
+	if (!trimmedPhone) return '';
+	const numbers = trimmedPhone.match(/\+?\d[\d\s().-]{5,}\d/g) ?? [];
+	return numbers.length === 1 ? trimmedPhone : '';
+}
+
 function normalizeWhatsAppNumber(phone = '', country = '') {
 	let digits = phone.replace(/\D/g, '');
 	if (!digits) return '';
@@ -2294,12 +2318,12 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		country: importedCountry,
 		province: importedProvince,
 		city: importedCity,
-		address: imported.address?.trim() ?? '',
+		address: normalizeImportedAddress(imported.address, imported.city),
 		neighborhood: importedNeighborhood,
 		hasBranches: false,
 		branchAddresses: [],
 		phone: imported.phone?.trim() ?? '',
-		mobile: imported.mobile?.trim() ?? '',
+		mobile: importedWhatsAppNumber(imported.phone, imported.mobile),
 		website: imported.website?.trim() ?? '',
 		googleUrl: imported.googleUrl?.trim() ?? '',
 		linktreeUrl: imported.linktreeUrl?.trim() ?? '',
@@ -2354,13 +2378,13 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	selectedTags = imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
 	renderSelectedTags();
 	if (['1', '2', '3', '4', '5'].includes(imported.rating ?? '')) setImportedField('rating', imported.rating);
-	setImportedField('address', imported.address);
+	setImportedField('address', normalizeImportedAddress(imported.address, imported.city));
 	setImportedField('neighborhood', ensureNeighborhoodOption(imported.neighborhood));
 	setImportedField('city', ensureLocationOption('city', imported.city));
 	setImportedField('province', ensureLocationOption('province', imported.province));
 	setImportedField('country', ensureLocationOption('country', imported.country));
 	setImportedField('phone', imported.phone);
-	setImportedField('mobile', imported.mobile);
+	setImportedField('mobile', importedWhatsAppNumber(imported.phone, imported.mobile));
 	setImportedField('website', imported.website);
 	setImportedField('googleUrl', imported.googleUrl);
 	setImportedField('menuUrl', imported.menuUrl);
@@ -3928,7 +3952,7 @@ mobileMenuLayer.addEventListener('click', (event) => {
 		if (targetSelector) document.querySelector<HTMLButtonElement>(targetSelector)?.click();
 		return;
 	}
-	if ((event.target as HTMLElement).closest('[data-open-form], [data-open-excel-import]')) closeMobileMenu({ restoreFocus: false });
+	if ((event.target as HTMLElement).closest('[data-open-form], [data-open-name-import], [data-open-excel-import]')) closeMobileMenu({ restoreFocus: false });
 });
 document.addEventListener('keydown', (event) => {
 	if (event.key === 'Escape' && !mobileMenuLayer.hidden) closeMobileMenu();
