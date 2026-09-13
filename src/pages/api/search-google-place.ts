@@ -29,6 +29,14 @@ const normalized = (value: string) => value.normalize('NFD').replace(/[\u0300-\u
 const unique = (values: string[]) => [...new Map(values.map((value) => value.trim()).filter(Boolean).map((value) => [normalized(value), value])).values()];
 const titleCase = (value: string) => value.replaceAll('_', ' ').replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es'));
 
+function googleSearchUrl(...values: Array<string | undefined>) {
+	const query = values.map((value) => value?.trim() ?? '').filter(Boolean).join(', ');
+	if (!query) return '';
+	const url = new URL('https://www.google.com/search');
+	url.searchParams.set('q', query);
+	return url.href;
+}
+
 function isPrivateAddress(address: string) {
 	const value = address.toLowerCase().replace(/^::ffff:/, '');
 	if (value === '::1' || /^(?:fc|fd|fe8|fe9|fea|feb)/.test(value)) return true;
@@ -190,7 +198,8 @@ async function wokiFallback(requestedName: string) {
 		tags: unique([...(place.tags ?? []), ...page.keywords, ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
 		price: /^\${1,4}$/.test(place.price || '') ? place.price : '', averagePrice: '', rating: '', score: '',
 		country: place.zones?.country?.name || 'Argentina', province: place.zones?.state?.name || '', city: place.zones?.city?.name || '',
-		neighborhood: '', address: place.address || '', phone: '', mobile, website: '', googleUrl: '', mapUrl: '', hours: '',
+		neighborhood: '', address: place.address || '', phone: '', mobile, website: '',
+		googleUrl: googleSearchUrl(place.displayName || requestedName, place.address, place.zones?.city?.name, place.zones?.state?.name), mapUrl: '', hours: '',
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl,
 		tripAdvisorUrl: socialLink(allLinks, /(?:^|\.)tripadvisor\./i), linktreeUrl: socialLink(allLinks, /(?:^|\.)linktr\.ee\//i),
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
@@ -329,7 +338,9 @@ async function publicWebFallback(requestedName: string) {
 		country: properties?.country || (inferredMarDelPlata ? 'Argentina' : ''),
 		province: properties?.state || (inferredMarDelPlata ? 'Buenos Aires' : ''),
 		city: properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), neighborhood: properties?.district || '', address,
-		phone: '', mobile: '', website, googleUrl, mapUrl: googleUrl || openMapUrl, hours: '',
+		phone: '', mobile: '', website,
+		googleUrl: googleSearchUrl(properties?.name || requestedPlaceName(requestedName), address, properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), properties?.state),
+		mapUrl: googleUrl || openMapUrl, hours: '',
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl: socialLink(allLinks, /(?:^|\.)wokiapp\.com\//i), tripAdvisorUrl, linktreeUrl,
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
 		delivery: false, takeAway: false, reservations: allLinks.some((link) => /reserv/i.test(link)),
@@ -454,8 +465,9 @@ export const POST: APIRoute = async ({ request }) => {
 			country: component(place, 'country'), province: component(place, 'administrative_area_level_1'), city: component(place, 'locality', 'administrative_area_level_2'),
 			neighborhood: component(place, 'neighborhood', 'sublocality_level_1', 'sublocality'), address,
 			phone: place.internationalPhoneNumber?.trim() || place.nationalPhoneNumber?.trim() || '', mobile: whatsapp,
-			website: place.websiteUri?.trim() ?? '', googleUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
-			mapUrl: place.googleMapsLinks?.directionsUri?.trim() || place.googleMapsUri?.trim() || '',
+			website: place.websiteUri?.trim() ?? '',
+			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
+			mapUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl,
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout), reservations: Boolean(place.reservable),
 			logoUrl: instagramPage.images[0] || '', imageUrls,

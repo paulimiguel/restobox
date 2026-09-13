@@ -441,7 +441,7 @@ const userInitials = userDisplayName
 							</div>
 							<div id="selected-cuisines" class="selected-options" aria-live="polite"></div>
 						</div>
-						<div class="form-field tags-field wide">
+						<div class="form-field tags-field wide" hidden>
 							<label for="tag-input">Etiquetas</label>
 							<div id="tag-combobox" class="cuisine-combobox">
 								<div class="select-with-action cuisine-select-actions">
@@ -468,11 +468,17 @@ const userInitials = userDisplayName
 							</div>
 						</label>
 						<datalist id="average-price-options"></datalist>
-						<input name="rating" type="hidden" />
-						<label>Puntaje <input name="score" type="number" min="0" max="10" step="0.1" placeholder="0 a 10" /></label>
+						<label>Puntuación Google <input name="score" type="number" min="0" max="5" step="0.1" placeholder="0 a 5" /></label>
+						<input name="takeAway" type="checkbox" hidden />
 						<div class="form-field characteristics-checks wide">
+							<div class="rate-control form-field">
+								<span class="rate-label">Rate</span>
+								<input id="personal-rate" name="rating" type="hidden" />
+								<div class="rate-stars" role="group" aria-label="Mi puntuación">
+									{[1, 2, 3, 4, 5].map((value) => <button type="button" data-rate-value={value} aria-label={`${value} ${value === 1 ? 'estrella' : 'estrellas'}`} aria-pressed="false">★</button>)}
+								</div>
+							</div>
 							<label class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Delivery</span></label>
-							<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
 							<label class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Sin gluten</span></label>
 						</div>
 					</div>
@@ -669,7 +675,7 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
 				<label for="excel-import-file">Planilla</label>
 				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
-				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Reservas, Calificación, Puntaje, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Reservas, Rate, Puntuación Google, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
 				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div id="excel-import-preview" class="excel-import-preview" hidden>
 					<strong id="excel-import-summary"></strong>
@@ -726,8 +732,8 @@ const userInitials = userDisplayName
 					<label><span>Precio promedio por persona</span><input name="averagePrice" list="average-price-options" placeholder="Sin cambios" /></label>
 					<div class="bulk-status-fields">
 						<div class="bulk-status-row bulk-status-row-two">
-							<label><span>Calificación</span><select name="rating"><option value="">Sin cambios</option><option value="1">1 estrella</option><option value="2">2 estrellas</option><option value="3">3 estrellas</option><option value="4">4 estrellas</option><option value="5">5 estrellas</option></select></label>
-							<label><span>Puntaje</span><input name="score" type="number" min="0" max="10" step="0.1" placeholder="Sin cambios" /></label>
+							<label><span>Rate</span><select name="rating"><option value="">Sin cambios</option><option value="1">1 estrella</option><option value="2">2 estrellas</option><option value="3">3 estrellas</option><option value="4">4 estrellas</option><option value="5">5 estrellas</option></select></label>
+							<label><span>Puntuación Google</span><input name="score" type="number" min="0" max="5" step="0.1" placeholder="Sin cambios" /></label>
 						</div>
 						<div class="bulk-status-row bulk-status-row-three">
 							<label><span>Favorito</span><select name="favorite"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>

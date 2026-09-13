@@ -763,6 +763,13 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .characteristics-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
+.rate-control { display: flex; min-height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; }
+.rate-label { color: var(--ink); font-size: 12px; }
+.rate-stars { display: flex; align-items: center; gap: 1px; }
+.rate-stars button { width: 24px; height: 24px; padding: 0; border: 0; color: #c8ccc9; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; transition: color .15s ease, transform .15s ease; }
+.rate-stars button:hover { transform: scale(1.08); }
+.rate-stars button.is-active { color: #f2b01e; }
+.rate-stars button:disabled { opacity: 1; }
 .creating-record #panel-details .characteristics-checks, .editing-record #panel-details .characteristics-checks { margin-top: 6px; }
 .view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 #panel-information .form-grid { padding-top: 12px; }
@@ -1000,7 +1007,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-details .establishment-type-field, .view-mode #panel-details .meal-type-field { grid-column: 1 / -1; }
 .view-mode #panel-details .form-grid > label, .view-mode #panel-details .form-grid > .form-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); min-height: 54px; align-items: center; gap: 10px; padding-block: 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-details .form-grid > .characteristics-checks { display: flex; min-height: 54px; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding-block: 8px; }
-.view-mode #panel-details .form-grid > .characteristics-checks:not(:has(input:checked)) { display: none; }
+.view-mode #panel-details .form-grid > .characteristics-checks:not(:has(input:checked)):not(:has(.rate-control.has-rate)) { display: none; }
+.view-mode #panel-details .rate-control { min-height: 0; justify-content: flex-start; padding: 0; border: 0; background: transparent; }
+.view-mode #panel-details .rate-control:not(.has-rate) { display: none; }
+.view-mode #panel-details .rate-stars button { cursor: default; }
+.view-mode #panel-details .rate-stars button:hover { transform: none; }
 .view-mode #panel-details .characteristics-checks > .boolean-check-control { display: inline-flex; min-height: 0; align-items: center; gap: 7px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 500; }
 .view-mode #panel-details .characteristics-checks > .boolean-check-control:not(:has(input:checked)) { display: none; }
 .view-mode #panel-details .characteristics-checks > .boolean-check-control input { display: none; }

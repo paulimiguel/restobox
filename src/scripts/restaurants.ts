@@ -286,6 +286,8 @@ const wokiInput = document.querySelector<HTMLInputElement>('#woki-url')!;
 const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-url')!;
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
 const countryInput = form.elements.namedItem('country') as HTMLInputElement;
+const personalRateInput = form.elements.namedItem('rating') as HTMLInputElement;
+const personalRateButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-rate-value]')];
 const openLinktree = document.querySelector<HTMLAnchorElement>('#open-linktree')!;
 const openMenuLink = document.querySelector<HTMLAnchorElement>('#open-menu-link')!;
 const openWebsite = document.querySelector<HTMLAnchorElement>('#open-website')!;
@@ -738,6 +740,41 @@ function importedWhatsAppNumber(phone = '', mobile = '') {
 	if (!trimmedPhone) return '';
 	const numbers = trimmedPhone.match(/\+?\d[\d\s().-]{5,}\d/g) ?? [];
 	return numbers.length === 1 ? trimmedPhone : '';
+}
+
+function importedGoogleMapsLocation(imported: ImportedRestaurant) {
+	const candidates = [imported.googleUrl, imported.mapUrl].map((value) => value?.trim() ?? '').filter(Boolean);
+	let destination = '';
+	let placeId = '';
+	for (const candidate of candidates) {
+		try {
+			const url = new URL(candidate);
+			const isGoogleMaps = /(?:^|\.)(?:google\.[^/]+|maps\.app\.goo\.gl)$/i.test(url.hostname)
+				&& (url.hostname === 'maps.app.goo.gl' || /\/maps(?:\/|$)/i.test(url.pathname));
+			if (!isGoogleMaps) continue;
+			const isDirections = /\/maps\/dir(?:\/|$)/i.test(url.pathname) || url.searchParams.has('destination') || url.searchParams.get('api') === '1' && url.searchParams.has('origin');
+			if (!isDirections && url.hostname !== 'maps.app.goo.gl') return url.href;
+			destination ||= url.searchParams.get('destination')?.trim() ?? '';
+			placeId ||= url.searchParams.get('destination_place_id')?.trim() || url.searchParams.get('query_place_id')?.trim() || '';
+		} catch { /* Se genera una ubicación por nombre y dirección. */ }
+	}
+	const query = destination || [imported.name, imported.address, imported.neighborhood, imported.city, imported.province, imported.country]
+		.map((value) => value?.trim() ?? '').filter(Boolean).join(', ');
+	if (!query) return '';
+	const url = new URL('https://www.google.com/maps/search/');
+	url.searchParams.set('api', '1');
+	url.searchParams.set('query', query);
+	if (placeId) url.searchParams.set('query_place_id', placeId);
+	return url.href;
+}
+
+function importedGoogleSearchUrl(imported: ImportedRestaurant) {
+	const query = [imported.name, imported.address, imported.neighborhood, imported.city, imported.province, imported.country]
+		.map((value) => value?.trim() ?? '').filter(Boolean).join(', ');
+	if (!query) return '';
+	const url = new URL('https://www.google.com/search');
+	url.searchParams.set('q', query);
+	return url.href;
 }
 
 function normalizeWhatsAppNumber(phone = '', country = '') {
@@ -1486,6 +1523,25 @@ function updateClearButtons() {
 		.forEach(updateClearButton);
 }
 
+function updatePersonalRate() {
+	const value = Number(personalRateInput.value);
+	const readOnly = form.classList.contains('view-mode');
+	personalRateInput.closest('.rate-control')?.classList.toggle('has-rate', value >= 1 && value <= 5);
+	personalRateButtons.forEach((button) => {
+		const active = Number(button.dataset.rateValue) <= value;
+		button.classList.toggle('is-active', active);
+		button.setAttribute('aria-pressed', String(active));
+		button.disabled = readOnly;
+	});
+}
+
+personalRateButtons.forEach((button) => button.addEventListener('click', () => {
+	const selectedValue = button.dataset.rateValue ?? '';
+	personalRateInput.value = personalRateInput.value === selectedValue ? '' : selectedValue;
+	updatePersonalRate();
+	personalRateInput.dispatchEvent(new Event('input', { bubbles: true }));
+}));
+
 function setupClearableFields() {
 	const controls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea');
 	controls.forEach((control) => {
@@ -2224,6 +2280,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
 		countryInput.value = ensureLocationOption('country', DEFAULT_COUNTRY);
 	}
+	updatePersonalRate();
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
 	viewVisitedStatus.hidden = !(readOnly && restaurant?.visited);
 	viewCheckedStatus.hidden = !(readOnly && restaurant?.checked);
@@ -2368,11 +2425,11 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		cuisine: cuisinesForImport[0] ?? '',
 		cuisines: cuisinesForImport,
 		tags: tagsForImport.join(', '),
-		rating: imported.rating?.trim() ?? '',
+		rating: '',
 		mealTypes: servicesForImport,
 		price: imported.price ?? '',
 		averagePrice: imported.averagePrice?.trim() ?? '',
-		score: imported.score?.trim() ?? '',
+		score: imported.score?.trim() || imported.rating?.trim() || '',
 		country: importedCountry,
 		province: importedProvince,
 		city: importedCity,
@@ -2383,7 +2440,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		phone: imported.phone?.trim() ?? '',
 		mobile: importedWhatsAppNumber(imported.phone, imported.mobile),
 		website: imported.website?.trim() ?? '',
-		googleUrl: imported.googleUrl?.trim() ?? '',
+		googleUrl: importedGoogleSearchUrl(imported),
 		linktreeUrl: imported.linktreeUrl?.trim() ?? '',
 		menuUrl: imported.menuUrl?.trim() ?? '',
 		instagramUrl: imported.instagramUrl?.trim() ?? '',
@@ -2391,7 +2448,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		facebookUrl: imported.facebookUrl?.trim() ?? '',
 		wokiUrl: imported.wokiUrl?.trim() ?? '',
 		tripAdvisorUrl: imported.tripAdvisorUrl?.trim() ?? '',
-		mapUrl: imported.mapUrl?.trim() ?? '',
+		mapUrl: importedGoogleMapsLocation(imported),
 		hours: imported.hours?.trim() ?? '',
 		notes: imported.notes?.trim() ?? '',
 		favorite: false,
@@ -2459,7 +2516,6 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
 	saveTagSettings();
 	renderSelectedTags();
-	if (['1', '2', '3', '4', '5'].includes(imported.rating ?? '')) setImportedField('rating', imported.rating);
 	setImportedField('address', normalizeImportedAddress(imported.address, imported.city));
 	setImportedField('neighborhood', ensureNeighborhoodOption(imported.neighborhood));
 	setImportedField('city', ensureLocationOption('city', imported.city));
@@ -2468,9 +2524,9 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('phone', imported.phone);
 	setImportedField('mobile', importedWhatsAppNumber(imported.phone, imported.mobile));
 	setImportedField('website', imported.website);
-	setImportedField('googleUrl', imported.googleUrl);
+	setImportedField('googleUrl', importedGoogleSearchUrl(imported));
 	setImportedField('menuUrl', imported.menuUrl);
-	setImportedField('mapUrl', imported.mapUrl);
+	setImportedField('mapUrl', importedGoogleMapsLocation(imported));
 	setImportedField('instagramUrl', imported.instagramUrl);
 	setImportedField('tiktokUrl', imported.tiktokUrl);
 	setImportedField('facebookUrl', imported.facebookUrl);
@@ -2480,7 +2536,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	loadScheduleFromText(imported.hours ?? '');
 	if (['$', '$$', '$$$', '$$$$'].includes(imported.price ?? '')) setImportedField('price', imported.price);
 	setImportedField('averagePrice', imported.averagePrice);
-	setImportedField('score', imported.score);
+	setImportedField('score', imported.score || imported.rating);
 	(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(imported.delivery);
 	(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(imported.takeAway);
 	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
@@ -2628,7 +2684,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	cocina: 'cuisines', 'tipo de cocina': 'cuisines', 'tipos de cocina': 'cuisines',
 	servicio: 'mealTypes', servicios: 'mealTypes',
 	etiqueta: 'tags', etiquetas: 'tags', tags: 'tags',
-	calificacion: 'rating', rating: 'rating', puntaje: 'score', puntuacion: 'score', score: 'score',
+	rate: 'rating', calificacion: 'rating', rating: 'rating', puntaje: 'score', 'puntuacion google': 'score', puntuacion: 'score', score: 'score',
 	precio: 'price', 'nivel de precio': 'price',
 	'precio promedio': 'averagePrice', 'precio promedio por persona': 'averagePrice',
 		pais: 'country', provincia: 'province', ciudad: 'city', direccion: 'address', domicilio: 'address', zona: 'neighborhood', barrio: 'neighborhood',
@@ -2732,7 +2788,7 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
-		data.score = /^\d+(?:[.,]\d+)?$/.test(data.score) && Number(data.score.replace(',', '.')) <= 10 ? data.score.replace(',', '.') : '';
+		data.score = /^\d+(?:[.,]\d+)?$/.test(data.score) && Number(data.score.replace(',', '.')) <= 5 ? data.score.replace(',', '.') : '';
 		data.price = ['$','$$','$$$','$$$$'].includes(data.price.replace(/\s/g, '')) ? data.price.replace(/\s/g, '') : '';
 		return { rowNumber, data, error: data.name ? '' : 'Falta el nombre' };
 	});
