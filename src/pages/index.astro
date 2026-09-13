@@ -216,8 +216,8 @@ const userInitials = userDisplayName
 									<input id="search" type="search" placeholder="Buscar" title="Escribí una palabra o frase y pulsá Enter para agregarla. Podés sumar varias." autocomplete="off" />
 								</label>
 								<div class="search-scope-options" role="radiogroup" aria-label="Campo de búsqueda">
-									<label title="Busca cada palabra en todos los datos del lugar"><input type="radio" name="searchScope" value="keyword" checked />Palabra clave</label>
-									<label title="Busca cada frase solamente en el nombre del lugar"><input type="radio" name="searchScope" value="name" />Nombre</label>
+									<button class="search-scope-option active" type="button" role="radio" aria-checked="true" data-search-scope="keyword" title="Busca cada palabra en todos los datos del lugar">Palabra clave</button>
+									<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="name" title="Busca cada frase solamente en el nombre del lugar">Nombre</button>
 								</div>
 								<div id="search-terms-row" class="search-terms-row" hidden>
 									<div id="search-terms" class="search-terms-list" aria-label="Términos de búsqueda"></div>
@@ -236,7 +236,7 @@ const userInitials = userDisplayName
 						</div>
 						<div class="directory-actions-grid">
 							<details class="directory-action-menu view-action-menu">
-								<summary><span><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM9 5v14M4 10h5"/></svg>Ver</span><svg class="action-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<summary><span><svg id="directory-view-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h3v16H2zM6.5 4h3v16h-3zM11 4h3v16h-3zM15.5 4h3v16h-3zM20 4h2v16h-2z"/></svg>Ver</span><svg class="action-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="directory-action-popover view-options">
 									<button type="button" data-directory-view="columns-5"><svg viewBox="0 0 24 24"><path d="M2 4h3v16H2zM6.5 4h3v16h-3zM11 4h3v16h-3zM15.5 4h3v16h-3zM20 4h2v16h-2z"/></svg>Iconos grandes</button>
 									<button type="button" data-directory-view="columns-6"><svg viewBox="0 0 24 24"><path d="M2 4h2v16H2zM6 4h2v16H6zM10 4h2v16h-2zM14 4h2v16h-2zM18 4h2v16h-2zM22 4h1v16h-1z"/></svg>Iconos medianos</button>

@@ -165,7 +165,8 @@ const directoryActiveFilterChips = document.querySelector<HTMLElement>('#directo
 const searchTermsRow = document.querySelector<HTMLElement>('#search-terms-row')!;
 const searchTermsList = document.querySelector<HTMLElement>('#search-terms')!;
 const clearSearchTermsButton = document.querySelector<HTMLButtonElement>('#clear-search-terms')!;
-const searchScopeInputs = [...document.querySelectorAll<HTMLInputElement>('input[name="searchScope"]')];
+const searchScopeButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-search-scope]')];
+const directoryViewIcon = document.querySelector<SVGElement>('#directory-view-icon')!;
 const establishmentFilterOptions = document.querySelector<HTMLDivElement>('#establishment-filter-options')!;
 const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-options')!;
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
@@ -1895,7 +1896,13 @@ function render() {
 	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments', 'view-neighborhoods');
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
-		button.classList.toggle('active', button.dataset.directoryView === directoryView);
+		const active = button.dataset.directoryView === directoryView;
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-pressed', String(active));
+		if (active) {
+			const selectedIcon = button.querySelector('svg');
+			if (selectedIcon) directoryViewIcon.innerHTML = selectedIcon.innerHTML;
+		}
 	});
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-sort-key]').forEach((button) => {
 		const key = button.dataset.directorySortKey;
@@ -3855,9 +3862,13 @@ clearSearchTermsButton.addEventListener('click', () => {
 	render();
 	search.focus();
 });
-searchScopeInputs.forEach((input) => input.addEventListener('change', () => {
-	if (!input.checked) return;
-	searchScope = input.value === 'name' ? 'name' : 'keyword';
+searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
+	searchScope = button.dataset.searchScope === 'name' ? 'name' : 'keyword';
+	searchScopeButtons.forEach((option) => {
+		const active = option.dataset.searchScope === searchScope;
+		option.classList.toggle('active', active);
+		option.setAttribute('aria-checked', String(active));
+	});
 	render();
 }));
 directoryFilterPanel.addEventListener('change', (event) => {
