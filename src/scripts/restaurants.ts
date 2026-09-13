@@ -141,6 +141,12 @@ const DEFAULT_COUNTRY = 'Argentina';
 const MAX_IMAGES = 12;
 const dialog = document.querySelector<HTMLDialogElement>('#restaurant-dialog')!;
 const form = document.querySelector<HTMLFormElement>('#restaurant-form')!;
+const longTextEditorDialog = document.querySelector<HTMLDialogElement>('#long-text-editor-dialog')!;
+const longTextEditorForm = document.querySelector<HTMLFormElement>('#long-text-editor-form')!;
+const longTextEditorTitle = document.querySelector<HTMLElement>('#long-text-editor-title')!;
+const longTextEditorValue = document.querySelector<HTMLTextAreaElement>('#long-text-editor-value')!;
+const cancelLongTextEditor = document.querySelector<HTMLButtonElement>('#cancel-long-text-editor')!;
+const openLongTextEditorButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-long-text-editor]')];
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
@@ -258,6 +264,7 @@ const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images'
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
 const pasteImageButton = document.querySelector<HTMLButtonElement>('#paste-image')!;
+const clearRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-images')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
 const imageHelp = document.querySelector<HTMLElement>('.image-field label small')!;
@@ -398,6 +405,7 @@ let selectionMode: 'print' | 'edit' | 'delete' | null = null;
 let rangeSelectionAnchorId: string | null = null;
 let visibleRestaurantIds: string[] = [];
 let restaurantLogo: RestaurantImage | null = null;
+let longTextEditorTarget: HTMLTextAreaElement | null = null;
 let previewUrls: string[] = [];
 let logoPreviewUrl = '';
 let cardPreviewUrls: string[] = [];
@@ -1391,17 +1399,17 @@ function notesWithBullets(value: string) {
 	}).join('\n');
 }
 
-function normalizeNotesBullets() {
-	const original = notesInput.value;
+function normalizeNotesBullets(input = notesInput) {
+	const original = input.value;
 	const formatted = notesWithBullets(original);
 	if (formatted === original) return;
-	const selectionStart = notesInput.selectionStart;
-	const selectionEnd = notesInput.selectionEnd;
+	const selectionStart = input.selectionStart;
+	const selectionEnd = input.selectionEnd;
 	const formattedStart = notesWithBullets(original.slice(0, selectionStart)).length;
 	const formattedEnd = notesWithBullets(original.slice(0, selectionEnd)).length;
-	notesInput.value = formatted;
-	notesInput.setSelectionRange(formattedStart, formattedEnd);
-	updateClearButton(notesInput);
+	input.value = formatted;
+	input.setSelectionRange(formattedStart, formattedEnd);
+	if (input === notesInput) updateClearButton(notesInput);
 }
 
 function pastedTextWithoutLinks(value: string) {
@@ -1429,6 +1437,16 @@ function pasteTextWithoutLinks(event: ClipboardEvent) {
 		inputType: 'insertFromPaste',
 		data: text,
 	}));
+}
+
+function openLongTextEditor(target: HTMLTextAreaElement, title: string) {
+	if (target.disabled) return;
+	longTextEditorTarget = target;
+	longTextEditorTitle.textContent = title;
+	longTextEditorValue.value = target.value;
+	if (target === notesInput) normalizeNotesBullets(longTextEditorValue);
+	longTextEditorDialog.showModal();
+	window.setTimeout(() => longTextEditorValue.focus(), 30);
 }
 
 function pasteScheduleText(value: string) {
@@ -2034,6 +2052,7 @@ function renderImagePreviews() {
 	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá o pegá aquí las imágenes';
 	imageDropZone.setAttribute('aria-disabled', String(isFull));
 	pasteImageButton.disabled = isFull;
+	clearRestaurantImagesButton.hidden = restaurantImages.length === 0;
 	updateDirtyState();
 }
 
@@ -3095,12 +3114,37 @@ dialog.addEventListener('close', () => {
 	clearPreviewUrls();
 });
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
+openLongTextEditorButtons.forEach((button) => button.addEventListener('click', () => {
+	const opensNotes = button.dataset.openLongTextEditor === 'notes';
+	openLongTextEditor(opensNotes ? notesInput : descriptionInput, opensNotes ? 'Agregar nota' : 'Agregar descripción');
+}));
+cancelLongTextEditor.addEventListener('click', () => longTextEditorDialog.close());
+longTextEditorDialog.addEventListener('close', () => {
+	longTextEditorTarget = null;
+	longTextEditorForm.reset();
+});
+longTextEditorForm.addEventListener('submit', (event) => {
+	event.preventDefault();
+	if (!longTextEditorTarget) return;
+	longTextEditorTarget.value = longTextEditorTarget === notesInput
+		? notesWithBullets(longTextEditorValue.value)
+		: longTextEditorValue.value;
+	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
+	longTextEditorDialog.close();
+});
 descriptionInput.addEventListener('paste', pasteTextWithoutLinks);
 notesInput.addEventListener('paste', pasteTextWithoutLinks);
+longTextEditorValue.addEventListener('paste', pasteTextWithoutLinks);
+longTextEditorValue.addEventListener('input', (event) => {
+	if (longTextEditorTarget === notesInput && !(event as InputEvent).isComposing) normalizeNotesBullets(longTextEditorValue);
+});
+longTextEditorValue.addEventListener('compositionend', () => {
+	if (longTextEditorTarget === notesInput) normalizeNotesBullets(longTextEditorValue);
+});
 notesInput.addEventListener('input', (event) => {
 	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
 });
-notesInput.addEventListener('compositionend', normalizeNotesBullets);
+notesInput.addEventListener('compositionend', () => normalizeNotesBullets());
 form.addEventListener('input', updateDirtyState);
 form.addEventListener('change', updateDirtyState);
 function commitCuisineInput(createIfMissing: boolean) {
@@ -3860,6 +3904,14 @@ imageDropZone.addEventListener('keydown', (event) => {
 	}
 });
 pasteImageButton.addEventListener('click', () => void pasteImagesFromClipboard());
+clearRestaurantImagesButton.addEventListener('click', () => {
+	if (!restaurantImages.length) return;
+	const imageCount = restaurantImages.length;
+	if (!window.confirm(`Se quitarán ${imageCount} ${imageCount === 1 ? 'imagen' : 'imágenes'} de este lugar. El logo se conservará.\n\n¿Querés continuar?`)) return;
+	restaurantImages = [];
+	renderImagePreviews();
+	showToast(imageCount === 1 ? 'Imagen quitada; guardá para confirmar' : 'Imágenes quitadas; guardá para confirmar');
+});
 
 primaryImagePreview.addEventListener('click', () => logoInput.click());
 primaryImagePreview.addEventListener('keydown', (event) => {

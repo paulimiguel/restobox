@@ -550,7 +550,13 @@ const userInitials = userDisplayName
 
 				<section class="tab-panel" id="panel-information" role="tabpanel" aria-labelledby="tab-information" data-tab-panel="information" hidden>
 					<div class="form-grid">
-						<label class="wide">Descripción <textarea name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea></label>
+						<div class="form-field wide long-text-field">
+							<div class="long-text-field-heading">
+								<label for="restaurant-description">Descripción</label>
+								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="description">Agregar descripción</button>
+							</div>
+							<textarea id="restaurant-description" name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea>
+						</div>
 						<div class="form-field wide schedule-field">
 							<span class="field-label">Días y horarios</span>
 							<input id="hours-value" name="hours" type="hidden" />
@@ -572,8 +578,11 @@ const userInitials = userDisplayName
 								</div>
 							</div>
 						</div>
-						<div class="form-field notes-field wide">
-							<label for="restaurant-notes">Notas</label>
+						<div class="form-field notes-field long-text-field wide">
+							<div class="long-text-field-heading">
+								<label for="restaurant-notes">Notas</label>
+								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="notes">Agregar nota</button>
+							</div>
 							<textarea id="restaurant-notes" name="notes" rows="3" placeholder="Información adicional sobre el lugar…"></textarea>
 						</div>
 					</div>
@@ -602,6 +611,7 @@ const userInitials = userDisplayName
 									</div>
 								</div>
 							</div>
+							<button id="clear-restaurant-images" class="secondary-button clear-restaurant-images" type="button" hidden>Borrar imágenes</button>
 							<input id="restaurant-logo" class="image-file-input" type="file" accept="image/*" />
 							<input id="restaurant-images" class="image-file-input" type="file" accept="image/*" multiple />
 						</div>
@@ -612,6 +622,18 @@ const userInitials = userDisplayName
 					<button id="close-form-button" class="secondary-button" type="button" data-close-form>Cancelar</button>
 					<button id="update-data" class="primary-button" type="submit" data-save-mode="update" disabled>Actualizar datos</button>
 					<button id="save-close-button" class="primary-button" type="submit" data-save-mode="close">Guardar</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog id="long-text-editor-dialog" class="mini-dialog long-text-editor-dialog">
+			<form id="long-text-editor-form">
+				<h2 id="long-text-editor-title">Agregar descripción</h2>
+				<label for="long-text-editor-value">Texto</label>
+				<textarea id="long-text-editor-value" rows="16"></textarea>
+				<div class="mini-dialog-actions">
+					<button id="cancel-long-text-editor" class="secondary-button" type="button">Cancelar</button>
+					<button class="primary-button" type="submit">Aplicar</button>
 				</div>
 			</form>
 		</dialog>
