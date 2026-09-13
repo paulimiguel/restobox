@@ -280,6 +280,7 @@ const facebookInput = document.querySelector<HTMLInputElement>('#facebook-url')!
 const wokiInput = document.querySelector<HTMLInputElement>('#woki-url')!;
 const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-url')!;
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
+const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
 const notesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
 const countryInput = form.elements.namedItem('country') as HTMLInputElement;
 const personalRateInput = form.elements.namedItem('rating') as HTMLInputElement;
@@ -1401,6 +1402,33 @@ function normalizeNotesBullets() {
 	notesInput.value = formatted;
 	notesInput.setSelectionRange(formattedStart, formattedEnd);
 	updateClearButton(notesInput);
+}
+
+function pastedTextWithoutLinks(value: string) {
+	const markdownLinkPattern = /\[([^\]]+)\]\((?:https?:\/\/|www\.|mailto:|tel:)[^)]+\)/giu;
+	const urlPattern = /(?:https?:\/\/|www\.|mailto:|tel:)[^\s<>]+/giu;
+	return value.replace(/\r\n?/g, '\n')
+		.replace(markdownLinkPattern, '$1')
+		.split('\n')
+		.flatMap((line) => {
+			const withoutLinks = line.replace(urlPattern, '').replace(/[ \t]{2,}/g, ' ').trim();
+			return !withoutLinks && line.trim() ? [] : [withoutLinks];
+		})
+		.join('\n');
+}
+
+function pasteTextWithoutLinks(event: ClipboardEvent) {
+	const input = event.currentTarget as HTMLTextAreaElement;
+	const clipboardText = event.clipboardData?.getData('text/plain');
+	if (clipboardText === undefined) return;
+	event.preventDefault();
+	const text = pastedTextWithoutLinks(clipboardText);
+	input.setRangeText(text, input.selectionStart, input.selectionEnd, 'end');
+	input.dispatchEvent(new InputEvent('input', {
+		bubbles: true,
+		inputType: 'insertFromPaste',
+		data: text,
+	}));
 }
 
 function pasteScheduleText(value: string) {
@@ -3067,6 +3095,8 @@ dialog.addEventListener('close', () => {
 	clearPreviewUrls();
 });
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
+descriptionInput.addEventListener('paste', pasteTextWithoutLinks);
+notesInput.addEventListener('paste', pasteTextWithoutLinks);
 notesInput.addEventListener('input', (event) => {
 	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
 });

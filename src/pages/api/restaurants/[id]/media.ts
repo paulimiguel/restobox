@@ -41,7 +41,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
 		for (const item of manifest) {
 			const upload = data.get(`file:${item.id}`);
 			if (upload instanceof File && upload.size > 0) {
-				const stored = await storeImage(upload);
+				const stored = await storeImage(upload, kind === 'image');
 				const record: MediaRecord = { id: item.id, restaurantId, kind, sortOrder: item.order, ...stored };
 				records.push(record);
 				created.push(record);
