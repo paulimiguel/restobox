@@ -68,6 +68,9 @@ type ImportedRestaurant = Partial<Omit<Restaurant, 'id' | 'createdAt' | 'imageCo
 	cuisines?: string[];
 	sourceUrl?: string;
 	collectionUrls?: string[];
+	logoUrl?: string;
+	imageUrls?: string[];
+	sources?: string[];
 };
 
 type SpreadsheetRestaurant = {
@@ -323,7 +326,7 @@ const finishUrlImport = document.querySelector<HTMLButtonElement>('#finish-url-i
 const urlImportProgress = document.querySelector<HTMLDivElement>('#url-import-progress')!;
 const nameImportDialog = document.querySelector<HTMLDialogElement>('#name-import-dialog')!;
 const nameImportForm = document.querySelector<HTMLFormElement>('#name-import-form')!;
-const placeSearchName = document.querySelector<HTMLInputElement>('#place-search-name')!;
+const placeSearchName = document.querySelector<HTMLTextAreaElement>('#place-search-name')!;
 const nameImportProgress = document.querySelector<HTMLDivElement>('#name-import-progress')!;
 const cancelNameImport = document.querySelector<HTMLButtonElement>('#cancel-name-import')!;
 const searchNameImport = document.querySelector<HTMLButtonElement>('#search-name-import')!;
@@ -513,6 +516,12 @@ function capitalizedCatalogValues(values: string[]) {
 		if (!unique.has(key)) unique.set(key, value);
 	});
 	return [...unique.values()];
+}
+
+function valuesFromExistingCatalog(values: string[], catalog: string[]) {
+	const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
+	const existing = new Map(catalog.map((value) => [normalize(value), value]));
+	return capitalizedCatalogValues(values).map((value) => existing.get(normalize(value)) ?? value);
 }
 
 function mergeUniqueValues(currentValues: string[], addedValues: string[]) {
@@ -2282,17 +2291,32 @@ function setImportedField(name: string, value: string | undefined) {
 
 async function downloadImportedImage(url: string, filename: string) {
 	try {
-		const response = await fetch('/api/import-restaurant', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ url, mode: 'image' }),
-		});
+		const response = url.startsWith('/')
+			? await fetch(url)
+			: await fetch('/api/import-restaurant', {
+				method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url, mode: 'image' }),
+			});
 		if (!response.ok) return null;
 		const blob = await response.blob();
+		if (!blob.type.startsWith('image/')) return null;
 		return new File([blob], filename, { type: blob.type || 'image/jpeg' });
 	} catch {
 		return null;
 	}
+}
+
+async function loadImportedMedia(imported: ImportedRestaurant, restaurantId = '') {
+	const logoPromise = imported.logoUrl ? downloadImportedImage(imported.logoUrl, 'logo-importado') : Promise.resolve(null);
+	const imageUrls = [...new Set(imported.imageUrls ?? [])].slice(0, MAX_IMAGES);
+	const [logo, imageResults] = await Promise.all([
+		logoPromise,
+		Promise.allSettled(imageUrls.map((url, index) => downloadImportedImage(url, `imagen-importada-${index + 1}`))),
+	]);
+	const images = imageResults.flatMap((result) => result.status === 'fulfilled' && result.value ? [result.value] : []);
+	return {
+		logo: logo ? { id: crypto.randomUUID(), restaurantId, blob: logo, isNew: true } satisfies RestaurantImage : null,
+		images: images.map((file, index) => ({ id: crypto.randomUUID(), restaurantId, blob: file, order: index, isNew: true } satisfies RestaurantImage)),
+	};
 }
 
 function getImportUrls(value: string) {
@@ -2327,9 +2351,10 @@ async function fetchImportedRestaurant(url: string) {
 
 async function saveImportedRestaurant(imported: ImportedRestaurant) {
 	const restaurantId = crypto.randomUUID();
-	const establishmentTypesForImport = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
-	const cuisinesForImport = capitalizedCatalogValues((imported.cuisines ?? []).filter(Boolean));
-	const servicesForImport = capitalizedCatalogValues((imported.mealTypes ?? []).filter(Boolean));
+	const establishmentTypesForImport = valuesFromExistingCatalog((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean), establishmentTypes);
+	const cuisinesForImport = valuesFromExistingCatalog((imported.cuisines ?? []).filter(Boolean), cuisines);
+	const servicesForImport = valuesFromExistingCatalog((imported.mealTypes ?? []).filter(Boolean), serviceTypes);
+	const tagsForImport = valuesFromExistingCatalog(imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [], tagCatalog);
 	const importedNeighborhood = ensureNeighborhoodOption(imported.neighborhood);
 	const importedCity = ensureLocationOption('city', imported.city);
 	const importedProvince = ensureLocationOption('province', imported.province);
@@ -2342,7 +2367,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		establishmentTypes: establishmentTypesForImport,
 		cuisine: cuisinesForImport[0] ?? '',
 		cuisines: cuisinesForImport,
-		tags: imported.tags?.trim() ?? '',
+		tags: tagsForImport.join(', '),
 		rating: imported.rating?.trim() ?? '',
 		mealTypes: servicesForImport,
 		price: imported.price ?? '',
@@ -2368,7 +2393,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		tripAdvisorUrl: imported.tripAdvisorUrl?.trim() ?? '',
 		mapUrl: imported.mapUrl?.trim() ?? '',
 		hours: imported.hours?.trim() ?? '',
-		notes: '',
+		notes: imported.notes?.trim() ?? '',
 		favorite: false,
 		visited: false,
 		checked: false,
@@ -2392,10 +2417,27 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		if (!serviceTypes.some((item) => item.toLocaleLowerCase('es') === service.toLocaleLowerCase('es'))) serviceTypes.push(service);
 		removedServiceTypes = removedServiceTypes.filter((item) => item.toLocaleLowerCase('es') !== service.toLocaleLowerCase('es'));
 	});
+	tagsForImport.forEach((tag) => {
+		if (!tagCatalog.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) tagCatalog.push(tag);
+		removedTags = removedTags.filter((item) => item.toLocaleLowerCase('es') !== tag.toLocaleLowerCase('es'));
+	});
+	tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
 	saveEstablishmentSettings();
 	saveCuisineSettings();
 	saveServiceSettings();
+	saveTagSettings();
 	await saveRestaurants();
+	try {
+		const importedMedia = await loadImportedMedia(imported, restaurantId);
+		if (importedMedia.images.length || importedMedia.logo) {
+			await Promise.all([
+				uploadRestaurantMedia(restaurantId, 'image', importedMedia.images),
+				uploadRestaurantMedia(restaurantId, 'logo', importedMedia.logo ? [importedMedia.logo] : []),
+			]);
+			restaurant.imageCount = importedMedia.images.length;
+			await saveRestaurants();
+		}
+	} catch { /* La ficha se conserva aunque una fuente bloquee sus imágenes. */ }
 	return restaurant;
 }
 
@@ -2408,7 +2450,14 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	});
 	setImportedField('name', imported.name);
 	setImportedField('description', imported.description);
-	selectedTags = imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
+	setImportedField('notes', imported.notes);
+	selectedTags = valuesFromExistingCatalog(imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [], tagCatalog);
+	selectedTags.forEach((tag) => {
+		if (!tagCatalog.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) tagCatalog.push(tag);
+		removedTags = removedTags.filter((item) => item.toLocaleLowerCase('es') !== tag.toLocaleLowerCase('es'));
+	});
+	tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
+	saveTagSettings();
 	renderSelectedTags();
 	if (['1', '2', '3', '4', '5'].includes(imported.rating ?? '')) setImportedField('rating', imported.rating);
 	setImportedField('address', normalizeImportedAddress(imported.address, imported.city));
@@ -2437,13 +2486,13 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
 	(form.elements.namedItem('reservations') as HTMLInputElement).checked = Boolean(imported.reservations);
 
-	selectedEstablishments = capitalizedCatalogValues((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean));
+	selectedEstablishments = valuesFromExistingCatalog((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean), establishmentTypes);
 	selectedEstablishments.forEach((type) => {
 		if (!establishmentTypes.some((item) => item.toLocaleLowerCase('es') === type.toLocaleLowerCase('es'))) establishmentTypes.push(type);
 		removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
 	});
-	selectedCuisines = capitalizedCatalogValues((imported.cuisines ?? []).filter(Boolean));
-	selectedServices = capitalizedCatalogValues((imported.mealTypes ?? []).filter(Boolean));
+	selectedCuisines = valuesFromExistingCatalog((imported.cuisines ?? []).filter(Boolean), cuisines);
+	selectedServices = valuesFromExistingCatalog((imported.mealTypes ?? []).filter(Boolean), serviceTypes);
 	selectedCuisines.forEach((cuisine) => {
 		if (!cuisines.some((item) => item.toLocaleLowerCase('es') === cuisine.toLocaleLowerCase('es'))) cuisines.push(cuisine);
 		removedCuisines = removedCuisines.filter((item) => item.toLocaleLowerCase('es') !== cuisine.toLocaleLowerCase('es'));
@@ -2461,6 +2510,11 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	renderCuisineOptions();
 	renderSelectedServices();
 	renderServiceOptions();
+	const importedMedia = await loadImportedMedia(imported);
+	restaurantLogo = importedMedia.logo;
+	restaurantImages = importedMedia.images;
+	renderLogoPreview();
+	renderImagePreviews();
 
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
@@ -2490,40 +2544,69 @@ document.querySelectorAll<HTMLButtonElement>('[data-open-name-import]').forEach(
 	nameImportProgress.classList.remove('is-error');
 	nameImportProgress.textContent = '';
 	searchNameImport.disabled = false;
-	searchNameImport.textContent = 'Buscar e importar';
+	searchNameImport.textContent = 'Importar';
 	nameImportDialog.showModal();
 	window.setTimeout(() => placeSearchName.focus(), 50);
 }));
 cancelNameImport.addEventListener('click', () => nameImportDialog.close());
 nameImportForm.addEventListener('submit', async (event) => {
 	event.preventDefault();
-	const name = placeSearchName.value.trim();
-	if (name.length < 2) {
+	const names = [...new Set(placeSearchName.value.split(/\r?\n/).map((name) => name.trim()).filter(Boolean))].slice(0, 50);
+	if (!names.length || names.some((name) => name.length < 2)) {
 		nameImportProgress.hidden = false;
 		nameImportProgress.classList.add('is-error');
-		nameImportProgress.textContent = 'Ingresá el nombre del lugar que querés buscar';
+		nameImportProgress.textContent = 'Ingresá al menos un nombre válido, uno por línea';
 		placeSearchName.focus();
 		return;
 	}
 	searchNameImport.disabled = true;
 	cancelNameImport.disabled = true;
-	searchNameImport.textContent = 'Buscando…';
+	searchNameImport.textContent = names.length > 1 ? `Importando 1 de ${names.length}…` : 'Buscando…';
 	nameImportProgress.hidden = false;
 	nameImportProgress.classList.remove('is-error');
-	nameImportProgress.textContent = 'Buscando el lugar y sus datos en Google…';
+	nameImportProgress.textContent = names.length > 1 ? `Preparando ${names.length} búsquedas…` : 'Buscando el lugar y enriqueciendo sus datos…';
 	try {
-		const response = await fetch('/api/search-google-place', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ name }),
-		});
-		const result = await response.json() as ImportedRestaurant & { error?: string };
-		if (!response.ok) throw new Error(result.error || 'No se pudo buscar el lugar en Google');
-		nameImportDialog.close();
-		await applyImportedRestaurant(result);
-		showToast('Datos encontrados en Google. Revisalos antes de guardar.');
+		if (names.length === 1) {
+			const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: names[0] }) });
+			const result = await response.json() as ImportedRestaurant & { error?: string };
+			if (!response.ok) throw new Error(result.error || 'No se pudo buscar el lugar');
+			nameImportDialog.close();
+			await applyImportedRestaurant(result);
+			showToast(`Datos encontrados${result.sources?.length ? ` en ${result.sources.join(', ')}` : ''}. Revisalos antes de guardar.`);
+			return;
+		}
+
+		backupRestaurants();
+		let importedCount = 0;
+		let skippedCount = 0;
+		const failures: string[] = [];
+		for (let index = 0; index < names.length; index += 1) {
+			const name = names[index];
+			searchNameImport.textContent = `Importando ${index + 1} de ${names.length}…`;
+			nameImportProgress.textContent = `${index + 1} de ${names.length} · ${name}`;
+			try {
+				const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+				const result = await response.json() as ImportedRestaurant & { error?: string };
+				if (!response.ok) throw new Error(result.error || 'No se pudo buscar');
+				const normalizedGoogleUrl = result.googleUrl?.replace(/\/$/, '').toLocaleLowerCase('es');
+				const duplicate = restaurants.some((restaurant) =>
+					(Boolean(normalizedGoogleUrl) && restaurant.googleUrl?.replace(/\/$/, '').toLocaleLowerCase('es') === normalizedGoogleUrl)
+					|| (restaurant.name.trim().toLocaleLowerCase('es') === result.name?.trim().toLocaleLowerCase('es')
+						&& (!result.address || restaurant.address.trim().toLocaleLowerCase('es') === result.address.trim().toLocaleLowerCase('es'))));
+				if (duplicate) { skippedCount += 1; continue; }
+				await saveImportedRestaurant(result);
+				importedCount += 1;
+			} catch { failures.push(name); }
+		}
+		renderEstablishmentFilterOptions();
+		renderCuisineFilterOptions();
+		renderServiceFilterOptions();
+		render();
+		nameImportProgress.classList.toggle('is-error', failures.length > 0);
+		nameImportProgress.textContent = `Listo: ${importedCount} importados${skippedCount ? `, ${skippedCount} ya existentes` : ''}${failures.length ? ` y ${failures.length} con error (${failures.join(', ')})` : ''}.`;
+		showToast(`${importedCount} lugares importados${skippedCount ? ` · ${skippedCount} existentes` : ''}`);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'No se pudo buscar el lugar en Google';
+		const message = error instanceof Error ? error.message : 'No se pudo buscar el lugar';
 		nameImportProgress.hidden = false;
 		nameImportProgress.classList.add('is-error');
 		nameImportProgress.textContent = message;
@@ -2531,7 +2614,7 @@ nameImportForm.addEventListener('submit', async (event) => {
 	} finally {
 		searchNameImport.disabled = false;
 		cancelNameImport.disabled = false;
-		searchNameImport.textContent = 'Buscar e importar';
+		searchNameImport.textContent = 'Importar';
 	}
 });
 

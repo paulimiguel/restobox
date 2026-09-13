@@ -308,7 +308,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
 		return json({
 			name: text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim(),
-			description: (text(schema.description) || meta('description') || meta('og:description')).slice(0, 500),
+			description: text(schema.description) || meta('description') || meta('og:description'),
 			address: text(schema.streetAddress) || text(address.streetAddress) || $('[itemprop="streetAddress"]').first().text().trim(),
 			neighborhood: text(address.addressNeighborhood) || $('[itemprop="addressNeighborhood"]').first().text().trim(),
 			city: text(address.addressLocality) || $('[itemprop="addressLocality"]').first().text().trim(),

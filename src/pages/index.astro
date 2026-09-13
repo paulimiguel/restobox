@@ -171,6 +171,7 @@ const userInitials = userDisplayName
 								<div class="mobile-menu-options">
 									<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
 									<button type="button" data-mobile-menu-action="import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
+									<button type="button" data-open-name-import><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg>Importar por nombre</button>
 									<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
 									<button type="button" data-mobile-menu-action="edit"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 									<button type="button" data-mobile-menu-action="delete"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
@@ -212,6 +213,7 @@ const userInitials = userDisplayName
 								<div class="directory-action-popover">
 									<button type="button" data-open-form>Nuevo lugar</button>
 									<button type="button" id="toolbar-import-url">Importar desde URLs</button>
+									<button type="button" data-open-name-import>Importar por nombre</button>
 									<button type="button" data-open-excel-import>Importar desde Excel</button>
 								</div>
 							</details>
@@ -551,7 +553,7 @@ const userInitials = userDisplayName
 
 				<section class="tab-panel" id="panel-information" role="tabpanel" aria-labelledby="tab-information" data-tab-panel="information" hidden>
 					<div class="form-grid">
-						<label class="wide">Descripción <textarea name="description" rows="6" maxlength="500" placeholder="Contá brevemente su propuesta y sus características…"></textarea></label>
+						<label class="wide">Descripción <textarea name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea></label>
 						<div class="form-field wide schedule-field">
 							<span class="field-label">Días y horarios</span>
 							<input id="hours-value" name="hours" type="hidden" />
@@ -575,7 +577,7 @@ const userInitials = userDisplayName
 						</div>
 						<div class="form-field notes-field wide">
 							<label for="restaurant-notes">Notas</label>
-							<textarea id="restaurant-notes" name="notes" rows="3" maxlength="500" placeholder="Información adicional sobre el lugar…"></textarea>
+							<textarea id="restaurant-notes" name="notes" rows="3" placeholder="Información adicional sobre el lugar…"></textarea>
 						</div>
 					</div>
 				</section>
@@ -647,14 +649,14 @@ const userInitials = userDisplayName
 
 		<dialog id="name-import-dialog" class="mini-dialog name-import-dialog">
 			<form id="name-import-form">
-				<h2>Importar lugar por nombre</h2>
-				<label for="place-search-name">Nombre del lugar</label>
-				<input id="place-search-name" type="text" maxlength="120" autocomplete="off" placeholder="Ej. Piazza Normandina, Mar del Plata" required />
-				<p class="url-import-help">Podés agregar la ciudad o la zona para obtener un resultado más preciso.</p>
+				<h2>Importar por nombre</h2>
+				<label for="place-search-name">Pegá uno o varios nombres</label>
+				<textarea id="place-search-name" rows="6" placeholder="Piazza Ristorante, Mar del Plata&#10;Otro restaurante, ciudad" required></textarea>
+				<p class="url-import-help">Ingresá un nombre por línea. Agregá la ciudad o zona para mejorar la precisión. Con un nombre podrás revisar la ficha; con varios se guardarán automáticamente.</p>
 				<div id="name-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div class="mini-dialog-actions">
 					<button id="cancel-name-import" class="secondary-button" type="button">Cancelar</button>
-					<button id="search-name-import" class="primary-button" type="submit">Buscar e importar</button>
+					<button id="search-name-import" class="primary-button" type="submit">Importar</button>
 				</div>
 			</form>
 		</dialog>
