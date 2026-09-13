@@ -441,7 +441,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-small-icons .restaurant-card { border-radius: 8px; }
 .restaurant-list.view-small-icons .restaurant-card-top-actions, .restaurant-list.view-small-icons .restaurant-card-establishments, .restaurant-list.view-small-icons .restaurant-card-cuisines, .restaurant-list.view-small-icons .restaurant-card-address, .restaurant-list.view-small-icons .restaurant-card-footer { display: none; }
 .restaurant-list.view-small-icons .restaurant-card-body { display: block; padding: 7px 6px 9px; }
-.restaurant-list.view-small-icons .restaurant-card-name { font-family: var(--font-display); font-size: 11px; font-weight: 600; line-height: 1.3; text-align: center; white-space: normal; }
+.restaurant-list.view-small-icons .restaurant-card-name { font-family: var(--font-display); font-size: 13px; font-weight: 600; line-height: 1.3; text-align: center; white-space: normal; }
 .restaurant-list.view-small-icons .restaurant-card-placeholder { font-size: 36px; }
 .restaurant-list.view-detail, .restaurant-list.view-list, .restaurant-list.view-cuisines, .restaurant-list.view-establishments { grid-template-columns: 1fr; }
 .restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { display: grid; grid-template-columns: 170px minmax(180px, 1fr) auto; align-items: center; }
