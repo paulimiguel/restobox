@@ -804,6 +804,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .form-grid input, .form-grid select { height: 42px; padding: 0 12px; }
 .form-grid textarea { padding: 11px 12px; resize: vertical; }
 .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus { border-color: #789586; outline: 3px solid rgba(33,79,63,.09); }
+#panel-details .characteristics-checks > :is(.rate-control, .boolean-check-control) { height: 40px; min-height: 40px; padding-block: 4px; }
+#panel-details .characteristics-checks > .rate-control { display: flex; }
+#panel-details .characteristics-checks .rate-stars button { width: 21px; height: 21px; font-size: 19px; }
 .editing-record input::placeholder, .editing-record textarea::placeholder { color: transparent; opacity: 0; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }

@@ -233,11 +233,6 @@ const provinceOptions = document.querySelector<HTMLDivElement>('#province-option
 const countryCombobox = document.querySelector<HTMLDivElement>('#country-combobox')!;
 const countryOptions = document.querySelector<HTMLDivElement>('#country-options')!;
 const selectedCuisinesContainer = document.querySelector<HTMLDivElement>('#selected-cuisines')!;
-const tagInput = document.querySelector<HTMLInputElement>('#tag-input')!;
-const tagCombobox = document.querySelector<HTMLDivElement>('#tag-combobox')!;
-const tagOptions = document.querySelector<HTMLDivElement>('#tag-options')!;
-const manageTagsButton = document.querySelector<HTMLButtonElement>('#manage-tags')!;
-const selectedTagsContainer = document.querySelector<HTMLDivElement>('#selected-tags')!;
 const manageCuisinesButton = document.querySelector<HTMLButtonElement>('#manage-cuisines')!;
 const manageCuisinesDialog = document.querySelector<HTMLDialogElement>('#manage-cuisines-dialog')!;
 const cuisineOptionsList = document.querySelector<HTMLDivElement>('#cuisine-options-list')!;
@@ -285,6 +280,7 @@ const facebookInput = document.querySelector<HTMLInputElement>('#facebook-url')!
 const wokiInput = document.querySelector<HTMLInputElement>('#woki-url')!;
 const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-url')!;
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
+const notesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
 const countryInput = form.elements.namedItem('country') as HTMLInputElement;
 const personalRateInput = form.elements.namedItem('rating') as HTMLInputElement;
 const personalRateButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-rate-value]')];
@@ -1073,69 +1069,6 @@ function renderSelectedCuisines() {
 		</span>`).join('');
 }
 
-function renderSelectedTags() {
-	selectedTagsContainer.innerHTML = selectedTags.map((tag, index) => `
-		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
-			${safe(tag)}
-			<input type="hidden" name="tags" value="${safe(tag)}" />
-			<button type="button" data-remove-tag="${safe(tag)}" aria-label="Quitar ${safe(tag)}" title="Quitar">×</button>
-		</span>`).join('');
-}
-
-function renderTagOptions(clearInput = false) {
-	if (clearInput) tagInput.value = '';
-	const query = tagInput.value.trim().toLocaleLowerCase('es');
-	const removed = new Set(removedTags.map((tag) => tag.toLocaleLowerCase('es')));
-	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags), ...selectedTags])
-		.filter((tag) => !removed.has(tag.toLocaleLowerCase('es')))
-		.sort((a, b) => a.localeCompare(b, 'es'));
-	const filtered = availableTags.filter((tag) => tag.toLocaleLowerCase('es').includes(query));
-	const hasExactMatch = availableTags.some((tag) => tag.toLocaleLowerCase('es') === query);
-	tagOptions.innerHTML = [
-		...filtered.map((tag) => {
-			const selected = selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'));
-			return `
-				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
-					<label><input type="checkbox" data-tag-option value="${safe(tag)}"${selected ? ' checked' : ''} /><span>${safe(tag)}</span></label>
-					<button type="button" class="delete-tag-option" data-delete-tag="${safe(tag)}" aria-label="Eliminar ${safe(tag)} de la lista" title="Eliminar definitivamente">×</button>
-				</div>`;
-		}),
-		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-tag><span>＋</span> Agregar “${safe(tagInput.value.trim())}”</button>`] : []),
-	].join('') || '<p class="cuisine-empty">Sin etiquetas guardadas. Escribí una nueva y pulsá Enter.</p>';
-}
-
-function commitTagInput() {
-	const enteredTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
-	if (!enteredTags.length) return;
-	for (const entered of enteredTags) {
-		const existing = tagCatalog.find((tag) => tag.toLocaleLowerCase('es') === entered.toLocaleLowerCase('es'));
-		const tag = existing ?? capitalizeFirstLetter(entered.slice(0, 50));
-		if (!existing) {
-			tagCatalog.push(tag);
-			tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
-			removedTags = removedTags.filter((item) => item.toLocaleLowerCase('es') !== tag.toLocaleLowerCase('es'));
-		}
-		if (!selectedTags.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) selectedTags.push(tag);
-	}
-	tagInput.value = '';
-	saveTagSettings();
-	renderSelectedTags();
-	renderTagOptions();
-	updateDirtyState();
-}
-
-function openTagDropdown() {
-	if (tagInput.disabled) return;
-	renderTagOptions();
-	tagOptions.hidden = false;
-	tagInput.setAttribute('aria-expanded', 'true');
-}
-
-function closeTagDropdown() {
-	tagOptions.hidden = true;
-	tagInput.setAttribute('aria-expanded', 'false');
-}
-
 function confirmAssociatedPlacesDeletion(optionLabel: string, option: string, isAssociated: (restaurant: Restaurant) => boolean) {
 	const associatedPlaces = restaurants.filter(isAssociated).length;
 	if (!associatedPlaces) return true;
@@ -1143,28 +1076,6 @@ function confirmAssociatedPlacesDeletion(optionLabel: string, option: string, is
 	const associatedLabel = associatedPlaces === 1 ? 'asociado' : 'asociados';
 	const reference = associatedPlaces === 1 ? 'ese lugar' : 'esos lugares';
 	return window.confirm(`Hay ${associatedPlaces} ${placeLabel} ${associatedLabel} a ${optionLabel} “${option}”. Si eliminás esta opción, también se quitará de ${reference}.\n\n¿Querés continuar?`);
-}
-
-async function deleteTagOption(tag: string) {
-	const normalized = tag.toLocaleLowerCase('es');
-	if (!confirmAssociatedPlacesDeletion('la etiqueta', tag, (restaurant) => (
-		restaurantTags(restaurant).some((item) => item.toLocaleLowerCase('es') === normalized)
-	))) return;
-	backupRestaurants();
-	tagCatalog = tagCatalog.filter((item) => item.toLocaleLowerCase('es') !== normalized);
-	removedTags = [...new Set([...removedTags, tag])];
-	selectedTags = selectedTags.filter((item) => item.toLocaleLowerCase('es') !== normalized);
-	restaurants.forEach((restaurant) => {
-		restaurant.tags = restaurantTags(restaurant).filter((item) => item.toLocaleLowerCase('es') !== normalized).join(', ');
-	});
-	selectedTagFilters = new Set([...selectedTagFilters].filter((item) => item.toLocaleLowerCase('es') !== normalized));
-	saveTagSettings();
-	await saveRestaurants();
-	renderSelectedTags();
-	renderTagOptions();
-	render();
-	updateDirtyState();
-	showToast('Etiqueta eliminada definitivamente');
 }
 
 function addCuisineSelection(cuisine: string) {
@@ -1468,6 +1379,30 @@ function loadScheduleFromText(value: string) {
 	updateClearButtons();
 }
 
+const NOTES_BULLET = '• ';
+
+function notesWithBullets(value: string) {
+	const normalized = value.replace(/\r\n?/g, '\n');
+	if (!normalized) return '';
+	return normalized.split('\n').map((line) => {
+		const content = line.replace(/^\s*•\s?/, '').trimStart();
+		return `${NOTES_BULLET}${content}`;
+	}).join('\n');
+}
+
+function normalizeNotesBullets() {
+	const original = notesInput.value;
+	const formatted = notesWithBullets(original);
+	if (formatted === original) return;
+	const selectionStart = notesInput.selectionStart;
+	const selectionEnd = notesInput.selectionEnd;
+	const formattedStart = notesWithBullets(original.slice(0, selectionStart)).length;
+	const formattedEnd = notesWithBullets(original.slice(0, selectionEnd)).length;
+	notesInput.value = formatted;
+	notesInput.setSelectionRange(formattedStart, formattedEnd);
+	updateClearButton(notesInput);
+}
+
 function pasteScheduleText(value: string) {
 	const parsed = parseScheduleText(value);
 	if (!parsed.size) return false;
@@ -1546,7 +1481,7 @@ function setupClearableFields() {
 	const controls = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea');
 	controls.forEach((control) => {
 		if (control instanceof HTMLInputElement && ['hidden', 'file', 'checkbox', 'radio'].includes(control.type)) return;
-		if (['cuisine', 'establishment-type', 'service-type', 'tag-input'].includes(control.id)) return;
+		if (['cuisine', 'establishment-type', 'service-type'].includes(control.id)) return;
 		const wrapper = document.createElement('div');
 		wrapper.className = 'clearable-control';
 		control.before(wrapper);
@@ -1665,7 +1600,6 @@ function updateViewEmptyFields(readOnly: boolean) {
 
 	if (!selectedEstablishments.length) document.querySelector('.establishment-type-field')?.classList.add('view-empty-field');
 	if (!selectedCuisines.length) selectedCuisinesContainer.closest('.form-field')?.classList.add('view-empty-field');
-	if (!selectedTags.length) selectedTagsContainer.closest('.form-field')?.classList.add('view-empty-field');
 	if (!selectedServices.length) document.querySelector('.meal-type-field')?.classList.add('view-empty-field');
 	if (!hoursValue.value.trim()) document.querySelector('.schedule-field')?.classList.add('view-empty-field');
 	if (!restaurantLogo) {
@@ -2230,7 +2164,6 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	updateDirtyState();
 	form.reset();
 	closeCuisineDropdown();
-	closeTagDropdown();
 	closeAveragePriceDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
@@ -2252,8 +2185,6 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	renderSelectedCuisines();
 	renderCuisineOptions();
 	selectedTags = restaurant?.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [];
-	renderSelectedTags();
-	renderTagOptions(true);
 	renderImagePreviews();
 	renderLogoPreview();
 	dialogTitle.textContent = restaurant ? '' : 'Nuevo lugar';
@@ -2280,6 +2211,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
 		countryInput.value = ensureLocationOption('country', DEFAULT_COUNTRY);
 	}
+	normalizeNotesBullets();
 	updatePersonalRate();
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
 	viewVisitedStatus.hidden = !(readOnly && restaurant?.visited);
@@ -2508,6 +2440,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('name', imported.name);
 	setImportedField('description', imported.description);
 	setImportedField('notes', imported.notes);
+	normalizeNotesBullets();
 	selectedTags = valuesFromExistingCatalog(imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [], tagCatalog);
 	selectedTags.forEach((tag) => {
 		if (!tagCatalog.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) tagCatalog.push(tag);
@@ -2515,7 +2448,6 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	});
 	tagCatalog.sort((a, b) => a.localeCompare(b, 'es'));
 	saveTagSettings();
-	renderSelectedTags();
 	setImportedField('address', normalizeImportedAddress(imported.address, imported.city));
 	setImportedField('neighborhood', ensureNeighborhoodOption(imported.neighborhood));
 	setImportedField('city', ensureLocationOption('city', imported.city));
@@ -3127,7 +3059,6 @@ document.querySelectorAll<HTMLElement>('[data-close-form]').forEach((button) => 
 dialog.addEventListener('close', () => {
 	activeRestaurantId = null;
 	closeCuisineDropdown();
-	closeTagDropdown();
 	closeAveragePriceDropdown();
 	closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach(closeLocationDropdown);
@@ -3136,6 +3067,10 @@ dialog.addEventListener('close', () => {
 	clearPreviewUrls();
 });
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
+notesInput.addEventListener('input', (event) => {
+	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
+});
+notesInput.addEventListener('compositionend', normalizeNotesBullets);
 form.addEventListener('input', updateDirtyState);
 form.addEventListener('change', updateDirtyState);
 function commitCuisineInput(createIfMissing: boolean) {
@@ -3295,7 +3230,6 @@ neighborhoodOptions.addEventListener('click', (event) => {
 });
 document.addEventListener('pointerdown', (event) => {
 	if (!cuisineCombobox.contains(event.target as Node)) closeCuisineDropdown();
-	if (!tagCombobox.contains(event.target as Node)) closeTagDropdown();
 	if (!averagePriceCombobox.contains(event.target as Node)) closeAveragePriceDropdown();
 	if (!neighborhoodCombobox.contains(event.target as Node)) closeNeighborhoodDropdown();
 	(['city', 'province', 'country'] as LocationOptionKind[]).forEach((kind) => {
@@ -3311,57 +3245,6 @@ selectedCuisinesContainer.addEventListener('click', (event) => {
 	renderSelectedCuisines();
 	renderCuisineOptions();
 	updateDirtyState();
-});
-
-tagInput.addEventListener('focus', openTagDropdown);
-tagInput.addEventListener('click', openTagDropdown);
-tagInput.addEventListener('input', () => {
-	openTagDropdown();
-	renderTagOptions();
-});
-tagInput.addEventListener('keydown', (event) => {
-	if (event.key === 'Escape') {
-		closeTagDropdown();
-		return;
-	}
-	if (event.key !== 'Enter') return;
-	event.preventDefault();
-	commitTagInput();
-	openTagDropdown();
-});
-tagOptions.addEventListener('change', (event) => {
-	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-tag-option]');
-	if (!checkbox) return;
-	if (checkbox.checked) {
-		if (!selectedTags.some((tag) => tag.toLocaleLowerCase('es') === checkbox.value.toLocaleLowerCase('es'))) selectedTags.push(checkbox.value);
-	} else {
-		selectedTags = selectedTags.filter((tag) => tag.toLocaleLowerCase('es') !== checkbox.value.toLocaleLowerCase('es'));
-	}
-	renderSelectedTags();
-	renderTagOptions();
-	updateDirtyState();
-});
-tagOptions.addEventListener('click', async (event) => {
-	const deleteButton = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-delete-tag]');
-	if (deleteButton?.dataset.deleteTag) {
-		await deleteTagOption(deleteButton.dataset.deleteTag);
-		tagInput.focus();
-		openTagDropdown();
-		return;
-	}
-	if ((event.target as HTMLElement).closest('[data-create-tag]')) {
-		commitTagInput();
-		tagInput.focus();
-		openTagDropdown();
-	}
-});
-manageTagsButton.addEventListener('click', () => {
-	if (tagOptions.hidden) {
-		openTagDropdown();
-		tagInput.focus();
-	} else {
-		closeTagDropdown();
-	}
 });
 
 averagePriceInput.addEventListener('focus', openAveragePriceDropdown);
@@ -3387,14 +3270,6 @@ averagePriceOptionsMenu.addEventListener('click', async (event) => {
 	averagePriceInput.focus({ preventScroll: true });
 });
 
-selectedTagsContainer.addEventListener('click', (event) => {
-	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-tag]');
-	if (!button) return;
-	selectedTags = selectedTags.filter((tag) => tag !== button.dataset.removeTag);
-	renderSelectedTags();
-	renderTagOptions();
-	updateDirtyState();
-});
 function setupSelectedOptionReordering(
 	container: HTMLDivElement,
 	getItems: () => string[],
@@ -3484,7 +3359,6 @@ function setupSelectedOptionReordering(
 }
 
 setupSelectedOptionReordering(selectedCuisinesContainer, () => selectedCuisines, (items) => { selectedCuisines = items; }, renderSelectedCuisines, renderCuisineOptions);
-setupSelectedOptionReordering(selectedTagsContainer, () => selectedTags, (items) => { selectedTags = items; }, renderSelectedTags, renderTagOptions);
 setupSelectedOptionReordering(selectedEstablishmentsContainer, () => selectedEstablishments, (items) => { selectedEstablishments = items; }, renderSelectedEstablishments, renderEstablishmentOptions);
 setupSelectedOptionReordering(selectedServicesContainer, () => selectedServices, (items) => { selectedServices = items; }, renderSelectedServices, renderServiceOptions);
 establishmentSelect.addEventListener('focus', openEstablishmentDropdown);
@@ -4969,7 +4843,6 @@ async function initializeServerPersistence() {
 		provinces = [...new Set([...provinces, ...restaurants.map((restaurant) => restaurant.province).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		countries = [...new Set([...countries, ...restaurants.map((restaurant) => restaurant.country).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		renderCuisineOptions();
-		renderTagOptions(true);
 		renderEstablishmentOptions(true);
 		renderServiceOptions(true, true);
 		renderNeighborhoodOptions();
@@ -4996,8 +4869,6 @@ applyTheme(localStorage.getItem('theme') || 'carrot');
 applyFontTheme(localStorage.getItem('font-theme') || 'original');
 renderSelectedCuisines();
 renderCuisineOptions();
-renderSelectedTags();
-renderTagOptions();
 selectedEstablishments = [];
 renderSelectedEstablishments();
 renderEstablishmentOptions(true);
