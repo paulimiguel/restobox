@@ -100,6 +100,15 @@ type WokiPlace = {
 	zones?: { country?: { name?: string }; state?: { name?: string }; city?: { name?: string } };
 };
 
+type PublicSearchResult = { url: string; title: string; snippet: string };
+type OpenMapPlace = {
+	geometry?: { coordinates?: [number, number] };
+	properties?: {
+		name?: string; street?: string; housenumber?: string; district?: string; city?: string; county?: string;
+		state?: string; country?: string; postcode?: string; osm_value?: string;
+	};
+};
+
 const locationSlug = (value: string) => normalized(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 async function wokiCandidates(country: string, state: string, city: string) {
@@ -192,6 +201,147 @@ async function wokiFallback(requestedName: string) {
 	};
 }
 
+function requestedPlaceName(requestedName: string) {
+	return requestedName.split(',')[0].trim();
+}
+
+function defaultedPublicQuery(requestedName: string) {
+	const value = normalized(requestedName);
+	const hasLocation = requestedName.includes(',') || /\b(?:mar del plata|caba|capital federal|buenos aires|cordoba|mendoza|rosario|argentina|uruguay|chile)\b/.test(value);
+	return `${requestedName} restaurante${hasLocation ? '' : ' Mar del Plata'}`;
+}
+
+function unwrapSearchUrl(value: string, base: URL) {
+	try {
+		const url = new URL(value, base);
+		const redirected = url.searchParams.get('uddg');
+		const result = redirected ? new URL(redirected) : url;
+		if (!['http:', 'https:'].includes(result.protocol) || /(?:^|\.)duckduckgo\.com$/i.test(result.hostname)) return '';
+		return result.href;
+	} catch { return ''; }
+}
+
+async function publicSearch(requestedName: string): Promise<PublicSearchResult[]> {
+	const searchUrl = new URL('https://html.duckduckgo.com/html/');
+	searchUrl.searchParams.set('q', defaultedPublicQuery(requestedName));
+	try {
+		const response = await fetch(searchUrl, {
+			signal: AbortSignal.timeout(10_000),
+			headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' },
+		});
+		if (!response.ok) return [];
+		const $ = cheerio.load(await response.text());
+		const targetWords = normalized(requestedPlaceName(requestedName)).split(/[^a-z0-9]+/).filter((word) => word.length >= 3 && !['del', 'las', 'los'].includes(word));
+		return $('.result').map((_, element) => {
+			const link = $(element).find('.result__a').first();
+			return {
+				url: unwrapSearchUrl(link.attr('href') ?? '', searchUrl),
+				title: link.text().replace(/\s+/g, ' ').trim(),
+				snippet: $(element).find('.result__snippet').first().text().replace(/\s+/g, ' ').trim(),
+			};
+		}).get().filter((result) => {
+			if (!result.url || !result.title) return false;
+			const searchable = normalized(`${result.title} ${result.snippet} ${result.url}`);
+			return targetWords.length > 0 && targetWords.every((word) => searchable.includes(word));
+		}).slice(0, 8);
+	} catch { return []; }
+}
+
+async function openMapSearch(requestedName: string): Promise<OpenMapPlace | null> {
+	const url = new URL('https://photon.komoot.io/api/');
+	url.searchParams.set('q', defaultedPublicQuery(requestedName).replace(/\s+restaurante\b/i, ''));
+	url.searchParams.set('limit', '5');
+	try {
+		const response = await fetch(url, { signal: AbortSignal.timeout(8_000), headers: { accept: 'application/json', 'user-agent': 'RestoBoxImporter/2.0' } });
+		if (!response.ok) return null;
+		const data = await response.json() as { features?: OpenMapPlace[] };
+		const target = normalized(requestedPlaceName(requestedName)).replace(/[^a-z0-9]+/g, ' ').trim();
+		return (data.features ?? []).find((feature) => {
+			const candidate = normalized(feature.properties?.name ?? '').replace(/[^a-z0-9]+/g, ' ').trim();
+			return candidate === target || (candidate.length >= 5 && target.length >= 5 && (candidate.includes(target) || target.includes(candidate)));
+		}) ?? null;
+	} catch { return null; }
+}
+
+function addressFromPublicText(text: string) {
+	const prepared = text.replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2');
+	const patterns = [
+		/\b((?:avenida|av\.?|calle|almirante|almte\.?|boulevard|blvd\.?|diagonal)\s+[\p{L}][\p{L}.'-]*(?:\s+[\p{L}][\p{L}.'-]*){0,3}\s+\d{3,5})\b/giu,
+		/\b((?:\p{Lu}[\p{L}.'-]*\s+){0,2}\p{Lu}[\p{L}.'-]*\s+\d{3,5})\b/gu,
+	];
+	for (const pattern of patterns) {
+		for (const match of prepared.matchAll(pattern)) {
+			const number = Number(match[1].match(/\d{2,5}\s*$/)?.[0]);
+			if (number >= 1900 && number <= 2099) continue;
+			return match[1].replace(/\s+/g, ' ').trim();
+		}
+	}
+	return '';
+}
+
+async function publicWebFallback(requestedName: string) {
+	const openMapPlace = await openMapSearch(requestedName);
+	const results = await publicSearch(openMapPlace?.properties?.name || requestedName);
+	if (!results.length && !openMapPlace) return null;
+	const resultUrls = unique(results.map((result) => result.url));
+	const pages = await Promise.all(resultUrls.slice(0, 6).map(pageDataOrEmpty));
+	const allLinks = unique([...resultUrls, ...pages.flatMap((page) => page.links)]);
+	const instagramUrl = socialLink(allLinks, /(?:^|\.)instagram\.com\//i);
+	const facebookUrl = socialLink(allLinks, /(?:^|\.)facebook\.com\//i);
+	const tiktokUrl = socialLink(allLinks, /(?:^|\.)tiktok\.com\//i);
+	const tripAdvisorUrl = socialLink(allLinks, /(?:^|\.)tripadvisor\./i);
+	const linktreeUrl = socialLink(allLinks, /(?:^|\.)(?:linktr\.ee|linktree\.com)\//i);
+	const googleUrl = socialLink(allLinks, /(?:^|\.)google\.[^/]+\/maps|maps\.app\.goo\.gl/i);
+	const excludedWebsite = /(?:instagram|facebook|tiktok|tripadvisor|linktr\.ee|linktree|restaurantguru|wanderlog|corner\.inc|bazartravels|duckduckgo|openstreetmap|timeout|cocina\.com|trnmagazine)\./i;
+	const websiteWords = normalized(requestedPlaceName(requestedName)).split(/[^a-z0-9]+/).filter((word) => word.length >= 4 && !['cantina', 'restaurante'].includes(word));
+	const website = allLinks.find((link) => {
+		try {
+			const hostname = normalized(new URL(link).hostname);
+			return !excludedWebsite.test(hostname) && !/(?:menu|carta|reserv)/i.test(link) && websiteWords.some((word) => hostname.includes(word));
+		}
+		catch { return false; }
+	}) ?? '';
+	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
+	const sourceText = [
+		...results.flatMap((result) => [result.title, result.snippet]),
+		...pages.flatMap((page) => [page.description, page.text, ...page.keywords]),
+		instagramPage.description, facebookPage.description,
+	].filter(Boolean).join(' ');
+	const detected = detectedPublicValues(sourceText);
+	const properties = openMapPlace?.properties;
+	const mapAddress = [properties?.street, properties?.housenumber].filter(Boolean).join(' ');
+	const publicAddress = addressFromPublicText(sourceText);
+	const address = properties?.housenumber ? mapAddress : publicAddress || mapAddress;
+	const coordinates = openMapPlace?.geometry?.coordinates;
+	const openMapUrl = coordinates?.length === 2 ? `https://www.openstreetmap.org/?mlat=${coordinates[1]}&mlon=${coordinates[0]}#map=18/${coordinates[1]}/${coordinates[0]}` : '';
+	const establishmentByMapType: Record<string, string> = { restaurant: 'Restaurante', cafe: 'Café', bar: 'Bar', pub: 'Pub', bakery: 'Panadería', ice_cream: 'Heladería' };
+	const mapEstablishment = establishmentByMapType[properties?.osm_value ?? ''] ?? '';
+	const descriptions = unique([...pages.map((page) => page.description), ...results.map((result) => result.snippet)]).filter((value) => value.length >= 30);
+	const pageImages = unique([...instagramPage.images, ...pages.flatMap((page) => page.images), ...facebookPage.images]);
+	const inferredMarDelPlata = normalized(sourceText).includes('mar del plata') || normalized(requestedName).includes('mar del plata');
+	return {
+		name: properties?.name || requestedPlaceName(requestedName).replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es')),
+		description: descriptions[0] || '', notes: '',
+		establishmentTypes: unique([mapEstablishment, ...detected.establishments]).length ? unique([mapEstablishment, ...detected.establishments]) : ['Restaurante'],
+		cuisines: detected.cuisines, mealTypes: detected.meals,
+		tags: unique([...pages.flatMap((page) => page.keywords), ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
+		price: '', averagePrice: '', rating: '', score: '',
+		country: properties?.country || (inferredMarDelPlata ? 'Argentina' : ''),
+		province: properties?.state || (inferredMarDelPlata ? 'Buenos Aires' : ''),
+		city: properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), neighborhood: properties?.district || '', address,
+		phone: '', mobile: '', website, googleUrl, mapUrl: googleUrl || openMapUrl, hours: '',
+		instagramUrl, facebookUrl, tiktokUrl, wokiUrl: socialLink(allLinks, /(?:^|\.)wokiapp\.com\//i), tripAdvisorUrl, linktreeUrl,
+		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
+		delivery: false, takeAway: false, reservations: allLinks.some((link) => /reserv/i.test(link)),
+		logoUrl: instagramPage.images[0] || '', imageUrls: pageImages.slice(0, 12),
+		sources: ['Fuentes públicas', ...(openMapPlace ? ['OpenStreetMap'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
+	};
+}
+
+async function fallbackWithoutGoogle(requestedName: string) {
+	return await wokiFallback(requestedName) || await publicWebFallback(requestedName);
+}
+
 function averagePrice(place: GooglePlace) {
 	const values = [place.priceRange?.startPrice, place.priceRange?.endPrice].map((money) => money ? Number(money.units ?? 0) + Number(money.nanos ?? 0) / 1e9 : 0).filter((value) => value > 0);
 	if (!values.length) return '';
@@ -208,7 +358,7 @@ export const POST: APIRoute = async ({ request }) => {
 		if (name.length < 2) return json({ error: 'Ingresá el nombre del lugar que querés buscar' }, 400);
 		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 		if (!apiKey) {
-			const fallback = await wokiFallback(name);
+			const fallback = await fallbackWithoutGoogle(name);
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes públicas disponibles` }, 404);
 		}
 
@@ -227,17 +377,17 @@ export const POST: APIRoute = async ({ request }) => {
 				body: JSON.stringify({ textQuery: name, languageCode: 'es', regionCode: 'AR', pageSize: 1 }),
 			});
 		} catch {
-			const fallback = await wokiFallback(name);
+			const fallback = await fallbackWithoutGoogle(name);
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 		const result = await response.json() as { places?: GooglePlace[]; error?: { message?: string } };
 		if (!response.ok) {
-			const fallback = await wokiFallback(name);
+			const fallback = await fallbackWithoutGoogle(name);
 			return fallback ? json(fallback) : json({ error: result.error?.message ?? 'No se pudo completar la búsqueda' }, response.status);
 		}
 		const place = result.places?.[0];
 		if (!place) {
-			const fallback = await wokiFallback(name);
+			const fallback = await fallbackWithoutGoogle(name);
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 

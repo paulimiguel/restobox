@@ -2596,7 +2596,10 @@ nameImportForm.addEventListener('submit', async (event) => {
 				if (duplicate) { skippedCount += 1; continue; }
 				await saveImportedRestaurant(result);
 				importedCount += 1;
-			} catch { failures.push(name); }
+			} catch (error) {
+				const reason = error instanceof Error ? error.message : 'No se pudo buscar';
+				failures.push(`${name}: ${reason}`);
+			}
 		}
 		renderEstablishmentFilterOptions();
 		renderCuisineFilterOptions();
