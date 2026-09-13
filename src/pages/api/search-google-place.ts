@@ -94,31 +94,102 @@ async function pageDataOrEmpty(url: string): Promise<PublicPageData> {
 }
 const socialLink = (links: string[], pattern: RegExp) => links.find((link) => pattern.test(link)) ?? '';
 
-type WokiPlace = { displayName?: string; slug?: string; address?: string; info?: string; subtitle?: string; category?: string; tags?: string[]; price?: string; bannerImageUrl?: string; squareImageUrl?: string };
+type WokiPlace = {
+	displayName?: string; slug?: string; address?: string; info?: string; subtitle?: string; category?: string; tags?: string[];
+	price?: string; bannerImageUrl?: string; squareImageUrl?: string;
+	zones?: { country?: { name?: string }; state?: { name?: string }; city?: { name?: string } };
+};
 
-async function findWokiPlace(place: GooglePlace, requestedName: string): Promise<WokiPlace | null> {
-	const countryName = normalized(component(place, 'country'));
-	const country = countryName.includes('argentina') ? 'ar' : countryName.includes('uruguay') ? 'uy' : countryName.includes('chile') ? 'cl' : '';
-	const slug = (value: string) => normalized(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-	const state = slug(component(place, 'administrative_area_level_1'));
-	const city = slug(component(place, 'locality', 'administrative_area_level_2'));
-	if (!country || !state) return null;
+const locationSlug = (value: string) => normalized(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+async function wokiCandidates(country: string, state: string, city: string) {
 	const params = new URLSearchParams({
 		date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), quantity: '4', country, state, city,
 		orderBy: 'rating', openNow: 'false', hasDiscount: 'false', isNew: 'false', isRecommended: 'false',
 		lastTablesAvailable: 'false', withWokiScore: 'false', locale: 'es', page: '1', limit: '100',
 	});
-	try {
-		const response = await fetch(`https://api.wokiapp.com/geta/v1/search/home?${params}`, { signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'RestoBoxImporter/2.0' } });
-		if (!response.ok) return null;
-		const groups = await response.json() as Array<{ items?: WokiPlace[] }>;
-		const candidates = unique(groups.flatMap((group) => group.items ?? []).map((item) => JSON.stringify(item))).map((item) => JSON.parse(item) as WokiPlace);
-		const target = normalized(place.displayName?.text || requestedName).replace(/[^a-z0-9]+/g, ' ').trim();
-		return candidates.find((item) => {
-			const candidate = normalized(item.displayName || item.slug || '').replace(/[^a-z0-9]+/g, ' ').trim();
-			return candidate === target || (candidate.length >= 5 && (candidate.includes(target) || target.includes(candidate)));
-		}) ?? null;
-	} catch { return null; }
+	const response = await fetch(`https://api.wokiapp.com/geta/v1/search/home?${params}`, { signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'RestoBoxImporter/2.0' } });
+	if (!response.ok) return [];
+	const groups = await response.json() as Array<{ items?: WokiPlace[] }>;
+	const candidates = new Map<string, WokiPlace>();
+	groups.flatMap((group) => group.items ?? []).forEach((item) => { if (item.slug && !candidates.has(item.slug)) candidates.set(item.slug, item); });
+	return [...candidates.values()];
+}
+
+function matchingWokiPlace(candidates: WokiPlace[], requestedName: string) {
+	const target = normalized(requestedName.split(',')[0]).replace(/[^a-z0-9]+/g, ' ').trim();
+	return candidates.find((item) => {
+		const candidate = normalized(item.displayName || item.slug || '').replace(/[^a-z0-9]+/g, ' ').trim();
+		return candidate === target || (candidate.length >= 5 && target.length >= 5 && (candidate.includes(target) || target.includes(candidate)));
+	}) ?? null;
+}
+
+async function findWokiPlace(place: GooglePlace, requestedName: string): Promise<WokiPlace | null> {
+	const countryName = normalized(component(place, 'country'));
+	const country = countryName.includes('argentina') ? 'ar' : countryName.includes('uruguay') ? 'uy' : countryName.includes('chile') ? 'cl' : '';
+	const state = locationSlug(component(place, 'administrative_area_level_1'));
+	const city = locationSlug(component(place, 'locality', 'administrative_area_level_2'));
+	if (!country || !state) return null;
+	try { return matchingWokiPlace(await wokiCandidates(country, state, city), place.displayName?.text || requestedName); }
+	catch { return null; }
+}
+
+async function findWokiPlaceWithoutGoogle(requestedName: string) {
+	const query = normalized(requestedName);
+	const locations = query.includes('mar del plata')
+		? [['ar', 'buenos-aires', 'mar-del-plata']]
+		: query.includes('cordoba') ? [['ar', 'cordoba', 'cordoba']]
+			: query.includes('mendoza') ? [['ar', 'mendoza', 'mendoza']]
+				: query.includes('rosario') ? [['ar', 'santa-fe', 'rosario']]
+					: query.includes('caba') || query.includes('capital federal') || query.includes('ciudad de buenos aires')
+						? [['ar', 'ciudad-de-buenos-aires', '']]
+						: [['ar', 'buenos-aires', 'mar-del-plata'], ['ar', 'ciudad-de-buenos-aires', ''], ['ar', 'buenos-aires', '']];
+	for (const [country, state, city] of locations) {
+		try {
+			const match = matchingWokiPlace(await wokiCandidates(country, state, city), requestedName);
+			if (match) return match;
+		} catch { /* Se prueba la siguiente ubicación. */ }
+	}
+	return null;
+}
+
+function detectedPublicValues(text: string) {
+	const value = normalized(text);
+	const establishments = Object.entries({ Restaurante: /\brestaurante\b/, Café: /\bcafe\b|coffee shop/, Bar: /\bbar\b/, Pub: /\bpub\b/, Panadería: /\bpanaderia\b|bakery/, Heladería: /\bheladeria\b|ice cream/, Cervecería: /\bcerveceria\b|brewery/ }).filter(([, pattern]) => pattern.test(value)).map(([label]) => label);
+	const cuisines = Object.entries({ Pastas: /\bpastas?\b/, Parrilla: /\bparrilla\b|steak/, Pizzas: /\bpizzas?\b/, Sushi: /\bsushi\b/, Mariscos: /\bmariscos?\b|seafood/, Argentina: /\bargentin[ao]\b/, Italiana: /\bitalian[ao]\b/, Japonesa: /\bjapones[ao]\b/, Peruana: /\bperuan[ao]\b/, Mexicana: /\bmexican[ao]\b/, Mediterránea: /\bmediterrane[ao]\b/, Vegana: /\bvegan[ao]\b/, Vegetariana: /\bvegetarian[ao]\b/ }).filter(([, pattern]) => pattern.test(value)).map(([label]) => label);
+	const meals = Object.entries({ Desayuno: /\bdesayuno\b|breakfast/, Brunch: /\bbrunch\b/, Almuerzo: /\balmuerzo\b|lunch/, Merienda: /\bmerienda\b/, Cena: /\bcena\b|dinner/, Drunch: /\bdrunch\b/, 'After dinner': /after dinner/, Poscena: /\bposcena\b/ }).filter(([, pattern]) => pattern.test(value)).map(([label]) => label);
+	return { establishments, cuisines, meals };
+}
+
+async function wokiFallback(requestedName: string) {
+	const place = await findWokiPlaceWithoutGoogle(requestedName);
+	if (!place?.slug) return null;
+	const wokiUrl = `https://www.wokiapp.com/restaurante/${encodeURIComponent(place.slug)}`;
+	const page = await pageDataOrEmpty(wokiUrl);
+	const instagramUrl = socialLink(page.links, /(?:^|\.)instagram\.com\//i);
+	const facebookUrl = socialLink(page.links, /(?:^|\.)facebook\.com\//i);
+	const tiktokUrl = socialLink(page.links, /(?:^|\.)tiktok\.com\//i);
+	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
+	const detected = detectedPublicValues([place.category, place.info, place.subtitle, ...(place.tags ?? []), page.description, page.text, instagramPage.description, facebookPage.description].filter(Boolean).join(' '));
+	const allLinks = unique([...page.links, ...instagramPage.links, ...facebookPage.links]);
+	const whatsappUrl = socialLink(allLinks, /(?:wa\.me|whatsapp\.com)/i);
+	let mobile = '';
+	if (whatsappUrl) { const parsed = new URL(whatsappUrl); mobile = parsed.hostname.includes('wa.me') ? parsed.pathname.replace(/\D/g, '') : (parsed.searchParams.get('phone') ?? '').replace(/\D/g, ''); }
+	return {
+		name: place.displayName || requestedName.split(',')[0].trim(), description: place.info || page.description || '', notes: '',
+		establishmentTypes: unique([place.category || '', ...detected.establishments]), cuisines: detected.cuisines, mealTypes: detected.meals,
+		tags: unique([...(place.tags ?? []), ...page.keywords, ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
+		price: /^\${1,4}$/.test(place.price || '') ? place.price : '', averagePrice: '', rating: '', score: '',
+		country: place.zones?.country?.name || 'Argentina', province: place.zones?.state?.name || '', city: place.zones?.city?.name || '',
+		neighborhood: '', address: place.address || '', phone: '', mobile, website: '', googleUrl: '', mapUrl: '', hours: '',
+		instagramUrl, facebookUrl, tiktokUrl, wokiUrl,
+		tripAdvisorUrl: socialLink(allLinks, /(?:^|\.)tripadvisor\./i), linktreeUrl: socialLink(allLinks, /(?:^|\.)linktr\.ee\//i),
+		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
+		delivery: false, takeAway: false, reservations: true,
+		logoUrl: instagramPage.images[0] || place.squareImageUrl || '',
+		imageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images, ...instagramPage.images, ...facebookPage.images]).slice(0, 12),
+		sources: ['Woki', ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
+	};
 }
 
 function averagePrice(place: GooglePlace) {
@@ -136,7 +207,10 @@ export const POST: APIRoute = async ({ request }) => {
 		const name = body.name?.trim() ?? '';
 		if (name.length < 2) return json({ error: 'Ingresá el nombre del lugar que querés buscar' }, 400);
 		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-		if (!apiKey) return json({ error: 'Falta configurar GOOGLE_MAPS_API_KEY para buscar lugares en Google' }, 503);
+		if (!apiKey) {
+			const fallback = await wokiFallback(name);
+			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes públicas disponibles` }, 404);
+		}
 
 		const fieldMask = [
 			'id', 'displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'internationalPhoneNumber',
@@ -146,14 +220,26 @@ export const POST: APIRoute = async ({ request }) => {
 			'servesCocktails', 'servesDessert', 'servesCoffee', 'servesVegetarianFood', 'outdoorSeating', 'liveMusic',
 			'goodForChildren', 'allowsDogs', 'goodForGroups', 'goodForWatchingSports',
 		].map((field) => `places.${field}`).join(',');
-		const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-			method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': fieldMask },
-			body: JSON.stringify({ textQuery: name, languageCode: 'es', regionCode: 'AR', pageSize: 1 }),
-		});
+		let response: Response;
+		try {
+			response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+				method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': fieldMask },
+				body: JSON.stringify({ textQuery: name, languageCode: 'es', regionCode: 'AR', pageSize: 1 }),
+			});
+		} catch {
+			const fallback = await wokiFallback(name);
+			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
+		}
 		const result = await response.json() as { places?: GooglePlace[]; error?: { message?: string } };
-		if (!response.ok) return json({ error: result.error?.message ?? 'Google no pudo completar la búsqueda' }, response.status);
+		if (!response.ok) {
+			const fallback = await wokiFallback(name);
+			return fallback ? json(fallback) : json({ error: result.error?.message ?? 'No se pudo completar la búsqueda' }, response.status);
+		}
 		const place = result.places?.[0];
-		if (!place) return json({ error: `No se encontró “${name}” en Google` }, 404);
+		if (!place) {
+			const fallback = await wokiFallback(name);
+			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
+		}
 
 		const officialPage = await pageDataOrEmpty(place.websiteUri?.trim() ?? '');
 		const instagramUrl = socialLink(officialPage.links, /(?:^|\.)instagram\.com\//i);
