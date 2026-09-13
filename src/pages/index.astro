@@ -75,6 +75,13 @@ const userInitials = userDisplayName
 							<summary class="top-nav-button"><span>COCINA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="header-cuisine-options" class="dropdown-panel category-panel"></div>
 						</details>
+						<details class="top-dropdown category-dropdown neighborhood-menu-dropdown">
+							<summary class="top-nav-button"><span>ZONA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div class="dropdown-panel category-panel neighborhood-menu-panel">
+								<div id="header-neighborhood-options" class="neighborhood-menu-options"></div>
+								<button class="show-neighborhoods-button" type="button" data-show-neighborhoods><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+							</div>
+						</details>
 
 						<details class="top-dropdown actions-dropdown">
 							<summary class="top-nav-button"><span>ACCIONES</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
@@ -167,6 +174,13 @@ const userInitials = userDisplayName
 							<details class="mobile-menu-section">
 								<summary><span>COCINA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div id="mobile-cuisine-options" class="mobile-menu-options"></div>
+							</details>
+							<details class="mobile-menu-section">
+								<summary><span>ZONA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options mobile-neighborhood-menu-options">
+									<div id="mobile-neighborhood-options"></div>
+									<button class="show-neighborhoods-button" type="button" data-show-neighborhoods><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+								</div>
 							</details>
 							<details class="mobile-menu-section">
 								<summary><span>ACCIONES</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
@@ -634,6 +648,28 @@ const userInitials = userDisplayName
 				<div class="mini-dialog-actions">
 					<button id="cancel-long-text-editor" class="secondary-button" type="button">Cancelar</button>
 					<button class="primary-button" type="submit">Aplicar</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog id="neighborhood-editor-dialog" class="mini-dialog neighborhood-editor-dialog">
+			<form id="neighborhood-editor-form">
+				<h2>Editar zona</h2>
+				<label for="neighborhood-editor-name">Nombre</label>
+				<input id="neighborhood-editor-name" type="text" maxlength="80" required />
+				<div class="neighborhood-image-editor">
+					<span>Imagen</span>
+					<label class="neighborhood-image-picker" for="neighborhood-editor-image">
+						<span id="neighborhood-image-preview" class="neighborhood-image-preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 16l4-4 3 3 2-2 3 3M8 9h.01"/></svg></span>
+						<span>Cambiar imagen</span>
+					</label>
+					<input id="neighborhood-editor-image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden />
+					<button id="remove-neighborhood-image" class="secondary-button remove-neighborhood-image" type="button" hidden>Quitar imagen</button>
+				</div>
+				<p id="neighborhood-editor-error" class="neighborhood-editor-error" role="alert" hidden></p>
+				<div class="mini-dialog-actions">
+					<button id="cancel-neighborhood-editor" class="secondary-button" type="button">Cancelar</button>
+					<button class="primary-button" type="submit">Guardar</button>
 				</div>
 			</form>
 		</dialog>

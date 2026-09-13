@@ -186,6 +186,14 @@ body.mobile-menu-open { overflow: hidden; }
 .top-nav-button .chevron { width: 14px; }
 .category-panel { min-width: 190px; max-height: min(420px, 70vh); overflow-y: auto; }
 .category-panel:empty::after { content: "Sin opciones"; display: block; padding: 10px 12px; color: var(--muted); font-size: 11px; }
+.neighborhood-menu-panel { max-height: none; overflow: hidden; }
+.neighborhood-menu-options { max-height: min(340px, 55vh); overflow-y: auto; }
+.neighborhood-menu-empty { margin: 0; padding: 10px 12px; color: var(--muted); font-size: 11px; }
+.show-neighborhoods-button { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0 0 6px 6px !important; font-weight: 700; }
+.show-neighborhoods-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; }
+.show-neighborhoods-button.active { color: var(--button-ink); background: var(--forest); }
+.mobile-neighborhood-menu-options > #mobile-neighborhood-options { max-height: 240px; overflow-y: auto; }
+.mobile-neighborhood-menu-options .show-neighborhoods-button { padding-left: 12px; }
 .dropdown-panel { position: absolute; top: calc(100% + 9px); right: 0; z-index: 25; min-width: 190px; padding: 6px; border: 1px solid var(--line); border-radius: 9px; background: white; box-shadow: 0 14px 35px rgba(26,35,30,.15); }
 .dropdown-panel button { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; border: 0; border-radius: 6px; color: #454b47; background: transparent; text-align: left; font-size: 12px; }
 .dropdown-panel button:hover { color: var(--accent-text); background: var(--sage); }
@@ -469,6 +477,19 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .view-options button.active { color: var(--accent-text); background: var(--sage); font-weight: 600; }
 .restaurant-card { min-width: 0; border: 1px solid var(--line); border-radius: 11px; background: white; overflow: hidden; transition: border-color .2s, transform .22s ease, box-shadow .22s ease; }
 .restaurant-card:hover { border-color: color-mix(in srgb, var(--forest) 40%, var(--line)); box-shadow: 0 13px 28px rgba(35,45,38,.13); transform: translateY(-4px); }
+.restaurant-list.view-neighborhoods { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.neighborhood-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: white; transition: border-color .2s, transform .22s ease, box-shadow .22s ease; }
+.neighborhood-card:hover { border-color: color-mix(in srgb, var(--forest) 40%, var(--line)); box-shadow: 0 13px 28px rgba(35,45,38,.13); transform: translateY(-4px); }
+.neighborhood-card:has(.restaurant-card-actions-menu[open]) { z-index: 10; overflow: visible; }
+.neighborhood-card-media { position: relative; aspect-ratio: 4 / 3; }
+.neighborhood-card-open { display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: 0; border-radius: 10px 10px 0 0; color: var(--accent-text); background: color-mix(in srgb, var(--sage) 54%, white); cursor: pointer; }
+.neighborhood-card-open img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.neighborhood-card:hover .neighborhood-card-open img { transform: scale(1.05); }
+.neighborhood-card-placeholder { display: grid; width: 100%; height: 100%; place-items: center; }
+.neighborhood-card-placeholder svg { width: 54px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; opacity: .7; }
+.neighborhood-card-copy { display: grid; width: 100%; gap: 4px; padding: 13px 15px 15px; border: 0; color: var(--ink); background: white; text-align: left; cursor: pointer; }
+.neighborhood-card-copy strong { overflow: hidden; font-family: var(--font-display); font-size: 23px; font-weight: 400; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.neighborhood-card-copy span { color: var(--muted); font-size: 11px; }
 .restaurant-card-media { position: relative; }
 .restaurant-card-open { display: block; width: 100%; padding: 0; border: 0; background: #f4f2ec; cursor: pointer; }
 .restaurant-card-image { position: relative; display: grid; width: 100%; aspect-ratio: 1; place-items: center; color: var(--forest); background: white; overflow: hidden; }
@@ -640,6 +661,16 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .long-text-editor-dialog { width: min(720px, calc(100% - 30px)); }
 .long-text-editor-dialog form { max-height: min(760px, calc(100dvh - 30px)); }
 .long-text-editor-dialog textarea { min-height: min(430px, calc(100dvh - 210px)); font-size: 14px; line-height: 1.65; }
+.neighborhood-editor-dialog { width: min(520px, calc(100% - 30px)); }
+.neighborhood-image-editor { display: grid; gap: 8px; }
+.neighborhood-image-editor > span { color: #505852; font-size: 11px; font-weight: 600; }
+.neighborhood-image-picker { display: flex; align-items: center; gap: 14px; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; background: white; cursor: pointer; }
+.neighborhood-image-picker:hover { border-color: var(--forest); background: color-mix(in srgb, var(--sage) 25%, white); }
+.neighborhood-image-preview { display: grid; width: 126px; height: 88px; flex: 0 0 126px; place-items: center; overflow: hidden; border-radius: 7px; color: var(--accent-text); background: var(--sage); }
+.neighborhood-image-preview img { width: 100%; height: 100%; object-fit: cover; }
+.neighborhood-image-preview svg { width: 35px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+.remove-neighborhood-image { min-height: 34px; justify-self: start; padding: 0 12px; }
+.neighborhood-editor-error { margin: 0; color: #a63d35; font-size: 11px; line-height: 1.45; }
 .bulk-edit-dialog { width: min(820px, calc(100% - 30px)); }
 .bulk-edit-dialog form { padding: 25px; }
 .bulk-edit-help { margin: -5px 0 8px; color: var(--muted); font-size: 11px; }
@@ -1166,6 +1197,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-row { grid-template-columns: 1fr auto; }
 	.restaurant-row .row-info, .restaurant-row .row-links { display: none; }
 	.restaurant-list { grid-template-columns: 1fr; padding: 16px; }
+	.restaurant-list.view-neighborhoods { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+	.neighborhood-card-copy { padding: 10px 11px 12px; }
+	.neighborhood-card-copy strong { font-size: 19px; }
 	.restaurant-list.view-small-icons { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
 	.restaurant-list.view-columns-1, .restaurant-list.view-columns-2, .restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: 1fr; }
 	.restaurant-list.view-columns-1 .restaurant-card, .restaurant-list.view-columns-1 .restaurant-card:not(:has(.restaurant-card-footer)) { height: auto; grid-template-columns: 1fr; }

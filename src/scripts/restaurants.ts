@@ -147,6 +147,14 @@ const longTextEditorTitle = document.querySelector<HTMLElement>('#long-text-edit
 const longTextEditorValue = document.querySelector<HTMLTextAreaElement>('#long-text-editor-value')!;
 const cancelLongTextEditor = document.querySelector<HTMLButtonElement>('#cancel-long-text-editor')!;
 const openLongTextEditorButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-long-text-editor]')];
+const neighborhoodEditorDialog = document.querySelector<HTMLDialogElement>('#neighborhood-editor-dialog')!;
+const neighborhoodEditorForm = document.querySelector<HTMLFormElement>('#neighborhood-editor-form')!;
+const neighborhoodEditorName = document.querySelector<HTMLInputElement>('#neighborhood-editor-name')!;
+const neighborhoodEditorImage = document.querySelector<HTMLInputElement>('#neighborhood-editor-image')!;
+const neighborhoodImagePreview = document.querySelector<HTMLElement>('#neighborhood-image-preview')!;
+const removeNeighborhoodImageButton = document.querySelector<HTMLButtonElement>('#remove-neighborhood-image')!;
+const neighborhoodEditorError = document.querySelector<HTMLElement>('#neighborhood-editor-error')!;
+const cancelNeighborhoodEditor = document.querySelector<HTMLButtonElement>('#cancel-neighborhood-editor')!;
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
@@ -219,9 +227,12 @@ updateDirectoryFilterStickyPosition();
 const headerEstablishmentOptions = document.querySelector<HTMLDivElement>('#header-establishment-options')!;
 const headerServiceOptions = document.querySelector<HTMLDivElement>('#header-service-options')!;
 const headerCuisineOptions = document.querySelector<HTMLDivElement>('#header-cuisine-options')!;
+const headerNeighborhoodOptions = document.querySelector<HTMLDivElement>('#header-neighborhood-options')!;
 const mobileEstablishmentOptions = document.querySelector<HTMLDivElement>('#mobile-establishment-options')!;
 const mobileServiceOptions = document.querySelector<HTMLDivElement>('#mobile-service-options')!;
 const mobileCuisineOptions = document.querySelector<HTMLDivElement>('#mobile-cuisine-options')!;
+const mobileNeighborhoodOptions = document.querySelector<HTMLDivElement>('#mobile-neighborhood-options')!;
+const showNeighborhoodButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-show-neighborhoods]')];
 const toolbarImportUrl = document.querySelector<HTMLButtonElement>('#toolbar-import-url')!;
 const openExcelImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-excel-import]')];
 const cuisineSelect = document.querySelector<HTMLInputElement>('#cuisine')!;
@@ -379,6 +390,7 @@ let removedEstablishmentTypes: string[] = loadRemovedEstablishmentTypes();
 let serviceTypes: string[] = loadServiceTypes();
 let removedServiceTypes: string[] = loadRemovedServiceTypes();
 let neighborhoods: string[] = loadNeighborhoods();
+let neighborhoodImages: Record<string, string> = {};
 let removedNeighborhoods: string[] = loadRemovedNeighborhoods();
 let cities: string[] = loadLocationOptions(CITIES_KEY, REMOVED_CITIES_KEY, 'city');
 let removedCities: string[] = loadRemovedLocationOptions(REMOVED_CITIES_KEY);
@@ -406,6 +418,9 @@ let rangeSelectionAnchorId: string | null = null;
 let visibleRestaurantIds: string[] = [];
 let restaurantLogo: RestaurantImage | null = null;
 let longTextEditorTarget: HTMLTextAreaElement | null = null;
+let showingNeighborhoods = false;
+let editingNeighborhood = '';
+let neighborhoodEditorImageValue = '';
 let previewUrls: string[] = [];
 let logoPreviewUrl = '';
 let cardPreviewUrls: string[] = [];
@@ -496,7 +511,7 @@ function persistCatalogSettings() {
 		removedAveragePrices,
 		establishmentTypes, removedEstablishmentTypes,
 		serviceTypes, removedServiceTypes,
-		neighborhoods, removedNeighborhoods,
+		neighborhoods, neighborhoodImages, removedNeighborhoods,
 		cities, removedCities,
 		provinces, removedProvinces,
 		countries, removedCountries,
@@ -609,6 +624,14 @@ function loadRemovedNeighborhoods(): string[] {
 
 function saveNeighborhoodSettings() {
 	persistCatalogSettings();
+}
+
+function neighborhoodImageKey(value: string) {
+	return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
+}
+
+function neighborhoodImage(value: string) {
+	return neighborhoodImages[neighborhoodImageKey(value)] ?? '';
 }
 
 function ensureNeighborhoodOption(value?: string) {
@@ -897,6 +920,17 @@ function updateDirectoryFilterLabels() {
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
 
+function renderNeighborhoodMenus(values: string[]) {
+	const buttons = values.map((value) => {
+		const encodedValue = encodeURIComponent(value);
+		const active = !showingNeighborhoods && selectedNeighborhoodFilters.size === 1 && selectedNeighborhoodFilters.has(value);
+		return `<button type="button" data-neighborhood-menu-value="${encodedValue}"${active ? ' class="active"' : ''}>${safe(value)}</button>`;
+	}).join('') || '<p class="neighborhood-menu-empty">No hay zonas.</p>';
+	headerNeighborhoodOptions.innerHTML = buttons;
+	mobileNeighborhoodOptions.innerHTML = buttons;
+	showNeighborhoodButtons.forEach((button) => button.classList.toggle('active', showingNeighborhoods));
+}
+
 function renderAdditionalFilterOptions() {
 	const availableNeighborhoods = [...new Set([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].filter((value) => availableNeighborhoods.includes(value)));
@@ -917,6 +951,7 @@ function renderAdditionalFilterOptions() {
 	mobileEstablishmentOptions.innerHTML = headerEstablishmentOptions.innerHTML;
 	mobileServiceOptions.innerHTML = headerServiceOptions.innerHTML;
 	mobileCuisineOptions.innerHTML = headerCuisineOptions.innerHTML;
+	renderNeighborhoodMenus(availableNeighborhoods);
 }
 
 function renderEstablishmentFilterOptions() {
@@ -1673,11 +1708,122 @@ function updatePrintPanelState() {
 	deleteSelectedPlacesButton.querySelector('span')!.textContent = hasSelection ? `Eliminar seleccionados (${printSelectedIds.size})` : 'Eliminar seleccionados';
 }
 
+function availableNeighborhoods() {
+	const removed = new Set(removedNeighborhoods.map((value) => neighborhoodImageKey(value)));
+	return [...new Set([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)])]
+		.filter((value) => !removed.has(neighborhoodImageKey(value)))
+		.sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+function renderNeighborhoodCards() {
+	const values = availableNeighborhoods();
+	cardRenderVersion += 1;
+	visibleRestaurantIds = [];
+	list.className = 'restaurant-list view-neighborhoods';
+	list.innerHTML = values.map((value) => {
+		const encodedValue = encodeURIComponent(value);
+		const image = neighborhoodImage(value);
+		const placeCount = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === neighborhoodImageKey(value)).length;
+		return `
+			<article class="neighborhood-card">
+				<div class="neighborhood-card-media">
+					<button class="neighborhood-card-open" type="button" data-neighborhood-card-select="${encodedValue}" aria-label="Ver lugares de ${safe(value)}">
+						${image ? `<img src="${image}" alt="${safe(value)}" />` : '<span class="neighborhood-card-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></span>'}
+					</button>
+					<div class="restaurant-card-top-actions">
+						<details class="restaurant-card-actions-menu">
+							<summary aria-label="Acciones de ${safe(value)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
+							<div class="restaurant-card-actions-popover">
+								<button type="button" data-edit-neighborhood="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
+								<button class="delete-button" type="button" data-delete-neighborhood-card="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
+							</div>
+						</details>
+					</div>
+				</div>
+				<button class="neighborhood-card-copy" type="button" data-neighborhood-card-select="${encodedValue}"><strong>${safe(value)}</strong><span>${placeCount} ${placeCount === 1 ? 'lugar' : 'lugares'}</span></button>
+			</article>`;
+	}).join('');
+	resultDescription.textContent = values.length === 1 ? '1 zona registrada' : `${values.length} zonas registradas`;
+	directoryOwnerSummary.classList.remove('is-filtered');
+	directoryActiveFilters.hidden = true;
+	emptyState.hidden = values.length > 0;
+	list.hidden = values.length === 0;
+	document.querySelector('#empty-title')!.textContent = 'No hay zonas';
+	document.querySelector('#empty-copy')!.textContent = 'Las zonas aparecerán cuando las agregues a un lugar.';
+	emptyState.querySelector<HTMLButtonElement>('[data-open-form]')!.hidden = values.length > 0;
+	updatePrintPanelState();
+}
+
+function updateNeighborhoodImagePreview() {
+	removeNeighborhoodImageButton.hidden = !neighborhoodEditorImageValue;
+	neighborhoodImagePreview.innerHTML = neighborhoodEditorImageValue
+		? `<img src="${neighborhoodEditorImageValue}" alt="Vista previa de la zona" />`
+		: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 16l4-4 3 3 2-2 3 3M8 9h.01"/></svg>';
+}
+
+async function optimizedNeighborhoodImage(file: File) {
+	if (!file.type.startsWith('image/')) throw new Error('Seleccioná una imagen válida');
+	if (file.size > 15 * 1024 * 1024) throw new Error('La imagen debe pesar menos de 15 MB');
+	const bitmap = await createImageBitmap(file);
+	try {
+		const scale = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+		canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+		const context = canvas.getContext('2d');
+		if (!context) throw new Error('No se pudo preparar la imagen');
+		context.fillStyle = '#ffffff';
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+		return canvas.toDataURL('image/jpeg', 0.65);
+	} finally {
+		bitmap.close();
+	}
+}
+
+function openNeighborhoodEditor(value: string) {
+	editingNeighborhood = value;
+	neighborhoodEditorName.value = value;
+	neighborhoodEditorImage.value = '';
+	neighborhoodEditorImageValue = neighborhoodImage(value);
+	neighborhoodEditorError.hidden = true;
+	neighborhoodEditorError.textContent = '';
+	updateNeighborhoodImagePreview();
+	neighborhoodEditorDialog.showModal();
+	window.setTimeout(() => neighborhoodEditorName.focus(), 30);
+}
+
+async function deleteNeighborhoodCard(value: string) {
+	const key = neighborhoodImageKey(value);
+	const associated = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === key).length;
+	const consequence = associated
+		? ` Se quitará la zona de ${associated} ${associated === 1 ? 'lugar asociado' : 'lugares asociados'}. Los lugares no se eliminarán.`
+		: '';
+	if (!window.confirm(`¿Eliminar la zona “${value}”?${consequence}`)) return;
+	backupRestaurants();
+	neighborhoods = neighborhoods.filter((item) => neighborhoodImageKey(item) !== key);
+	removedNeighborhoods = [...new Set([...removedNeighborhoods, value])];
+	delete neighborhoodImages[key];
+	restaurants.forEach((restaurant) => {
+		if (neighborhoodImageKey(restaurant.neighborhood ?? '') === key) restaurant.neighborhood = '';
+	});
+	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].filter((item) => neighborhoodImageKey(item) !== key));
+	saveNeighborhoodSettings();
+	await saveRestaurants();
+	renderNeighborhoodOptions();
+	render();
+	showToast('Zona eliminada');
+}
+
 function render() {
 	renderAveragePriceOptions();
 	renderAdditionalFilterOptions();
 	cardPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 	cardPreviewUrls = [];
+	if (showingNeighborhoods) {
+		renderNeighborhoodCards();
+		return;
+	}
 	const normalizedSearchTerms = [...searchTerms, search.value]
 		.map((term) => term.trim().toLocaleLowerCase('es'))
 		.filter(Boolean);
@@ -1746,7 +1892,7 @@ function render() {
 		|| deliveryFilterActive
 		|| takeAwayFilterActive;
 	visibleRestaurantIds = filtered.map((restaurant) => restaurant.id);
-	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments');
+	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments', 'view-neighborhoods');
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
 		button.classList.toggle('active', button.dataset.directoryView === directoryView);
@@ -3141,6 +3287,67 @@ longTextEditorValue.addEventListener('input', (event) => {
 longTextEditorValue.addEventListener('compositionend', () => {
 	if (longTextEditorTarget === notesInput) normalizeNotesBullets(longTextEditorValue);
 });
+cancelNeighborhoodEditor.addEventListener('click', () => neighborhoodEditorDialog.close());
+neighborhoodEditorDialog.addEventListener('close', () => {
+	editingNeighborhood = '';
+	neighborhoodEditorImageValue = '';
+	neighborhoodEditorForm.reset();
+});
+neighborhoodEditorImage.addEventListener('change', async () => {
+	const file = neighborhoodEditorImage.files?.[0];
+	if (!file) return;
+	neighborhoodEditorError.hidden = true;
+	try {
+		neighborhoodEditorImageValue = await optimizedNeighborhoodImage(file);
+		updateNeighborhoodImagePreview();
+	} catch (error) {
+		neighborhoodEditorError.textContent = error instanceof Error ? error.message : 'No se pudo procesar la imagen';
+		neighborhoodEditorError.hidden = false;
+	}
+});
+removeNeighborhoodImageButton.addEventListener('click', () => {
+	neighborhoodEditorImageValue = '';
+	neighborhoodEditorImage.value = '';
+	updateNeighborhoodImagePreview();
+});
+neighborhoodEditorForm.addEventListener('submit', async (event) => {
+	event.preventDefault();
+	const currentName = editingNeighborhood;
+	const nextName = capitalizeFirstLetter(neighborhoodEditorName.value).slice(0, 80);
+	if (!currentName || !nextName) return;
+	const currentKey = neighborhoodImageKey(currentName);
+	const nextKey = neighborhoodImageKey(nextName);
+	const duplicate = neighborhoods.some((value) => neighborhoodImageKey(value) === nextKey && neighborhoodImageKey(value) !== currentKey);
+	if (duplicate) {
+		neighborhoodEditorError.textContent = 'Ya existe una zona con ese nombre';
+		neighborhoodEditorError.hidden = false;
+		return;
+	}
+	backupRestaurants();
+	const associated = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === currentKey);
+	associated.forEach((restaurant) => { restaurant.neighborhood = nextName; });
+	neighborhoods = [...new Set(neighborhoods.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value))]
+		.sort((a, b) => a.localeCompare(b, 'es'));
+	if (currentKey !== nextKey) {
+		delete neighborhoodImages[currentKey];
+		removedNeighborhoods = [...new Set([...removedNeighborhoods, currentName])];
+	}
+	if (neighborhoodEditorImageValue) neighborhoodImages[nextKey] = neighborhoodEditorImageValue;
+	else delete neighborhoodImages[nextKey];
+	removedNeighborhoods = removedNeighborhoods.filter((value) => neighborhoodImageKey(value) !== nextKey);
+	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value));
+	saveNeighborhoodSettings();
+	const saved = await saveRestaurants();
+	if (!saved) {
+		neighborhoodEditorError.textContent = 'No se pudieron guardar los cambios';
+		neighborhoodEditorError.hidden = false;
+		return;
+	}
+	neighborhoodEditorDialog.close();
+	renderNeighborhoodOptions();
+	render();
+	showToast(associated.length ? `Zona actualizada en ${associated.length} ${associated.length === 1 ? 'lugar' : 'lugares'}` : 'Zona actualizada');
+});
 notesInput.addEventListener('input', (event) => {
 	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
 });
@@ -3622,7 +3829,10 @@ function clearSearchTerms() {
 	renderSearchTerms();
 }
 
-search.addEventListener('input', render);
+search.addEventListener('input', () => {
+	showingNeighborhoods = false;
+	render();
+});
 search.addEventListener('keydown', (event) => {
 	if (event.key !== 'Enter') return;
 	event.preventDefault();
@@ -3666,6 +3876,7 @@ directoryFilterPanel.addEventListener('change', (event) => {
 						: selectedCityFilters;
 	if (input.checked) targetSet.add(input.value);
 	else targetSet.delete(input.value);
+	showingNeighborhoods = false;
 	input.closest<HTMLDetailsElement>('.filter-multiselect')?.removeAttribute('open');
 	updateDirectoryFilterLabels();
 	render();
@@ -3763,6 +3974,7 @@ closeDirectoryFilterPanelButton.addEventListener('click', () => {
 });
 toolbarImportUrl.addEventListener('click', () => openUrlImportButton.click());
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {
+	showingNeighborhoods = false;
 	directoryView = button.dataset.directoryView || 'normal';
 	localStorage.setItem('restobox-directory-view', directoryView);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
@@ -4147,6 +4359,7 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 });
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
+	showingNeighborhoods = false;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	filterActionMenu.removeAttribute('open');
@@ -4159,6 +4372,7 @@ document.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-header-filter]');
 	const value = button?.dataset.headerFilterValue;
 	if (!button || !value) return;
+	showingNeighborhoods = false;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	const targetSet = button.dataset.headerFilter === 'establishment'
@@ -4172,6 +4386,30 @@ document.addEventListener('click', (event) => {
 	render();
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
+
+document.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-neighborhood-menu-value]');
+	if (!button?.dataset.neighborhoodMenuValue) return;
+	const value = decodeURIComponent(button.dataset.neighborhoodMenuValue);
+	showingNeighborhoods = false;
+	clearSearchTerms();
+	clearDirectoryFilterSelections();
+	selectedNeighborhoodFilters.add(value);
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	closeMobileMenu({ restoreFocus: false });
+	render();
+	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+showNeighborhoodButtons.forEach((button) => button.addEventListener('click', () => {
+	showingNeighborhoods = true;
+	clearSearchTerms();
+	clearDirectoryFilterSelections();
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	closeMobileMenu({ restoreFocus: false });
+	render();
+	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}));
 
 document.querySelector('#header-print-directory')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
@@ -4714,6 +4952,27 @@ async function saveDroppedCardImage(target: HTMLElement, dataTransfer: DataTrans
 
 list.addEventListener('click', async (event) => {
 	const target = event.target as HTMLElement;
+	const neighborhoodSelectButton = target.closest<HTMLButtonElement>('[data-neighborhood-card-select]');
+	const editNeighborhoodButton = target.closest<HTMLButtonElement>('[data-edit-neighborhood]');
+	const deleteNeighborhoodButton = target.closest<HTMLButtonElement>('[data-delete-neighborhood-card]');
+	if (neighborhoodSelectButton?.dataset.neighborhoodCardSelect) {
+		const value = decodeURIComponent(neighborhoodSelectButton.dataset.neighborhoodCardSelect);
+		showingNeighborhoods = false;
+		clearDirectoryFilterSelections();
+		selectedNeighborhoodFilters.add(value);
+		render();
+		return;
+	}
+	if (editNeighborhoodButton?.dataset.editNeighborhood) {
+		editNeighborhoodButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		openNeighborhoodEditor(decodeURIComponent(editNeighborhoodButton.dataset.editNeighborhood));
+		return;
+	}
+	if (deleteNeighborhoodButton?.dataset.deleteNeighborhoodCard) {
+		deleteNeighborhoodButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		await deleteNeighborhoodCard(decodeURIComponent(deleteNeighborhoodButton.dataset.deleteNeighborhoodCard));
+		return;
+	}
 	const cardImageButton = target.closest<HTMLButtonElement>('[data-card-image-direction]');
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
 	const favoriteButton = target.closest<HTMLButtonElement>('[data-favorite]');
@@ -4836,6 +5095,14 @@ function stringArray(value: unknown, fallback: string[] = []) {
 	return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : fallback;
 }
 
+function neighborhoodImageMap(value: unknown): Record<string, string> {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+	return Object.entries(value as Record<string, unknown>).reduce<Record<string, string>>((images, [key, image]) => {
+		if (key.length <= 100 && typeof image === 'string' && /^data:image\/jpeg;base64,/i.test(image)) images[key] = image;
+		return images;
+	}, {});
+}
+
 function applyServerCatalogs(value: unknown) {
 	if (!value || typeof value !== 'object') return false;
 	const catalogs = value as Record<string, unknown>;
@@ -4849,6 +5116,7 @@ function applyServerCatalogs(value: unknown) {
 	serviceTypes = stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]);
 	removedServiceTypes = stringArray(catalogs.removedServiceTypes);
 	neighborhoods = stringArray(catalogs.neighborhoods);
+	neighborhoodImages = neighborhoodImageMap(catalogs.neighborhoodImages);
 	removedNeighborhoods = stringArray(catalogs.removedNeighborhoods);
 	cities = stringArray(catalogs.cities);
 	removedCities = stringArray(catalogs.removedCities);
