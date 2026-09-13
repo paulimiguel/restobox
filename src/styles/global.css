@@ -186,14 +186,14 @@ body.mobile-menu-open { overflow: hidden; }
 .top-nav-button .chevron { width: 14px; }
 .category-panel { min-width: 190px; max-height: min(420px, 70vh); overflow-y: auto; }
 .category-panel:empty::after { content: "Sin opciones"; display: block; padding: 10px 12px; color: var(--muted); font-size: 11px; }
-.neighborhood-menu-panel { max-height: none; overflow: hidden; }
-.neighborhood-menu-options { max-height: min(340px, 55vh); overflow-y: auto; }
+.catalog-menu-panel, .neighborhood-menu-panel { max-height: none; overflow: hidden; }
+.catalog-menu-options, .neighborhood-menu-options { max-height: min(340px, 55vh); overflow-y: auto; }
 .neighborhood-menu-empty { margin: 0; padding: 10px 12px; color: var(--muted); font-size: 11px; }
-.show-neighborhoods-button { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0 0 6px 6px !important; font-weight: 700; }
-.show-neighborhoods-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; }
-.show-neighborhoods-button.active { color: var(--button-ink); background: var(--forest); }
-.mobile-neighborhood-menu-options > #mobile-neighborhood-options { max-height: 240px; overflow-y: auto; }
-.mobile-neighborhood-menu-options .show-neighborhoods-button { padding-left: 12px; }
+.show-catalogs-button { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0 0 6px 6px !important; font-weight: 700; }
+.show-catalogs-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; }
+.show-catalogs-button.active { color: var(--button-ink); background: var(--forest); }
+.mobile-catalog-menu-options > div { max-height: 240px; overflow-y: auto; }
+.mobile-catalog-menu-options .show-catalogs-button { padding-left: 12px; }
 .dropdown-panel { position: absolute; top: calc(100% + 9px); right: 0; z-index: 25; min-width: 190px; padding: 6px; border: 1px solid var(--line); border-radius: 9px; background: white; box-shadow: 0 14px 35px rgba(26,35,30,.15); }
 .dropdown-panel button { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; border: 0; border-radius: 6px; color: #454b47; background: transparent; text-align: left; font-size: 12px; }
 .dropdown-panel button:hover { color: var(--accent-text); background: var(--sage); }
@@ -259,6 +259,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-active-filter-icon { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border: 1px solid var(--forest); border-radius: 7px; color: var(--accent-text); background: white; }
 .directory-active-filter-icon svg { width: 17px; height: 17px; }
 .directory-active-filter-chips { display: flex; min-width: 0; flex-wrap: wrap; gap: 5px; }
+.clear-active-directory-filters { min-height: 29px; flex: 0 0 auto; padding: 4px 10px; border: 1px solid var(--line); border-radius: 7px; color: var(--accent-text); background: white; font-size: 10px; font-weight: 700; }
+.clear-active-directory-filters:hover { color: var(--button-ink); border-color: var(--forest); background: var(--forest); }
+.clear-active-directory-filters[hidden] { display: none; }
 .directory-active-filter-chip { display: inline-flex; min-height: 27px; align-items: center; gap: 4px; padding: 3px 5px 3px 10px; border-radius: 999px; color: var(--accent-text); background: color-mix(in srgb, var(--forest) 13%, white); font-size: 11px; font-weight: 650; }
 .directory-active-filter-chip button { display: grid; width: 17px; height: 17px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: currentColor; background: transparent; font-size: 15px; line-height: 1; cursor: pointer; }
 .directory-active-filter-chip button:hover { background: color-mix(in srgb, var(--forest) 20%, transparent); }

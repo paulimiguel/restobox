@@ -37,21 +37,21 @@ const userInitials = userDisplayName
 						<button class="top-nav-button header-nav-link" id="header-directory" type="button">DIRECTORIO</button>
 						<details class="top-dropdown category-dropdown">
 							<summary class="top-nav-button"><span>CATEGORÍA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div id="header-establishment-options" class="dropdown-panel category-panel"></div>
+							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-establishment-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categorías</button></div>
 						</details>
 						<details class="top-dropdown category-dropdown">
 							<summary class="top-nav-button"><span>SERVICIO</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div id="header-service-options" class="dropdown-panel category-panel"></div>
+							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-service-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button></div>
 						</details>
 						<details class="top-dropdown category-dropdown">
 							<summary class="top-nav-button"><span>COCINA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div id="header-cuisine-options" class="dropdown-panel category-panel"></div>
+							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-cuisine-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button></div>
 						</details>
 						<details class="top-dropdown category-dropdown neighborhood-menu-dropdown">
 							<summary class="top-nav-button"><span>ZONA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div class="dropdown-panel category-panel neighborhood-menu-panel">
+							<div class="dropdown-panel category-panel catalog-menu-panel neighborhood-menu-panel">
 								<div id="header-neighborhood-options" class="neighborhood-menu-options"></div>
-								<button class="show-neighborhoods-button" type="button" data-show-neighborhoods><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+								<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
 							</div>
 						</details>
 
@@ -137,21 +137,21 @@ const userInitials = userDisplayName
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="directory">DIRECTORIO</button>
 							<details class="mobile-menu-section">
 								<summary><span>CATEGOR&Iacute;A</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div id="mobile-establishment-options" class="mobile-menu-options"></div>
+								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-establishment-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categor&iacute;as</button></div>
 							</details>
 							<details class="mobile-menu-section">
 								<summary><span>SERVICIO</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div id="mobile-service-options" class="mobile-menu-options"></div>
+								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-service-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button></div>
 							</details>
 							<details class="mobile-menu-section">
 								<summary><span>COCINA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div id="mobile-cuisine-options" class="mobile-menu-options"></div>
+								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-cuisine-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button></div>
 							</details>
 							<details class="mobile-menu-section">
 								<summary><span>ZONA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-neighborhood-menu-options">
+								<div class="mobile-menu-options mobile-catalog-menu-options mobile-neighborhood-menu-options">
 									<div id="mobile-neighborhood-options"></div>
-									<button class="show-neighborhoods-button" type="button" data-show-neighborhoods><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+									<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
 								</div>
 							</details>
 							<details class="mobile-menu-section">
@@ -178,6 +178,7 @@ const userInitials = userDisplayName
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>
 								<div id="directory-active-filter-chips" class="directory-active-filter-chips" aria-label="Filtros aplicados"></div>
+								<button id="clear-active-directory-filters" class="clear-active-directory-filters" type="button" hidden>Quitar filtros</button>
 							</div>
 						</div>
 						<div class="directory-actions-left">
@@ -626,11 +627,11 @@ const userInitials = userDisplayName
 
 		<dialog id="neighborhood-editor-dialog" class="mini-dialog neighborhood-editor-dialog">
 			<form id="neighborhood-editor-form">
-				<h2>Editar zona</h2>
-				<label for="neighborhood-editor-name">Nombre</label>
+				<h2 id="catalog-editor-title">Editar zona</h2>
+				<label id="catalog-editor-name-label" for="neighborhood-editor-name">Nombre</label>
 				<input id="neighborhood-editor-name" type="text" maxlength="80" required />
 				<div class="neighborhood-image-editor">
-					<span>Imagen</span>
+					<span id="catalog-editor-image-label">Imagen</span>
 					<label class="neighborhood-image-picker" for="neighborhood-editor-image">
 						<span id="neighborhood-image-preview" class="neighborhood-image-preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 16l4-4 3 3 2-2 3 3M8 9h.01"/></svg></span>
 						<span>Cambiar imagen</span>

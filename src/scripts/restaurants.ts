@@ -52,6 +52,7 @@ type StoredImage = {
 };
 
 type RestaurantImage = StoredImage & { isNew: boolean };
+type CatalogCardKind = 'neighborhood' | 'establishment' | 'service' | 'cuisine';
 
 type ServerMedia = {
 	id: string;
@@ -149,6 +150,9 @@ const cancelLongTextEditor = document.querySelector<HTMLButtonElement>('#cancel-
 const openLongTextEditorButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-long-text-editor]')];
 const neighborhoodEditorDialog = document.querySelector<HTMLDialogElement>('#neighborhood-editor-dialog')!;
 const neighborhoodEditorForm = document.querySelector<HTMLFormElement>('#neighborhood-editor-form')!;
+const catalogEditorTitle = document.querySelector<HTMLElement>('#catalog-editor-title')!;
+const catalogEditorNameLabel = document.querySelector<HTMLElement>('#catalog-editor-name-label')!;
+const catalogEditorImageLabel = document.querySelector<HTMLElement>('#catalog-editor-image-label')!;
 const neighborhoodEditorName = document.querySelector<HTMLInputElement>('#neighborhood-editor-name')!;
 const neighborhoodEditorImage = document.querySelector<HTMLInputElement>('#neighborhood-editor-image')!;
 const neighborhoodImagePreview = document.querySelector<HTMLElement>('#neighborhood-image-preview')!;
@@ -162,6 +166,7 @@ const directoryOwnerSummary = document.querySelector<HTMLElement>('#directory-ow
 const resultDescription = document.querySelector<HTMLElement>('#result-description')!;
 const directoryActiveFilters = document.querySelector<HTMLElement>('#directory-active-filters')!;
 const directoryActiveFilterChips = document.querySelector<HTMLElement>('#directory-active-filter-chips')!;
+const clearActiveDirectoryFiltersButton = document.querySelector<HTMLButtonElement>('#clear-active-directory-filters')!;
 const searchTermsRow = document.querySelector<HTMLElement>('#search-terms-row')!;
 const searchTermsList = document.querySelector<HTMLElement>('#search-terms')!;
 const clearSearchTermsButton = document.querySelector<HTMLButtonElement>('#clear-search-terms')!;
@@ -233,7 +238,7 @@ const mobileEstablishmentOptions = document.querySelector<HTMLDivElement>('#mobi
 const mobileServiceOptions = document.querySelector<HTMLDivElement>('#mobile-service-options')!;
 const mobileCuisineOptions = document.querySelector<HTMLDivElement>('#mobile-cuisine-options')!;
 const mobileNeighborhoodOptions = document.querySelector<HTMLDivElement>('#mobile-neighborhood-options')!;
-const showNeighborhoodButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-show-neighborhoods]')];
+const showCatalogButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-show-catalog]')];
 const toolbarImportUrl = document.querySelector<HTMLButtonElement>('#toolbar-import-url')!;
 const openExcelImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-excel-import]')];
 const cuisineSelect = document.querySelector<HTMLInputElement>('#cuisine')!;
@@ -392,6 +397,9 @@ let serviceTypes: string[] = loadServiceTypes();
 let removedServiceTypes: string[] = loadRemovedServiceTypes();
 let neighborhoods: string[] = loadNeighborhoods();
 let neighborhoodImages: Record<string, string> = {};
+let establishmentImages: Record<string, string> = {};
+let serviceImages: Record<string, string> = {};
+let cuisineImages: Record<string, string> = {};
 let removedNeighborhoods: string[] = loadRemovedNeighborhoods();
 let cities: string[] = loadLocationOptions(CITIES_KEY, REMOVED_CITIES_KEY, 'city');
 let removedCities: string[] = loadRemovedLocationOptions(REMOVED_CITIES_KEY);
@@ -419,9 +427,10 @@ let rangeSelectionAnchorId: string | null = null;
 let visibleRestaurantIds: string[] = [];
 let restaurantLogo: RestaurantImage | null = null;
 let longTextEditorTarget: HTMLTextAreaElement | null = null;
-let showingNeighborhoods = false;
-let editingNeighborhood = '';
-let neighborhoodEditorImageValue = '';
+let showingCatalog: CatalogCardKind | null = null;
+let editingCatalogKind: CatalogCardKind | null = null;
+let editingCatalogValue = '';
+let catalogEditorImageValue = '';
 let previewUrls: string[] = [];
 let logoPreviewUrl = '';
 let cardPreviewUrls: string[] = [];
@@ -513,6 +522,7 @@ function persistCatalogSettings() {
 		establishmentTypes, removedEstablishmentTypes,
 		serviceTypes, removedServiceTypes,
 		neighborhoods, neighborhoodImages, removedNeighborhoods,
+		establishmentImages, serviceImages, cuisineImages,
 		cities, removedCities,
 		provinces, removedProvinces,
 		countries, removedCountries,
@@ -633,6 +643,17 @@ function neighborhoodImageKey(value: string) {
 
 function neighborhoodImage(value: string) {
 	return neighborhoodImages[neighborhoodImageKey(value)] ?? '';
+}
+
+function catalogImageStore(kind: CatalogCardKind) {
+	if (kind === 'establishment') return establishmentImages;
+	if (kind === 'service') return serviceImages;
+	if (kind === 'cuisine') return cuisineImages;
+	return neighborhoodImages;
+}
+
+function catalogImage(kind: CatalogCardKind, value: string) {
+	return catalogImageStore(kind)[neighborhoodImageKey(value)] ?? '';
 }
 
 function ensureNeighborhoodOption(value?: string) {
@@ -900,9 +921,12 @@ function updateDirectoryFilterLabels() {
 		...selectedEstablishmentFilters].map((value) => ({ value, group: 'establishment' }))
 		.concat([...selectedMealFilters].map((value) => ({ value, group: 'meal' })))
 		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
+		.concat([...selectedNeighborhoodFilters].map((value) => ({ value, group: 'neighborhood' })))
 		.map(({ value, group }) => `<span class="directory-active-filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`)
 		.join('');
-	directoryActiveFilters.hidden = directoryActiveFilterChips.childElementCount === 0;
+	const hasVisibleCatalogFilters = directoryActiveFilterChips.childElementCount > 0;
+	directoryActiveFilters.hidden = !hasVisibleCatalogFilters;
+	clearActiveDirectoryFiltersButton.hidden = !hasVisibleCatalogFilters;
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
 	tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
 	cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
@@ -924,12 +948,12 @@ function updateDirectoryFilterLabels() {
 function renderNeighborhoodMenus(values: string[]) {
 	const buttons = values.map((value) => {
 		const encodedValue = encodeURIComponent(value);
-		const active = !showingNeighborhoods && selectedNeighborhoodFilters.size === 1 && selectedNeighborhoodFilters.has(value);
+		const active = !showingCatalog && selectedNeighborhoodFilters.size === 1 && selectedNeighborhoodFilters.has(value);
 		return `<button type="button" data-neighborhood-menu-value="${encodedValue}"${active ? ' class="active"' : ''}>${safe(value)}</button>`;
 	}).join('') || '<p class="neighborhood-menu-empty">No hay zonas.</p>';
 	headerNeighborhoodOptions.innerHTML = buttons;
 	mobileNeighborhoodOptions.innerHTML = buttons;
-	showNeighborhoodButtons.forEach((button) => button.classList.toggle('active', showingNeighborhoods));
+	showCatalogButtons.forEach((button) => button.classList.toggle('active', button.dataset.showCatalog === showingCatalog));
 }
 
 function renderAdditionalFilterOptions() {
@@ -1448,25 +1472,17 @@ function normalizeNotesBullets(input = notesInput) {
 	if (input === notesInput) updateClearButton(notesInput);
 }
 
-function pastedTextWithoutLinks(value: string) {
-	const markdownLinkPattern = /\[([^\]]+)\]\((?:https?:\/\/|www\.|mailto:|tel:)[^)]+\)/giu;
-	const urlPattern = /(?:https?:\/\/|www\.|mailto:|tel:)[^\s<>]+/giu;
-	return value.replace(/\r\n?/g, '\n')
-		.replace(markdownLinkPattern, '$1')
-		.split('\n')
-		.flatMap((line) => {
-			const withoutLinks = line.replace(urlPattern, '').replace(/[ \t]{2,}/g, ' ').trim();
-			return !withoutLinks && line.trim() ? [] : [withoutLinks];
-		})
-		.join('\n');
-}
-
 function pasteTextWithoutLinks(event: ClipboardEvent) {
 	const input = event.currentTarget as HTMLTextAreaElement;
-	const clipboardText = event.clipboardData?.getData('text/plain');
-	if (clipboardText === undefined) return;
+	const clipboard = event.clipboardData;
+	if (!clipboard) return;
 	event.preventDefault();
-	const text = pastedTextWithoutLinks(clipboardText);
+	const html = clipboard.getData('text/html');
+	let text = clipboard.getData('text/plain').replace(/\r\n?/g, '\n');
+	if (html) {
+		const parsed = new DOMParser().parseFromString(html, 'text/html');
+		text = (parsed.body.innerText || parsed.body.textContent || text).replace(/\r\n?/g, '\n');
+	}
 	input.setRangeText(text, input.selectionStart, input.selectionEnd, 'end');
 	input.dispatchEvent(new InputEvent('input', {
 		bubbles: true,
@@ -1716,49 +1732,89 @@ function availableNeighborhoods() {
 		.sort((a, b) => a.localeCompare(b, 'es'));
 }
 
-function renderNeighborhoodCards() {
-	const values = availableNeighborhoods();
+const catalogCardMeta: Record<CatalogCardKind, { singular: string; plural: string; empty: string }> = {
+	neighborhood: { singular: 'zona', plural: 'zonas', empty: 'Las zonas aparecerán cuando las agregues a un lugar.' },
+	establishment: { singular: 'categoría', plural: 'categorías', empty: 'Las categorías aparecerán cuando las agregues a un lugar.' },
+	service: { singular: 'servicio', plural: 'servicios', empty: 'Los servicios aparecerán cuando los agregues a un lugar.' },
+	cuisine: { singular: 'tipo de cocina', plural: 'tipos de cocina', empty: 'Los tipos de cocina aparecerán cuando los agregues a un lugar.' },
+};
+
+function catalogValues(kind: CatalogCardKind) {
+	if (kind === 'neighborhood') return availableNeighborhoods();
+	const configured = kind === 'establishment' ? establishmentTypes : kind === 'service' ? serviceTypes : cuisines;
+	const associated = kind === 'establishment'
+		? restaurants.flatMap(getRestaurantEstablishmentTypes)
+		: kind === 'service'
+			? restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])
+			: restaurants.flatMap(getRestaurantCuisines);
+	const removedValues = kind === 'establishment' ? removedEstablishmentTypes : kind === 'service' ? removedServiceTypes : removedCuisines;
+	const removed = new Set(removedValues.map(neighborhoodImageKey));
+	return capitalizedCatalogValues([...configured, ...associated])
+		.filter((value) => !removed.has(neighborhoodImageKey(value)))
+		.sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+function restaurantHasCatalogValue(restaurant: Restaurant, kind: CatalogCardKind, key: string) {
+	if (kind === 'neighborhood') return neighborhoodImageKey(restaurant.neighborhood ?? '') === key;
+	const values = kind === 'establishment'
+		? getRestaurantEstablishmentTypes(restaurant)
+		: kind === 'service'
+			? restaurant.mealTypes ?? []
+			: getRestaurantCuisines(restaurant);
+	return values.some((value) => neighborhoodImageKey(value) === key);
+}
+
+function catalogPlaceholderIcon(kind: CatalogCardKind) {
+	if (kind === 'neighborhood') return '<path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/>';
+	if (kind === 'establishment') return '<path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/>';
+	if (kind === 'service') return '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+	return '<path d="M4 5h10l6 6-9 9-7-7Z"/><circle cx="9" cy="10" r="1"/>';
+}
+
+function renderCatalogCards(kind: CatalogCardKind) {
+	const values = catalogValues(kind);
+	const meta = catalogCardMeta[kind];
 	cardRenderVersion += 1;
 	visibleRestaurantIds = [];
-	list.className = 'restaurant-list view-neighborhoods';
+	list.className = 'restaurant-list view-neighborhoods view-catalogs';
 	list.innerHTML = values.map((value) => {
 		const encodedValue = encodeURIComponent(value);
-		const image = neighborhoodImage(value);
-		const placeCount = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === neighborhoodImageKey(value)).length;
+		const image = catalogImage(kind, value);
+		const placeCount = restaurants.filter((restaurant) => restaurantHasCatalogValue(restaurant, kind, neighborhoodImageKey(value))).length;
 		return `
 			<article class="neighborhood-card">
 				<div class="neighborhood-card-media">
-					<button class="neighborhood-card-open" type="button" data-neighborhood-card-select="${encodedValue}" aria-label="Ver lugares de ${safe(value)}">
-						${image ? `<img src="${image}" alt="${safe(value)}" />` : '<span class="neighborhood-card-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></span>'}
+					<button class="neighborhood-card-open" type="button" data-catalog-card-select="${kind}" data-catalog-card-value="${encodedValue}" aria-label="Ver lugares de ${safe(value)}">
+						${image ? `<img src="${image}" alt="${safe(value)}" />` : `<span class="neighborhood-card-placeholder"><svg viewBox="0 0 24 24" aria-hidden="true">${catalogPlaceholderIcon(kind)}</svg></span>`}
 					</button>
 					<div class="restaurant-card-top-actions">
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(value)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
-								<button type="button" data-edit-neighborhood="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
-								<button class="delete-button" type="button" data-delete-neighborhood-card="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
+								<button type="button" data-edit-catalog="${kind}" data-catalog-value="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
+								<button class="delete-button" type="button" data-delete-catalog="${kind}" data-catalog-value="${encodedValue}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 							</div>
 						</details>
 					</div>
 				</div>
-				<button class="neighborhood-card-copy" type="button" data-neighborhood-card-select="${encodedValue}"><strong>${safe(value)}</strong><span>${placeCount} ${placeCount === 1 ? 'lugar' : 'lugares'}</span></button>
+				<button class="neighborhood-card-copy" type="button" data-catalog-card-select="${kind}" data-catalog-card-value="${encodedValue}"><strong>${safe(value)}</strong><span>${placeCount} ${placeCount === 1 ? 'lugar' : 'lugares'}</span></button>
 			</article>`;
 	}).join('');
-	resultDescription.textContent = values.length === 1 ? '1 zona registrada' : `${values.length} zonas registradas`;
+	resultDescription.textContent = values.length === 1 ? `1 ${meta.singular}` : `${values.length} ${meta.plural}`;
 	directoryOwnerSummary.classList.remove('is-filtered');
 	directoryActiveFilters.hidden = true;
 	emptyState.hidden = values.length > 0;
 	list.hidden = values.length === 0;
-	document.querySelector('#empty-title')!.textContent = 'No hay zonas';
-	document.querySelector('#empty-copy')!.textContent = 'Las zonas aparecerán cuando las agregues a un lugar.';
+	document.querySelector('#empty-title')!.textContent = `No hay ${meta.plural}`;
+	document.querySelector('#empty-copy')!.textContent = meta.empty;
 	emptyState.querySelector<HTMLButtonElement>('[data-open-form]')!.hidden = values.length > 0;
 	updatePrintPanelState();
 }
 
 function updateNeighborhoodImagePreview() {
-	removeNeighborhoodImageButton.hidden = !neighborhoodEditorImageValue;
-	neighborhoodImagePreview.innerHTML = neighborhoodEditorImageValue
-		? `<img src="${neighborhoodEditorImageValue}" alt="Vista previa de la zona" />`
+	removeNeighborhoodImageButton.hidden = !catalogEditorImageValue;
+	neighborhoodImagePreview.innerHTML = catalogEditorImageValue
+		? `<img src="${catalogEditorImageValue}" alt="Vista previa" />`
 		: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM7 16l4-4 3 3 2-2 3 3M8 9h.01"/></svg>';
 }
 
@@ -1782,11 +1838,16 @@ async function optimizedNeighborhoodImage(file: File) {
 	}
 }
 
-function openNeighborhoodEditor(value: string) {
-	editingNeighborhood = value;
+function openCatalogEditor(kind: CatalogCardKind, value: string) {
+	const meta = catalogCardMeta[kind];
+	editingCatalogKind = kind;
+	editingCatalogValue = value;
+	catalogEditorTitle.textContent = `Editar ${meta.singular}`;
+	catalogEditorNameLabel.textContent = `Nombre de ${meta.singular}`;
+	catalogEditorImageLabel.textContent = `Imagen de ${meta.singular}`;
 	neighborhoodEditorName.value = value;
 	neighborhoodEditorImage.value = '';
-	neighborhoodEditorImageValue = neighborhoodImage(value);
+	catalogEditorImageValue = catalogImage(kind, value);
 	neighborhoodEditorError.hidden = true;
 	neighborhoodEditorError.textContent = '';
 	updateNeighborhoodImagePreview();
@@ -1794,26 +1855,97 @@ function openNeighborhoodEditor(value: string) {
 	window.setTimeout(() => neighborhoodEditorName.focus(), 30);
 }
 
-async function deleteNeighborhoodCard(value: string) {
+function catalogFilterSet(kind: CatalogCardKind) {
+	if (kind === 'establishment') return selectedEstablishmentFilters;
+	if (kind === 'service') return selectedMealFilters;
+	if (kind === 'cuisine') return selectedCuisineFilters;
+	return selectedNeighborhoodFilters;
+}
+
+function setCatalogList(kind: CatalogCardKind, values: string[]) {
+	if (kind === 'establishment') establishmentTypes = values;
+	else if (kind === 'service') serviceTypes = values;
+	else if (kind === 'cuisine') cuisines = values;
+	else neighborhoods = values;
+}
+
+function removedCatalogList(kind: CatalogCardKind) {
+	if (kind === 'establishment') return removedEstablishmentTypes;
+	if (kind === 'service') return removedServiceTypes;
+	if (kind === 'cuisine') return removedCuisines;
+	return removedNeighborhoods;
+}
+
+function setRemovedCatalogList(kind: CatalogCardKind, values: string[]) {
+	if (kind === 'establishment') removedEstablishmentTypes = values;
+	else if (kind === 'service') removedServiceTypes = values;
+	else if (kind === 'cuisine') removedCuisines = values;
+	else removedNeighborhoods = values;
+}
+
+function replaceRestaurantCatalogValue(restaurant: Restaurant, kind: CatalogCardKind, currentKey: string, nextName = '') {
+	if (kind === 'neighborhood') {
+		if (neighborhoodImageKey(restaurant.neighborhood ?? '') === currentKey) restaurant.neighborhood = nextName;
+		return;
+	}
+	const currentValues = kind === 'establishment'
+		? getRestaurantEstablishmentTypes(restaurant)
+		: kind === 'service'
+			? restaurant.mealTypes ?? []
+			: getRestaurantCuisines(restaurant);
+	const nextValues = currentValues
+		.map((item) => neighborhoodImageKey(item) === currentKey ? nextName : item)
+		.filter(Boolean);
+	const uniqueValues = [...new Map(nextValues.map((item) => [neighborhoodImageKey(item), item])).values()];
+	if (kind === 'establishment') {
+		restaurant.establishmentTypes = uniqueValues;
+		restaurant.establishmentType = uniqueValues[0] ?? '';
+	} else if (kind === 'service') restaurant.mealTypes = uniqueValues;
+	else {
+		restaurant.cuisines = uniqueValues;
+		restaurant.cuisine = uniqueValues[0] ?? '';
+	}
+}
+
+function refreshCatalogInterfaces(kind: CatalogCardKind) {
+	if (kind === 'neighborhood') renderNeighborhoodOptions();
+	else if (kind === 'establishment') {
+		selectedEstablishments = selectedEstablishments.filter((value) => establishmentTypes.includes(value));
+		renderSelectedEstablishments();
+		renderEstablishmentOptions(true, false);
+	} else if (kind === 'service') {
+		selectedServices = selectedServices.filter((value) => serviceTypes.includes(value));
+		renderSelectedServices();
+		renderServiceOptions(false, true);
+	} else {
+		selectedCuisines = selectedCuisines.filter((value) => cuisines.includes(value));
+		renderSelectedCuisines();
+		renderCuisineOptions(false);
+		renderCuisineFilterOptions();
+	}
+}
+
+async function deleteCatalogCard(kind: CatalogCardKind, value: string) {
 	const key = neighborhoodImageKey(value);
-	const associated = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === key).length;
+	const meta = catalogCardMeta[kind];
+	const associated = restaurants.filter((restaurant) => restaurantHasCatalogValue(restaurant, kind, key)).length;
 	const consequence = associated
-		? ` Se quitará la zona de ${associated} ${associated === 1 ? 'lugar asociado' : 'lugares asociados'}. Los lugares no se eliminarán.`
+		? ` Se quitará de ${associated} ${associated === 1 ? 'lugar asociado' : 'lugares asociados'}. Los lugares no se eliminarán.`
 		: '';
-	if (!window.confirm(`¿Eliminar la zona “${value}”?${consequence}`)) return;
+	if (!window.confirm(`¿Eliminar ${meta.singular} “${value}”?${consequence}`)) return;
 	backupRestaurants();
-	neighborhoods = neighborhoods.filter((item) => neighborhoodImageKey(item) !== key);
-	removedNeighborhoods = [...new Set([...removedNeighborhoods, value])];
-	delete neighborhoodImages[key];
-	restaurants.forEach((restaurant) => {
-		if (neighborhoodImageKey(restaurant.neighborhood ?? '') === key) restaurant.neighborhood = '';
-	});
-	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].filter((item) => neighborhoodImageKey(item) !== key));
-	saveNeighborhoodSettings();
+	setCatalogList(kind, catalogValues(kind).filter((item) => neighborhoodImageKey(item) !== key));
+	setRemovedCatalogList(kind, [...new Set([...removedCatalogList(kind), value])]);
+	delete catalogImageStore(kind)[key];
+	restaurants.forEach((restaurant) => replaceRestaurantCatalogValue(restaurant, kind, key));
+	for (const item of catalogFilterSet(kind)) {
+		if (neighborhoodImageKey(item) === key) catalogFilterSet(kind).delete(item);
+	}
+	persistCatalogSettings();
 	await saveRestaurants();
-	renderNeighborhoodOptions();
+	refreshCatalogInterfaces(kind);
 	render();
-	showToast('Zona eliminada');
+	showToast(`${capitalizeFirstLetter(meta.singular)} eliminado`);
 }
 
 function render() {
@@ -1821,8 +1953,8 @@ function render() {
 	renderAdditionalFilterOptions();
 	cardPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 	cardPreviewUrls = [];
-	if (showingNeighborhoods) {
-		renderNeighborhoodCards();
+	if (showingCatalog) {
+		renderCatalogCards(showingCatalog);
 		return;
 	}
 	const normalizedSearchTerms = [...searchTerms, search.value]
@@ -1893,7 +2025,7 @@ function render() {
 		|| deliveryFilterActive
 		|| takeAwayFilterActive;
 	visibleRestaurantIds = filtered.map((restaurant) => restaurant.id);
-	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments', 'view-neighborhoods');
+	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments', 'view-neighborhoods', 'view-catalogs');
 	list.classList.add(`view-${directoryView}`);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
 		const active = button.dataset.directoryView === directoryView;
@@ -3296,8 +3428,9 @@ longTextEditorValue.addEventListener('compositionend', () => {
 });
 cancelNeighborhoodEditor.addEventListener('click', () => neighborhoodEditorDialog.close());
 neighborhoodEditorDialog.addEventListener('close', () => {
-	editingNeighborhood = '';
-	neighborhoodEditorImageValue = '';
+	editingCatalogKind = null;
+	editingCatalogValue = '';
+	catalogEditorImageValue = '';
 	neighborhoodEditorForm.reset();
 });
 neighborhoodEditorImage.addEventListener('change', async () => {
@@ -3305,7 +3438,7 @@ neighborhoodEditorImage.addEventListener('change', async () => {
 	if (!file) return;
 	neighborhoodEditorError.hidden = true;
 	try {
-		neighborhoodEditorImageValue = await optimizedNeighborhoodImage(file);
+		catalogEditorImageValue = await optimizedNeighborhoodImage(file);
 		updateNeighborhoodImagePreview();
 	} catch (error) {
 		neighborhoodEditorError.textContent = error instanceof Error ? error.message : 'No se pudo procesar la imagen';
@@ -3313,37 +3446,47 @@ neighborhoodEditorImage.addEventListener('change', async () => {
 	}
 });
 removeNeighborhoodImageButton.addEventListener('click', () => {
-	neighborhoodEditorImageValue = '';
+	catalogEditorImageValue = '';
 	neighborhoodEditorImage.value = '';
 	updateNeighborhoodImagePreview();
 });
 neighborhoodEditorForm.addEventListener('submit', async (event) => {
 	event.preventDefault();
-	const currentName = editingNeighborhood;
+	const kind = editingCatalogKind;
+	const currentName = editingCatalogValue;
 	const nextName = capitalizeFirstLetter(neighborhoodEditorName.value).slice(0, 80);
-	if (!currentName || !nextName) return;
+	if (!kind || !currentName || !nextName) return;
 	const currentKey = neighborhoodImageKey(currentName);
 	const nextKey = neighborhoodImageKey(nextName);
-	const duplicate = neighborhoods.some((value) => neighborhoodImageKey(value) === nextKey && neighborhoodImageKey(value) !== currentKey);
+	const duplicate = catalogValues(kind).some((value) => neighborhoodImageKey(value) === nextKey && neighborhoodImageKey(value) !== currentKey);
 	if (duplicate) {
-		neighborhoodEditorError.textContent = 'Ya existe una zona con ese nombre';
+		neighborhoodEditorError.textContent = `Ya existe ${catalogCardMeta[kind].singular} con ese nombre`;
 		neighborhoodEditorError.hidden = false;
 		return;
 	}
 	backupRestaurants();
-	const associated = restaurants.filter((restaurant) => neighborhoodImageKey(restaurant.neighborhood ?? '') === currentKey);
-	associated.forEach((restaurant) => { restaurant.neighborhood = nextName; });
-	neighborhoods = [...new Set(neighborhoods.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value))]
-		.sort((a, b) => a.localeCompare(b, 'es'));
+	const associated = restaurants.filter((restaurant) => restaurantHasCatalogValue(restaurant, kind, currentKey));
+	restaurants.forEach((restaurant) => replaceRestaurantCatalogValue(restaurant, kind, currentKey, nextName));
+	setCatalogList(kind, [...new Map(catalogValues(kind)
+		.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value)
+		.map((value) => [neighborhoodImageKey(value), value])).values()].sort((a, b) => a.localeCompare(b, 'es')));
+	if (kind === 'establishment') selectedEstablishments = selectedEstablishments.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
+	else if (kind === 'service') selectedServices = selectedServices.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
+	else if (kind === 'cuisine') selectedCuisines = selectedCuisines.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
+	else if (neighborhoodImageKey(neighborhoodInput.value) === currentKey) neighborhoodInput.value = nextName;
+	const images = catalogImageStore(kind);
 	if (currentKey !== nextKey) {
-		delete neighborhoodImages[currentKey];
-		removedNeighborhoods = [...new Set([...removedNeighborhoods, currentName])];
+		delete images[currentKey];
+		setRemovedCatalogList(kind, [...new Set([...removedCatalogList(kind), currentName])]);
 	}
-	if (neighborhoodEditorImageValue) neighborhoodImages[nextKey] = neighborhoodEditorImageValue;
-	else delete neighborhoodImages[nextKey];
-	removedNeighborhoods = removedNeighborhoods.filter((value) => neighborhoodImageKey(value) !== nextKey);
-	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value));
-	saveNeighborhoodSettings();
+	if (catalogEditorImageValue) images[nextKey] = catalogEditorImageValue;
+	else delete images[nextKey];
+	setRemovedCatalogList(kind, removedCatalogList(kind).filter((value) => neighborhoodImageKey(value) !== nextKey));
+	const filters = catalogFilterSet(kind);
+	const wasFiltered = [...filters].some((value) => neighborhoodImageKey(value) === currentKey);
+	for (const value of [...filters]) if (neighborhoodImageKey(value) === currentKey) filters.delete(value);
+	if (wasFiltered) filters.add(nextName);
+	persistCatalogSettings();
 	const saved = await saveRestaurants();
 	if (!saved) {
 		neighborhoodEditorError.textContent = 'No se pudieron guardar los cambios';
@@ -3351,9 +3494,10 @@ neighborhoodEditorForm.addEventListener('submit', async (event) => {
 		return;
 	}
 	neighborhoodEditorDialog.close();
-	renderNeighborhoodOptions();
+	refreshCatalogInterfaces(kind);
 	render();
-	showToast(associated.length ? `Zona actualizada en ${associated.length} ${associated.length === 1 ? 'lugar' : 'lugares'}` : 'Zona actualizada');
+	const label = capitalizeFirstLetter(catalogCardMeta[kind].singular);
+	showToast(associated.length ? `${label} actualizado en ${associated.length} ${associated.length === 1 ? 'lugar' : 'lugares'}` : `${label} actualizado`);
 });
 notesInput.addEventListener('input', (event) => {
 	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
@@ -3837,7 +3981,7 @@ function clearSearchTerms() {
 }
 
 search.addEventListener('input', () => {
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	render();
 });
 search.addEventListener('keydown', (event) => {
@@ -3887,7 +4031,7 @@ directoryFilterPanel.addEventListener('change', (event) => {
 						: selectedCityFilters;
 	if (input.checked) targetSet.add(input.value);
 	else targetSet.delete(input.value);
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	input.closest<HTMLDetailsElement>('.filter-multiselect')?.removeAttribute('open');
 	updateDirectoryFilterLabels();
 	render();
@@ -3979,13 +4123,18 @@ clearDirectoryFiltersButton.addEventListener('click', () => {
 	clearDirectoryFilterSelections();
 	render();
 });
+clearActiveDirectoryFiltersButton.addEventListener('click', () => {
+	showingCatalog = null;
+	clearDirectoryFilterSelections();
+	render();
+});
 closeDirectoryFilterPanelButton.addEventListener('click', () => {
 	filterActionMenu.removeAttribute('open');
 	directoryFilterPanel.hidden = true;
 });
 toolbarImportUrl.addEventListener('click', () => openUrlImportButton.click());
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	directoryView = button.dataset.directoryView || 'normal';
 	localStorage.setItem('restobox-directory-view', directoryView);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
@@ -4370,7 +4519,7 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 });
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	filterActionMenu.removeAttribute('open');
@@ -4383,7 +4532,7 @@ document.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-header-filter]');
 	const value = button?.dataset.headerFilterValue;
 	if (!button || !value) return;
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	const targetSet = button.dataset.headerFilter === 'establishment'
@@ -4402,7 +4551,7 @@ document.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-neighborhood-menu-value]');
 	if (!button?.dataset.neighborhoodMenuValue) return;
 	const value = decodeURIComponent(button.dataset.neighborhoodMenuValue);
-	showingNeighborhoods = false;
+	showingCatalog = null;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	selectedNeighborhoodFilters.add(value);
@@ -4412,8 +4561,10 @@ document.addEventListener('click', (event) => {
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-showNeighborhoodButtons.forEach((button) => button.addEventListener('click', () => {
-	showingNeighborhoods = true;
+showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
+	const kind = button.dataset.showCatalog as CatalogCardKind | undefined;
+	if (!kind || !catalogCardMeta[kind]) return;
+	showingCatalog = kind;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
@@ -4963,25 +5114,26 @@ async function saveDroppedCardImage(target: HTMLElement, dataTransfer: DataTrans
 
 list.addEventListener('click', async (event) => {
 	const target = event.target as HTMLElement;
-	const neighborhoodSelectButton = target.closest<HTMLButtonElement>('[data-neighborhood-card-select]');
-	const editNeighborhoodButton = target.closest<HTMLButtonElement>('[data-edit-neighborhood]');
-	const deleteNeighborhoodButton = target.closest<HTMLButtonElement>('[data-delete-neighborhood-card]');
-	if (neighborhoodSelectButton?.dataset.neighborhoodCardSelect) {
-		const value = decodeURIComponent(neighborhoodSelectButton.dataset.neighborhoodCardSelect);
-		showingNeighborhoods = false;
+	const catalogSelectButton = target.closest<HTMLButtonElement>('[data-catalog-card-select]');
+	const editCatalogButton = target.closest<HTMLButtonElement>('[data-edit-catalog]');
+	const deleteCatalogButton = target.closest<HTMLButtonElement>('[data-delete-catalog]');
+	if (catalogSelectButton?.dataset.catalogCardSelect && catalogSelectButton.dataset.catalogCardValue) {
+		const kind = catalogSelectButton.dataset.catalogCardSelect as CatalogCardKind;
+		const value = decodeURIComponent(catalogSelectButton.dataset.catalogCardValue);
+		showingCatalog = null;
 		clearDirectoryFilterSelections();
-		selectedNeighborhoodFilters.add(value);
+		catalogFilterSet(kind).add(value);
 		render();
 		return;
 	}
-	if (editNeighborhoodButton?.dataset.editNeighborhood) {
-		editNeighborhoodButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
-		openNeighborhoodEditor(decodeURIComponent(editNeighborhoodButton.dataset.editNeighborhood));
+	if (editCatalogButton?.dataset.editCatalog && editCatalogButton.dataset.catalogValue) {
+		editCatalogButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		openCatalogEditor(editCatalogButton.dataset.editCatalog as CatalogCardKind, decodeURIComponent(editCatalogButton.dataset.catalogValue));
 		return;
 	}
-	if (deleteNeighborhoodButton?.dataset.deleteNeighborhoodCard) {
-		deleteNeighborhoodButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
-		await deleteNeighborhoodCard(decodeURIComponent(deleteNeighborhoodButton.dataset.deleteNeighborhoodCard));
+	if (deleteCatalogButton?.dataset.deleteCatalog && deleteCatalogButton.dataset.catalogValue) {
+		deleteCatalogButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		await deleteCatalogCard(deleteCatalogButton.dataset.deleteCatalog as CatalogCardKind, decodeURIComponent(deleteCatalogButton.dataset.catalogValue));
 		return;
 	}
 	const cardImageButton = target.closest<HTMLButtonElement>('[data-card-image-direction]');
@@ -5128,6 +5280,9 @@ function applyServerCatalogs(value: unknown) {
 	removedServiceTypes = stringArray(catalogs.removedServiceTypes);
 	neighborhoods = stringArray(catalogs.neighborhoods);
 	neighborhoodImages = neighborhoodImageMap(catalogs.neighborhoodImages);
+	establishmentImages = neighborhoodImageMap(catalogs.establishmentImages);
+	serviceImages = neighborhoodImageMap(catalogs.serviceImages);
+	cuisineImages = neighborhoodImageMap(catalogs.cuisineImages);
 	removedNeighborhoods = stringArray(catalogs.removedNeighborhoods);
 	cities = stringArray(catalogs.cities);
 	removedCities = stringArray(catalogs.removedCities);
