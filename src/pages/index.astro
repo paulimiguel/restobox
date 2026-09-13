@@ -29,34 +29,6 @@ const userInitials = userDisplayName
 				<header class="topbar">
 					<a class="header-brand" href="/" aria-label="RestoBox, inicio"><img id="header-theme-logo" src="/restobox-logo-transparent.png" alt="RestoBox" /></a>
 					<nav class="top-actions" aria-label="Menú principal">
-						<details class="top-dropdown theme-dropdown">
-							<summary class="top-icon-button" aria-label="Elegir tema" title="Elegir tema">
-								<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.5a1.8 1.8 0 0 0 0-3.6h-1a1.5 1.5 0 0 1 0-3H15A6 6 0 0 0 15 3Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.8" r=".8"/></svg>
-							</summary>
-							<div class="dropdown-panel theme-panel">
-								<button type="button" data-theme-value="aguamarina"><span style="--swatch:#A5D8E8"></span>Aguamarina</button>
-								<button type="button" data-theme-value="carrot"><span style="--swatch:#FC7813"></span>Carrot</button>
-								<button type="button" data-theme-value="frutilla"><span style="--swatch:#F90344"></span>Frutilla</button>
-								<button type="button" data-theme-value="grises"><span style="--swatch:#B4B7BC"></span>Grises</button>
-								<button type="button" data-theme-value="pasteles"><span style="--swatch:#F7B9C3"></span>Pasteles</button>
-								<button type="button" data-theme-value="salmon"><span style="--swatch:#E26666"></span>Salmón</button>
-								<button type="button" data-theme-value="tierra"><span style="--swatch:#E1C097"></span>Tierra</button>
-								<button type="button" data-theme-value="violetas"><span style="--swatch:#A089BF"></span>Violetas</button>
-							</div>
-						</details>
-						<details class="top-dropdown font-theme-dropdown">
-							<summary class="top-icon-button" aria-label="Elegir tema de fuentes" title="Elegir tema de fuentes">
-								<span class="font-theme-icon" aria-hidden="true">Aa</span>
-							</summary>
-							<div class="dropdown-panel font-theme-panel">
-								<button type="button" data-font-theme-value="original"><span class="font-preview font-preview-original">Aa</span><span>Original</span></button>
-								<button type="button" data-font-theme-value="moderna"><span class="font-preview font-preview-moderna">Aa</span><span>Moderna</span></button>
-								<button type="button" data-font-theme-value="elegante"><span class="font-preview font-preview-elegante">Aa</span><span>Elegante</span></button>
-								<button type="button" data-font-theme-value="amable"><span class="font-preview font-preview-amable">Aa</span><span>Amable</span></button>
-								<button type="button" data-font-theme-value="clasica"><span class="font-preview font-preview-clasica">Aa</span><span>Clásica</span></button>
-							</div>
-						</details>
-
 						<button class="top-nav-button" id="main-search-button" type="button">
 							<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
 							<span>BUSCAR</span>
@@ -120,6 +92,29 @@ const userInitials = userDisplayName
 								<div class="user-summary"><strong id="user-menu-name">{userDisplayName}</strong><small id="user-menu-email">{userDisplayEmail}</small></div>
 								<div class="dropdown-separator"></div>
 								<button type="button" id="open-profile-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0M4 4h3M5.5 2.5v3"/></svg>Editar perfil</button>
+								<details class="profile-menu-section">
+									<summary><span><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.5a1.8 1.8 0 0 0 0-3.6h-1a1.5 1.5 0 0 1 0-3H15A6 6 0 0 0 15 3Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.8" r=".8"/></svg>Elegir tema</span><svg class="profile-menu-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="profile-menu-options theme-panel">
+										<button type="button" data-theme-value="aguamarina"><span style="--swatch:#A5D8E8"></span>Aguamarina</button>
+										<button type="button" data-theme-value="carrot"><span style="--swatch:#FC7813"></span>Carrot</button>
+										<button type="button" data-theme-value="frutilla"><span style="--swatch:#F90344"></span>Frutilla</button>
+										<button type="button" data-theme-value="grises"><span style="--swatch:#B4B7BC"></span>Grises</button>
+										<button type="button" data-theme-value="pasteles"><span style="--swatch:#F7B9C3"></span>Pasteles</button>
+										<button type="button" data-theme-value="salmon"><span style="--swatch:#E26666"></span>Salmón</button>
+										<button type="button" data-theme-value="tierra"><span style="--swatch:#E1C097"></span>Tierra</button>
+										<button type="button" data-theme-value="violetas"><span style="--swatch:#A089BF"></span>Violetas</button>
+									</div>
+								</details>
+								<details class="profile-menu-section">
+									<summary><span><span class="font-theme-icon" aria-hidden="true">Aa</span>Elegir fuentes</span><svg class="profile-menu-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="profile-menu-options font-theme-panel">
+										<button type="button" data-font-theme-value="original"><span class="font-preview font-preview-original">Aa</span><span>Original</span></button>
+										<button type="button" data-font-theme-value="moderna"><span class="font-preview font-preview-moderna">Aa</span><span>Moderna</span></button>
+										<button type="button" data-font-theme-value="elegante"><span class="font-preview font-preview-elegante">Aa</span><span>Elegante</span></button>
+										<button type="button" data-font-theme-value="amable"><span class="font-preview font-preview-amable">Aa</span><span>Amable</span></button>
+										<button type="button" data-font-theme-value="clasica"><span class="font-preview font-preview-clasica">Aa</span><span>Clásica</span></button>
+									</div>
+								</details>
 								<button type="button" id="open-extension-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.8 8h14.4M8 4.8l4 7.2m4-7.2L12 12m0 0v8"/></svg>Instalar Extensión Chrome</button>
 								<div class="dropdown-separator"></div>
 								<button type="button" id="logout-button"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></svg>Cerrar sesión</button>
@@ -138,29 +133,6 @@ const userInitials = userDisplayName
 							</button>
 						</header>
 						<nav class="mobile-menu-nav" aria-label="Men&uacute; principal m&oacute;vil">
-							<details class="mobile-menu-section">
-								<summary><span>TEMA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-theme-options">
-									<button type="button" data-theme-value="aguamarina"><span style="--swatch:#A5D8E8"></span>Aguamarina</button>
-									<button type="button" data-theme-value="carrot"><span style="--swatch:#FC7813"></span>Carrot</button>
-									<button type="button" data-theme-value="frutilla"><span style="--swatch:#F90344"></span>Frutilla</button>
-									<button type="button" data-theme-value="grises"><span style="--swatch:#B4B7BC"></span>Grises</button>
-									<button type="button" data-theme-value="pasteles"><span style="--swatch:#F7B9C3"></span>Pasteles</button>
-									<button type="button" data-theme-value="salmon"><span style="--swatch:#E26666"></span>Salm&oacute;n</button>
-									<button type="button" data-theme-value="tierra"><span style="--swatch:#E1C097"></span>Tierra</button>
-									<button type="button" data-theme-value="violetas"><span style="--swatch:#A089BF"></span>Violetas</button>
-								</div>
-							</details>
-							<details class="mobile-menu-section">
-								<summary><span>FUENTE</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options">
-									<button type="button" data-font-theme-value="original">Original</button>
-									<button type="button" data-font-theme-value="moderna">Moderna</button>
-									<button type="button" data-font-theme-value="elegante">Elegante</button>
-									<button type="button" data-font-theme-value="amable">Amable</button>
-									<button type="button" data-font-theme-value="clasica">Cl&aacute;sica</button>
-								</div>
-							</details>
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>BUSCAR</button>
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="directory">DIRECTORIO</button>
 							<details class="mobile-menu-section">

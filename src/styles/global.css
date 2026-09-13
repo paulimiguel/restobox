@@ -215,11 +215,22 @@ body.mobile-menu-open { overflow: hidden; }
 .font-preview-clasica { font-family: 'Merriweather', Georgia, serif; }
 .user-dropdown .avatar { list-style: none; cursor: pointer; }
 .user-dropdown[open] .avatar { box-shadow: 0 0 0 3px var(--sage); }
-.user-panel { min-width: 245px; }
+.user-panel { min-width: 260px; max-height: min(620px, calc(100vh - 90px)); overflow-y: auto; }
 .user-summary { display: grid; gap: 3px; padding: 9px 10px; }
 .user-summary strong { color: var(--ink); font-size: 14px; }
 .user-summary small { color: var(--muted); font-size: 12px; }
 .user-summary small:empty { display: none; }
+.profile-menu-section > summary { display: flex; min-height: 36px; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 6px; color: #454b47; font-size: 12px; list-style: none; cursor: pointer; }
+.profile-menu-section > summary::-webkit-details-marker { display: none; }
+.profile-menu-section > summary:hover, .profile-menu-section[open] > summary { color: var(--accent-text); background: var(--sage); }
+.profile-menu-section > summary > span { display: flex; align-items: center; gap: 10px; }
+.profile-menu-section > summary svg { width: 16px; }
+.profile-menu-section > summary > span > svg { fill: none; stroke: currentColor; stroke-width: 1.7; }
+.profile-menu-section .font-theme-icon { display: inline-grid; width: 16px; place-items: center; }
+.profile-menu-chevron { fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform .18s; }
+.profile-menu-section[open] .profile-menu-chevron { transform: rotate(180deg); }
+.profile-menu-options { margin: 3px 0 5px 9px; padding-left: 6px; border-left: 1px solid var(--line); }
+.profile-menu-options.theme-panel, .profile-menu-options.font-theme-panel { min-width: 0; }
 .dropdown-separator { height: 1px; margin: 5px -6px; background: var(--line); }
 .content { width: min(1420px, calc(100% - 8vw)); margin: 0 auto; padding: 0 0 70px; }
 .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-bottom: 45px; }
@@ -427,7 +438,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-small-icons .restaurant-card { border-radius: 8px; }
 .restaurant-list.view-small-icons .restaurant-card-top-actions, .restaurant-list.view-small-icons .restaurant-card-establishments, .restaurant-list.view-small-icons .restaurant-card-cuisines, .restaurant-list.view-small-icons .restaurant-card-address, .restaurant-list.view-small-icons .restaurant-card-footer { display: none; }
 .restaurant-list.view-small-icons .restaurant-card-body { display: block; padding: 7px 6px 9px; }
-.restaurant-list.view-small-icons .restaurant-card-name { font-family: inherit; font-size: 11px; font-weight: 600; line-height: 1.3; text-align: center; white-space: normal; }
+.restaurant-list.view-small-icons .restaurant-card-name { font-family: var(--font-display); font-size: 11px; font-weight: 600; line-height: 1.3; text-align: center; white-space: normal; }
 .restaurant-list.view-small-icons .restaurant-card-placeholder { font-size: 36px; }
 .restaurant-list.view-detail, .restaurant-list.view-list, .restaurant-list.view-cuisines, .restaurant-list.view-establishments { grid-template-columns: 1fr; }
 .restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { display: grid; grid-template-columns: 170px minmax(180px, 1fr) auto; align-items: center; }
