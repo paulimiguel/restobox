@@ -1501,6 +1501,13 @@ function openLongTextEditor(target: HTMLTextAreaElement, title: string) {
 	window.setTimeout(() => longTextEditorValue.focus(), 30);
 }
 
+function updateLongTextEditorLabels(editing: boolean) {
+	openLongTextEditorButtons.forEach((button) => {
+		const fieldLabel = button.dataset.openLongTextEditor === 'notes' ? 'nota' : 'descripción';
+		button.textContent = `${editing ? 'Editar' : 'Agregar'} ${fieldLabel}`;
+	});
+}
+
 function pasteScheduleText(value: string) {
 	const parsed = parseScheduleText(value);
 	if (!parsed.size) return false;
@@ -2485,6 +2492,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	form.classList.toggle('creating-record', !restaurant && !readOnly);
 	form.classList.toggle('view-mode', readOnly);
 	form.classList.toggle('editing-record', Boolean(restaurant) && !readOnly);
+	updateLongTextEditorLabels(Boolean(restaurant) && !readOnly);
 	placeMapField(readOnly);
 	viewEditButton.hidden = !readOnly;
 	closeFormButton.textContent = readOnly ? 'Cerrar' : 'Cancelar';
@@ -3374,6 +3382,7 @@ nextRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(1
 viewEditButton.addEventListener('click', () => {
 	form.classList.remove('view-mode');
 	form.classList.add('editing-record');
+	updateLongTextEditorLabels(true);
 	updateRestaurantRecordNavigation();
 	placeMapField(false);
 	updateViewEmptyFields(false);
@@ -3401,7 +3410,7 @@ dialog.addEventListener('close', () => {
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
 openLongTextEditorButtons.forEach((button) => button.addEventListener('click', () => {
 	const opensNotes = button.dataset.openLongTextEditor === 'notes';
-	openLongTextEditor(opensNotes ? notesInput : descriptionInput, opensNotes ? 'Agregar nota' : 'Agregar descripción');
+	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
 }));
 cancelLongTextEditor.addEventListener('click', () => longTextEditorDialog.close());
 longTextEditorDialog.addEventListener('close', () => {
@@ -4962,6 +4971,7 @@ form.addEventListener('submit', async (event) => {
 	if (keepOpen) {
 		activeRestaurantId = restaurant.id;
 		form.classList.add('editing-record');
+		updateLongTextEditorLabels(true);
 		updateRestaurantRecordNavigation();
 		(form.elements.namedItem('id') as HTMLInputElement).value = restaurant.id;
 		dialogTitle.textContent = '';
