@@ -2305,13 +2305,13 @@ function renderImagePreviews() {
 		preview.src = url;
 		preview.alt = `Imagen ${index + 1} del lugar`;
 		preview.draggable = false;
-		const openInNewTab = document.createElement('button');
-		openInNewTab.type = 'button';
-		openInNewTab.className = 'open-image-new-tab';
-		openInNewTab.textContent = '↗';
-		openInNewTab.dataset.imageIndex = String(index);
-		openInNewTab.setAttribute('aria-label', `Abrir imagen ${index + 1} en una pestaña nueva`);
-		openInNewTab.title = 'Abrir en una pestaña nueva';
+		const openImage = document.createElement('button');
+		openImage.type = 'button';
+		openImage.className = 'open-image-preview';
+		openImage.textContent = '↗';
+		openImage.dataset.imageIndex = String(index);
+		openImage.setAttribute('aria-label', `Abrir imagen ${index + 1}`);
+		openImage.title = 'Abrir imagen';
 		const position = document.createElement('span');
 		position.className = 'image-position';
 		position.textContent = String(index + 1);
@@ -2321,7 +2321,7 @@ function renderImagePreviews() {
 		remove.textContent = '×';
 		remove.dataset.imageIndex = String(index);
 		remove.setAttribute('aria-label', 'Quitar imagen');
-		wrapper.append(preview, openInNewTab, position, remove);
+		wrapper.append(preview, openImage, position, remove);
 		imagePreviews.append(wrapper);
 	});
 	primaryImagePreview.replaceChildren();
@@ -4353,10 +4353,9 @@ document.addEventListener('paste', (event) => {
 });
 
 imagePreviews.addEventListener('click', (event) => {
-	const openButton = (event.target as HTMLElement).closest<HTMLButtonElement>('.open-image-new-tab');
+	const openButton = (event.target as HTMLElement).closest<HTMLButtonElement>('.open-image-preview');
 	if (openButton) {
-		const image = openButton.closest<HTMLElement>('.image-preview')?.querySelector<HTMLImageElement>('img');
-		if (image?.src) window.open(image.src, '_blank', 'noopener,noreferrer');
+		openImageCarousel(Number(openButton.dataset.imageIndex));
 		return;
 	}
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.remove-image');
