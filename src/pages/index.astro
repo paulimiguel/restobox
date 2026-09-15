@@ -544,6 +544,13 @@ const userInitials = userDisplayName
 							</div>
 							<textarea id="restaurant-description" name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea>
 						</div>
+						<div class="form-field notes-field long-text-field wide">
+							<div class="long-text-field-heading">
+								<label for="restaurant-notes">Notas</label>
+								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="notes">Agregar nota</button>
+							</div>
+							<textarea id="restaurant-notes" name="notes" rows="3" placeholder="Información adicional sobre el lugar…"></textarea>
+						</div>
 						<div class="form-field wide schedule-field">
 							<span class="field-label">Días y horarios</span>
 							<input id="hours-value" name="hours" type="hidden" />
@@ -564,13 +571,6 @@ const userInitials = userDisplayName
 									<button id="clear-schedule-hours" class="secondary-button schedule-paste-button" type="button">Borrar horarios</button>
 								</div>
 							</div>
-						</div>
-						<div class="form-field notes-field long-text-field wide">
-							<div class="long-text-field-heading">
-								<label for="restaurant-notes">Notas</label>
-								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="notes">Agregar nota</button>
-							</div>
-							<textarea id="restaurant-notes" name="notes" rows="3" placeholder="Información adicional sobre el lugar…"></textarea>
 						</div>
 					</div>
 				</section>
