@@ -2310,8 +2310,8 @@ function renderImagePreviews() {
 		openImage.className = 'open-image-preview';
 		openImage.textContent = '↗';
 		openImage.dataset.imageIndex = String(index);
-		openImage.setAttribute('aria-label', `Abrir imagen ${index + 1}`);
-		openImage.title = 'Abrir imagen';
+		openImage.setAttribute('aria-label', `Abrir imagen ${index + 1} en una pestaña nueva`);
+		openImage.title = 'Abrir en una pestaña nueva';
 		const position = document.createElement('span');
 		position.className = 'image-position';
 		position.textContent = String(index + 1);
@@ -4355,7 +4355,8 @@ document.addEventListener('paste', (event) => {
 imagePreviews.addEventListener('click', (event) => {
 	const openButton = (event.target as HTMLElement).closest<HTMLButtonElement>('.open-image-preview');
 	if (openButton) {
-		openImageCarousel(Number(openButton.dataset.imageIndex));
+		const image = openButton.closest<HTMLElement>('.image-preview')?.querySelector<HTMLImageElement>('img');
+		if (image?.src) window.open(image.src, '_blank', 'noopener,noreferrer');
 		return;
 	}
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.remove-image');
@@ -4365,7 +4366,6 @@ imagePreviews.addEventListener('click', (event) => {
 		renderImagePreviews();
 		return;
 	}
-	if (!form.classList.contains('view-mode')) return;
 	const preview = (event.target as HTMLElement).closest<HTMLElement>('.image-preview');
 	if (preview) openImageCarousel(Number(preview.dataset.imageIndex));
 });
