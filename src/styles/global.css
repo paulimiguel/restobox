@@ -765,6 +765,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .option-management-item button:hover { background: #fae8e4; }
 .option-management-item svg { width: 15px; }
 .dialog-heading { display: flex; min-height: 62px; justify-content: space-between; align-items: center; gap: 24px; padding: 10px 20px 10px 27px; border-bottom: 1px solid var(--line); }
+#restaurant-dialog .dialog-heading { cursor: move; touch-action: none; }
+#restaurant-dialog .dialog-heading :is(button, a, input, select, textarea, [role="button"]) { cursor: pointer; }
+#restaurant-dialog.dialog-dragging { user-select: none; }
 .dialog-title-main { display: flex; min-width: 0; align-items: center; gap: 11px; }
 .dialog-title-main svg { flex: 0 0 auto; width: 22px; color: var(--muted); }
 .dialog-heading h2 { margin: 0; font-family: var(--font-display); font-size: 32px; font-weight: 400; letter-spacing: 0; }
@@ -956,12 +959,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .image-field label small { color: var(--muted); font-size: 10px; font-weight: 400; }
 .image-file-input { position: absolute; width: 1px !important; height: 1px !important; padding: 0 !important; opacity: 0; pointer-events: none; }
 .images-logo-row { display: grid; grid-template-columns: minmax(0, 1fr) 260px; align-items: stretch; gap: 12px; }
+.image-gallery-column { display: grid; min-width: 0; align-content: start; gap: 8px; }
 .images-logo-row .image-previews { grid-template-columns: repeat(4, 1fr); align-content: start; }
-.image-sidebar { display: grid; width: 100%; height: 100%; grid-template-rows: minmax(140px, 1fr) auto auto; align-content: stretch; justify-self: end; gap: 10px; }
-.image-sidebar .image-drop-zone { min-height: 140px; padding: 10px; }
-.image-sidebar .image-drop-zone small { max-width: 225px; font-size: 9px; }
-.paste-image-button { width: 100%; min-height: 34px; padding: 7px 12px; font-size: 11px; font-weight: 600; }
-.clear-restaurant-images { justify-self: start; min-height: 29px; margin-top: 2px; padding: 5px 10px; font-size: 10px; }
+.image-gallery-column .image-drop-zone { min-height: 118px; padding: 10px; }
+.image-gallery-actions { display: flex; min-height: 29px; justify-content: flex-end; gap: 6px; margin-top: 2px; }
+.insert-image-button, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
+.image-sidebar { display: grid; width: 100%; align-content: start; justify-self: end; }
 .logo-field { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 5px; }
 .logo-field > span { color: #505852; font-size: 11px; font-weight: 600; }
 .logo-drop-zone { position: relative; display: grid; min-height: 150px; place-items: center; padding: 6px; border: 1px dashed #c8c9c3; border-radius: 7px; color: var(--muted); background: #faf9f5; overflow: hidden; text-align: center; cursor: pointer; transition: border-color .18s, background .18s; }
@@ -1118,8 +1121,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-information .long-text-editor-button { display: none; }
 .view-mode #panel-information .notes-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
 .view-mode #panel-information textarea::placeholder { color: transparent; }
-.view-mode #panel-images .image-drop-zone, .view-mode #panel-images .paste-image-button, .view-mode #panel-images .clear-restaurant-images { display: none; }
-.view-mode #panel-images .image-sidebar { height: auto; grid-template-rows: auto; }
+.view-mode #panel-images .image-drop-zone, .view-mode #panel-images .image-gallery-actions { display: none; }
+.view-mode #panel-images .image-gallery-column { gap: 0; }
 .view-mode #panel-images .image-field > label { display: none; }
 .view-mode #panel-images .image-position { display: none; }
 .view-mode #panel-images .logo-drop-zone { border-color: transparent; background: transparent; }

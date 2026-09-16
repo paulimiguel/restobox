@@ -142,6 +142,7 @@ const DEFAULT_COUNTRY = 'Argentina';
 const MAX_IMAGES = 12;
 const dialog = document.querySelector<HTMLDialogElement>('#restaurant-dialog')!;
 const form = document.querySelector<HTMLFormElement>('#restaurant-form')!;
+const dialogHeading = dialog.querySelector<HTMLElement>('.dialog-heading')!;
 const longTextEditorDialog = document.querySelector<HTMLDialogElement>('#long-text-editor-dialog')!;
 const longTextEditorForm = document.querySelector<HTMLFormElement>('#long-text-editor-form')!;
 const longTextEditorTitle = document.querySelector<HTMLElement>('#long-text-editor-title')!;
@@ -280,7 +281,7 @@ const removeLogoButton = document.querySelector<HTMLButtonElement>('#remove-logo
 const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images')!;
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
-const pasteImageButton = document.querySelector<HTMLButtonElement>('#paste-image')!;
+const insertImageButton = document.querySelector<HTMLButtonElement>('#insert-restaurant-image')!;
 const clearRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-images')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
@@ -438,6 +439,9 @@ let cardRenderVersion = 0;
 const cardImageSources = new Map<string, string[]>();
 const cardImageIndexes = new Map<string, number>();
 let draggedImageIndex: number | null = null;
+let dialogDragPointerId: number | null = null;
+let dialogDragOffsetX = 0;
+let dialogDragOffsetY = 0;
 let spreadsheetPreviewRows: SpreadsheetPreviewRow[] = [];
 let imageInsertMode: 'append' | 'primary' = 'append';
 let toastTimer: number | undefined;
@@ -2350,7 +2354,7 @@ function renderImagePreviews() {
 	imageDropZone.classList.toggle('full', isFull);
 	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá o pegá aquí las imágenes';
 	imageDropZone.setAttribute('aria-disabled', String(isFull));
-	pasteImageButton.disabled = isFull;
+	insertImageButton.disabled = isFull;
 	clearRestaurantImagesButton.hidden = restaurantImages.length === 0;
 	updateDirtyState();
 }
@@ -2439,40 +2443,6 @@ function addPastedImages(dataTransfer: DataTransfer) {
 	void addDroppedWebImage(dataTransfer);
 }
 
-async function pasteImagesFromClipboard() {
-	if (restaurantImages.length >= MAX_IMAGES) {
-		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
-		return;
-	}
-	if (!navigator.clipboard?.read) {
-		showToast('Este navegador no permite pegar con el botón; usá Ctrl+V');
-		return;
-	}
-	pasteImageButton.disabled = true;
-	try {
-		const clipboardItems = await navigator.clipboard.read();
-		const files: File[] = [];
-		for (const item of clipboardItems) {
-			const imageType = item.types.find((type) => type.startsWith('image/'));
-			if (!imageType) continue;
-			const blob = await item.getType(imageType);
-			const extension = imageType.split('/')[1]?.replace('+xml', '') || 'png';
-			files.push(new File([blob], `imagen-portapapeles-${Date.now()}-${files.length + 1}.${extension}`, { type: imageType }));
-		}
-		if (!files.length) {
-			showToast('El portapapeles no contiene una imagen');
-			return;
-		}
-		const available = MAX_IMAGES - restaurantImages.length;
-		addImageFiles(files);
-		showToast(Math.min(files.length, available) === 1 ? 'Imagen pegada' : `${Math.min(files.length, available)} imágenes pegadas`);
-	} catch {
-		showToast('No se pudo acceder al portapapeles; permití el acceso o usá Ctrl+V');
-	} finally {
-		pasteImageButton.disabled = restaurantImages.length >= MAX_IMAGES;
-	}
-}
-
 async function addDroppedWebLogo(dataTransfer: DataTransfer) {
 	const html = dataTransfer.getData('text/html');
 	const htmlUrl = html.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] ?? '';
@@ -2491,6 +2461,27 @@ async function addDroppedWebLogo(dataTransfer: DataTransfer) {
 	} catch {
 		showToast('Esa página no permite copiar el logo; descargalo y arrastralo desde tu PC');
 	}
+}
+
+function setRestaurantDialogPosition(left: number, top: number) {
+	const edgeGap = 8;
+	const maxLeft = Math.max(edgeGap, window.innerWidth - dialog.offsetWidth - edgeGap);
+	const maxTop = Math.max(edgeGap, window.innerHeight - dialog.offsetHeight - edgeGap);
+	dialog.style.left = `${Math.min(Math.max(left, edgeGap), maxLeft)}px`;
+	dialog.style.top = `${Math.min(Math.max(top, edgeGap), maxTop)}px`;
+}
+
+function resetRestaurantDialogPosition() {
+	dialogDragPointerId = null;
+	dialog.classList.remove('dialog-dragging');
+	(['left', 'top', 'right', 'bottom', 'margin'] as const).forEach((property) => dialog.style.removeProperty(property));
+}
+
+function finishRestaurantDialogDrag(pointerId: number) {
+	if (dialogDragPointerId !== pointerId) return;
+	if (dialogHeading.hasPointerCapture(pointerId)) dialogHeading.releasePointerCapture(pointerId);
+	dialogDragPointerId = null;
+	dialog.classList.remove('dialog-dragging');
 }
 
 async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 'general') {
@@ -2585,7 +2576,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	logoBaselineReady = !restaurant;
 	dirtyTrackingReady = !readOnly;
 	updateDirtyState();
-	if (!dialog.open) dialog.showModal();
+	if (!dialog.open) {
+		resetRestaurantDialogPosition();
+		dialog.showModal();
+	}
 	window.setTimeout(() => (form.elements.namedItem('name') as HTMLInputElement).focus(), 50);
 	if (restaurant) {
 		try {
@@ -3403,8 +3397,34 @@ viewEditButton.addEventListener('click', () => {
 	dirtyTrackingReady = true;
 	updateDirtyState();
 });
+dialogHeading.addEventListener('pointerdown', (event) => {
+	if (event.button !== 0 || (event.target as HTMLElement).closest('button, a, input, select, textarea, [role="button"]')) return;
+	const bounds = dialog.getBoundingClientRect();
+	dialog.style.margin = '0';
+	dialog.style.right = 'auto';
+	dialog.style.bottom = 'auto';
+	setRestaurantDialogPosition(bounds.left, bounds.top);
+	dialogDragPointerId = event.pointerId;
+	dialogDragOffsetX = event.clientX - bounds.left;
+	dialogDragOffsetY = event.clientY - bounds.top;
+	dialogHeading.setPointerCapture(event.pointerId);
+	dialog.classList.add('dialog-dragging');
+	event.preventDefault();
+});
+dialogHeading.addEventListener('pointermove', (event) => {
+	if (dialogDragPointerId !== event.pointerId) return;
+	setRestaurantDialogPosition(event.clientX - dialogDragOffsetX, event.clientY - dialogDragOffsetY);
+});
+dialogHeading.addEventListener('pointerup', (event) => finishRestaurantDialogDrag(event.pointerId));
+dialogHeading.addEventListener('pointercancel', (event) => finishRestaurantDialogDrag(event.pointerId));
+window.addEventListener('resize', () => {
+	if (!dialog.open || !dialog.style.left) return;
+	const bounds = dialog.getBoundingClientRect();
+	setRestaurantDialogPosition(bounds.left, bounds.top);
+});
 document.querySelectorAll<HTMLElement>('[data-close-form]').forEach((button) => button.addEventListener('click', () => dialog.close()));
 dialog.addEventListener('close', () => {
+	resetRestaurantDialogPosition();
 	activeRestaurantId = null;
 	closeCuisineDropdown();
 	closeAveragePriceDropdown();
@@ -4291,7 +4311,11 @@ imageDropZone.addEventListener('keydown', (event) => {
 		imageInput.click();
 	}
 });
-pasteImageButton.addEventListener('click', () => void pasteImagesFromClipboard());
+insertImageButton.addEventListener('click', () => {
+	if (restaurantImages.length >= MAX_IMAGES) return;
+	imageInsertMode = 'append';
+	imageInput.click();
+});
 clearRestaurantImagesButton.addEventListener('click', () => {
 	if (!restaurantImages.length) return;
 	const imageCount = restaurantImages.length;

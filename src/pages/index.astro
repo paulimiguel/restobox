@@ -580,14 +580,19 @@ const userInitials = userDisplayName
 						<div class="form-field wide image-field">
 							<label for="restaurant-images">Imágenes <small>Hasta 12 imágenes</small></label>
 							<div class="images-logo-row">
-								<div id="image-previews" class="image-previews"></div>
-								<div class="image-sidebar">
+								<div class="image-gallery-column">
 									<div id="image-drop-zone" class="image-drop-zone" role="button" tabindex="0" aria-label="Agregar imágenes arrastrando, eligiendo o pegando desde el portapapeles">
 										<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v5h14v-5" /></svg>
 										<strong id="image-drop-text">Arrastrá o pegá aquí las imágenes</strong>
 										<small>Copiá una imagen y presioná Ctrl+V · también podés arrastrarla o hacer clic para elegirla</small>
 									</div>
-									<button id="paste-image" class="secondary-button paste-image-button" type="button">Pegar imagen</button>
+									<div id="image-previews" class="image-previews"></div>
+									<div class="image-gallery-actions">
+										<button id="insert-restaurant-image" class="secondary-button insert-image-button" type="button">Insertar imagen</button>
+										<button id="clear-restaurant-images" class="secondary-button clear-restaurant-images" type="button" hidden>Borrar imágenes</button>
+									</div>
+								</div>
+								<div class="image-sidebar">
 									<div class="logo-field">
 										<span>Logo</span>
 										<div id="logo-drop-zone" class="logo-drop-zone" role="button" tabindex="0" aria-label="Agregar logo">
@@ -598,7 +603,6 @@ const userInitials = userDisplayName
 									</div>
 								</div>
 							</div>
-							<button id="clear-restaurant-images" class="secondary-button clear-restaurant-images" type="button" hidden>Borrar imágenes</button>
 							<input id="restaurant-logo" class="image-file-input" type="file" accept="image/*" />
 							<input id="restaurant-images" class="image-file-input" type="file" accept="image/*" multiple />
 						</div>
