@@ -961,10 +961,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .images-logo-row { display: grid; grid-template-columns: minmax(0, 1fr) 260px; align-items: stretch; gap: 12px; }
 .image-gallery-column { display: grid; min-width: 0; align-content: start; gap: 8px; }
 .images-logo-row .image-previews { grid-template-columns: repeat(4, 1fr); align-content: start; }
-.image-gallery-column .image-drop-zone { min-height: 118px; padding: 10px; }
 .image-gallery-actions { display: flex; min-height: 29px; justify-content: flex-end; gap: 6px; margin-top: 2px; }
 .insert-image-button, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
-.image-sidebar { display: grid; width: 100%; align-content: start; justify-self: end; }
+.image-sidebar { display: grid; width: 100%; align-content: start; justify-self: end; gap: 10px; }
+.image-sidebar .image-drop-zone { min-height: 118px; padding: 10px; }
+.image-sidebar .image-drop-zone small { max-width: 225px; font-size: 9px; }
 .logo-field { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 5px; }
 .logo-field > span { color: #505852; font-size: 11px; font-weight: 600; }
 .logo-drop-zone { position: relative; display: grid; min-height: 150px; place-items: center; padding: 6px; border: 1px dashed #c8c9c3; border-radius: 7px; color: var(--muted); background: #faf9f5; overflow: hidden; text-align: center; cursor: pointer; transition: border-color .18s, background .18s; }

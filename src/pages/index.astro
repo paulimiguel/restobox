@@ -581,11 +581,6 @@ const userInitials = userDisplayName
 							<label for="restaurant-images">Imágenes <small>Hasta 12 imágenes</small></label>
 							<div class="images-logo-row">
 								<div class="image-gallery-column">
-									<div id="image-drop-zone" class="image-drop-zone" role="button" tabindex="0" aria-label="Agregar imágenes arrastrando, eligiendo o pegando desde el portapapeles">
-										<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v5h14v-5" /></svg>
-										<strong id="image-drop-text">Arrastrá o pegá aquí las imágenes</strong>
-										<small>Copiá una imagen y presioná Ctrl+V · también podés arrastrarla o hacer clic para elegirla</small>
-									</div>
 									<div id="image-previews" class="image-previews"></div>
 									<div class="image-gallery-actions">
 										<button id="insert-restaurant-image" class="secondary-button insert-image-button" type="button">Insertar imagen</button>
@@ -600,6 +595,11 @@ const userInitials = userDisplayName
 											<small id="logo-drop-text">Agregar logo</small>
 											<button id="remove-logo" type="button" aria-label="Quitar logo" title="Quitar logo" hidden>×</button>
 										</div>
+									</div>
+									<div id="image-drop-zone" class="image-drop-zone" role="button" tabindex="0" aria-label="Agregar imágenes arrastrando, eligiendo o pegando desde el portapapeles">
+										<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v5h14v-5" /></svg>
+										<strong id="image-drop-text">Arrastrá o pegá aquí las imágenes</strong>
+										<small>Copiá una imagen y presioná Ctrl+V · también podés arrastrarla o hacer clic para elegirla</small>
 									</div>
 								</div>
 							</div>
