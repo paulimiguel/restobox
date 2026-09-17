@@ -283,6 +283,7 @@ const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
 const insertImageButton = document.querySelector<HTMLButtonElement>('#insert-restaurant-image')!;
 const clearRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-images')!;
+const imageGalleryColumn = document.querySelector<HTMLDivElement>('.image-gallery-column')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
 const imageHelp = document.querySelector<HTMLElement>('.image-field label small')!;
@@ -4425,11 +4426,11 @@ imagePreviews.addEventListener('dragstart', (event) => {
 	window.setTimeout(() => preview.classList.add('dragging'), 0);
 });
 
-imagePreviews.addEventListener('dragover', (event) => {
+imageGalleryColumn.addEventListener('dragover', (event) => {
 	event.preventDefault();
 	if (draggedImageIndex === null) {
 		if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-		if (restaurantImages.length < MAX_IMAGES) imagePreviews.classList.add('external-dragging');
+		if (restaurantImages.length < MAX_IMAGES) imageGalleryColumn.classList.add('external-dragging');
 		return;
 	}
 	const preview = (event.target as HTMLElement).closest<HTMLElement>('.image-preview');
@@ -4438,13 +4439,13 @@ imagePreviews.addEventListener('dragover', (event) => {
 	if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 });
 
-imagePreviews.addEventListener('dragleave', (event) => {
-	if (!imagePreviews.contains(event.relatedTarget as Node | null)) imagePreviews.classList.remove('external-dragging');
+imageGalleryColumn.addEventListener('dragleave', (event) => {
+	if (!imageGalleryColumn.contains(event.relatedTarget as Node | null)) imageGalleryColumn.classList.remove('external-dragging');
 });
 
-imagePreviews.addEventListener('drop', (event) => {
+imageGalleryColumn.addEventListener('drop', (event) => {
 	event.preventDefault();
-	imagePreviews.classList.remove('external-dragging');
+	imageGalleryColumn.classList.remove('external-dragging');
 	if (draggedImageIndex === null) {
 		if (restaurantImages.length >= MAX_IMAGES) {
 			showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
@@ -4466,6 +4467,7 @@ imagePreviews.addEventListener('drop', (event) => {
 
 imagePreviews.addEventListener('dragend', () => {
 	draggedImageIndex = null;
+	imageGalleryColumn.classList.remove('external-dragging');
 	imagePreviews.querySelectorAll('.dragging, .drag-over').forEach((item) => item.classList.remove('dragging', 'drag-over'));
 });
 
