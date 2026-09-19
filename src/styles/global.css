@@ -417,6 +417,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .restaurant-list.view-columns-5 .restaurant-card-body { padding-inline: 11px; }
 .restaurant-list.view-columns-5 .restaurant-card-name { font-size: 18px; }
+.restaurant-list.view-columns-5 .restaurant-card-location { display: block; min-width: 0; }
+.restaurant-list.view-columns-5 .restaurant-card-neighborhood { overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions > button, .restaurant-list.view-columns-5 .restaurant-card-actions-menu > summary { width: 29px; height: 29px; border-radius: 6px; }
 .restaurant-list.view-columns-5 .restaurant-card-top-actions svg { width: 16px; height: 16px; }
@@ -429,6 +431,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-columns-6 .restaurant-card-name { font-size: 17px; }
 .restaurant-list.view-columns-6 .restaurant-card-establishments { font-size: 10px; }
 .restaurant-list.view-columns-6 .restaurant-card-cuisines { font-size: 9px; }
+.restaurant-list.view-columns-6 .restaurant-card-location { display: block; min-width: 0; }
+.restaurant-list.view-columns-6 .restaurant-card-neighborhood { overflow: hidden; color: var(--muted); font-size: 9px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 6px; right: 6px; gap: 3px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 28px; height: 28px; border-radius: 6px; }
 .restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 15px; height: 15px; }
@@ -1240,6 +1244,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-name { font-size: 23px; }
 	.restaurant-list:not(.view-small-icons) .restaurant-card-establishments { font-size: 17px; }
 	.restaurant-list:not(.view-small-icons) .restaurant-card-cuisines { font-size: 16px; }
+	.restaurant-list:is(.view-columns-5, .view-columns-6) .restaurant-card-neighborhood { font-size: 15px; }
 	.restaurant-list.view-cuisines .restaurant-card-cuisines, .restaurant-list.view-establishments .restaurant-card-establishments { font-size: 18px; }
 	.restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { grid-template-columns: 1fr; }
 	.restaurant-list.view-detail .restaurant-card-image, .restaurant-list.view-list .restaurant-card-image { aspect-ratio: 1; }
