@@ -278,6 +278,7 @@ const logoDropZone = document.querySelector<HTMLDivElement>('#logo-drop-zone')!;
 const logoPreview = document.querySelector<HTMLDivElement>('#logo-preview')!;
 const logoDropText = document.querySelector<HTMLElement>('#logo-drop-text')!;
 const removeLogoButton = document.querySelector<HTMLButtonElement>('#remove-logo')!;
+const importRestaurantLogoButton = document.querySelector<HTMLButtonElement>('#import-restaurant-logo')!;
 const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images')!;
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
@@ -414,6 +415,7 @@ let countries: string[] = loadLocationOptions(COUNTRIES_KEY, REMOVED_COUNTRIES_K
 let removedCountries: string[] = loadRemovedLocationOptions(REMOVED_COUNTRIES_KEY);
 let restaurantImages: RestaurantImage[] = [];
 let importingRestaurantImages = false;
+let importingRestaurantLogo = false;
 let selectedEstablishmentFilters = new Set<string>();
 let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
@@ -2292,6 +2294,7 @@ function renderLogoPreview() {
 	logoDropZone.classList.toggle('has-logo', Boolean(restaurantLogo));
 	logoDropText.textContent = restaurantLogo ? 'Cambiar logo' : 'Agregar logo';
 	removeLogoButton.hidden = !restaurantLogo;
+	updateImportRestaurantLogoButton();
 	renderImagePreviews();
 	updateDirtyState();
 }
@@ -2309,6 +2312,11 @@ function updateImportRestaurantImagesButton() {
 	const isFull = restaurantImages.length >= MAX_IMAGES;
 	importRestaurantImagesButton.disabled = isFull || importingRestaurantImages || !imageBaselineReady;
 	importRestaurantImagesButton.textContent = importingRestaurantImages ? 'Importando…' : 'Importar imágenes';
+}
+
+function updateImportRestaurantLogoButton() {
+	importRestaurantLogoButton.disabled = importingRestaurantLogo || !imageBaselineReady;
+	importRestaurantLogoButton.textContent = importingRestaurantLogo ? 'Importando…' : 'Importar logo';
 }
 
 function renderImagePreviews() {
@@ -2724,6 +2732,42 @@ async function importImagesForEditingRestaurant() {
 	} finally {
 		importingRestaurantImages = false;
 		renderImagePreviews();
+	}
+}
+
+async function importLogoForEditingRestaurant() {
+	if (!form.classList.contains('editing-record') || importingRestaurantLogo) return;
+	if (!imageBaselineReady) {
+		showToast('Esperá a que termine de cargar el logo actual');
+		return;
+	}
+	const targetRestaurantId = activeRestaurantId;
+	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+	const instagramUrl = instagramInput.value.trim();
+	if (!instagramUrl) {
+		showToast('Ingresá el Instagram del restaurante antes de importar el logo');
+		return;
+	}
+	importingRestaurantLogo = true;
+	updateImportRestaurantLogoButton();
+	try {
+		const response = await fetch('/api/search-google-place', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ name, instagramUrl, mode: 'logo' }),
+		});
+		const result = await response.json() as ImportedRestaurant & { error?: string };
+		if (!response.ok || !result.logoUrl) throw new Error(result.error || 'No se pudo obtener la foto de perfil de Instagram');
+		const logo = await downloadImportedImage(result.logoUrl, 'logo-instagram', true);
+		if (activeRestaurantId !== targetRestaurantId || !dialog.open || !form.classList.contains('editing-record')) return;
+		if (!logo) throw new Error('Instagram no permitió descargar la foto de perfil');
+		setRestaurantLogo(logo);
+		showToast('Logo de Instagram importado en WebP. Revisá y actualizá para guardar.');
+	} catch (error) {
+		showToast(error instanceof Error ? error.message : 'No se pudo importar el logo de Instagram');
+	} finally {
+		importingRestaurantLogo = false;
+		updateImportRestaurantLogoButton();
 	}
 }
 
@@ -4411,6 +4455,7 @@ insertImageButton.addEventListener('click', () => {
 	imageInput.click();
 });
 importRestaurantImagesButton.addEventListener('click', () => void importImagesForEditingRestaurant());
+importRestaurantLogoButton.addEventListener('click', () => void importLogoForEditingRestaurant());
 clearRestaurantImagesButton.addEventListener('click', () => {
 	if (!restaurantImages.length) return;
 	const imageCount = restaurantImages.length;
