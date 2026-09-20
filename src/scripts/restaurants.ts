@@ -281,6 +281,7 @@ const removeLogoButton = document.querySelector<HTMLButtonElement>('#remove-logo
 const imageInput = document.querySelector<HTMLInputElement>('#restaurant-images')!;
 const imageDropZone = document.querySelector<HTMLDivElement>('#image-drop-zone')!;
 const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
+const importRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#import-restaurant-images')!;
 const insertImageButton = document.querySelector<HTMLButtonElement>('#insert-restaurant-image')!;
 const clearRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-images')!;
 const imageGalleryColumn = document.querySelector<HTMLDivElement>('.image-gallery-column')!;
@@ -412,6 +413,7 @@ let removedProvinces: string[] = loadRemovedLocationOptions(REMOVED_PROVINCES_KE
 let countries: string[] = loadLocationOptions(COUNTRIES_KEY, REMOVED_COUNTRIES_KEY, 'country');
 let removedCountries: string[] = loadRemovedLocationOptions(REMOVED_COUNTRIES_KEY);
 let restaurantImages: RestaurantImage[] = [];
+let importingRestaurantImages = false;
 let selectedEstablishmentFilters = new Set<string>();
 let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
@@ -2303,6 +2305,12 @@ function setRestaurantLogo(file?: File) {
 	renderLogoPreview();
 }
 
+function updateImportRestaurantImagesButton() {
+	const isFull = restaurantImages.length >= MAX_IMAGES;
+	importRestaurantImagesButton.disabled = isFull || importingRestaurantImages || !imageBaselineReady;
+	importRestaurantImagesButton.textContent = importingRestaurantImages ? 'Importando…' : 'Importar imágenes';
+}
+
 function renderImagePreviews() {
 	clearImagePreviewUrls();
 	imagePreviews.replaceChildren();
@@ -2364,6 +2372,7 @@ function renderImagePreviews() {
 	imageDropText.textContent = isFull ? `Máximo de ${MAX_IMAGES} imágenes alcanzado` : 'Arrastrá o pegá aquí las imágenes';
 	imageDropZone.setAttribute('aria-disabled', String(isFull));
 	insertImageButton.disabled = isFull;
+	updateImportRestaurantImagesButton();
 	clearRestaurantImagesButton.hidden = restaurantImages.length === 0;
 	updateDirtyState();
 }
@@ -2606,6 +2615,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 			baselineLogoState = captureLogoState();
 			imageBaselineReady = true;
 			logoBaselineReady = true;
+			updateImportRestaurantImagesButton();
 			updateDirtyState();
 		} catch {
 			if (activeRestaurantId !== restaurant.id) return;
@@ -2614,6 +2624,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 			baselineLogoState = captureLogoState();
 			imageBaselineReady = true;
 			logoBaselineReady = true;
+			updateImportRestaurantImagesButton();
 			updateDirtyState();
 			showToast('No se pudieron cargar las imágenes');
 		}
@@ -2628,7 +2639,28 @@ function setImportedField(name: string, value: string | undefined) {
 	field.value = value.slice(0, maxLength);
 }
 
-async function downloadImportedImage(url: string, filename: string) {
+async function convertImportedImageToWebp(file: File, filename: string) {
+	const bitmap = await createImageBitmap(file);
+	try {
+		const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+		canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+		const context = canvas.getContext('2d');
+		if (!context) throw new Error('No se pudo preparar la imagen');
+		context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+		const webp = await new Promise<Blob>((resolve, reject) => canvas.toBlob(
+			(blob) => blob ? resolve(blob) : reject(new Error('No se pudo convertir la imagen')),
+			'image/webp',
+			0.82,
+		));
+		return new File([webp], `${filename}.webp`, { type: 'image/webp' });
+	} finally {
+		bitmap.close();
+	}
+}
+
+async function downloadImportedImage(url: string, filename: string, convertToWebp = false) {
 	try {
 		const response = url.startsWith('/')
 			? await fetch(url)
@@ -2638,9 +2670,60 @@ async function downloadImportedImage(url: string, filename: string) {
 		if (!response.ok) return null;
 		const blob = await response.blob();
 		if (!blob.type.startsWith('image/')) return null;
-		return new File([blob], filename, { type: blob.type || 'image/jpeg' });
+		const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+		return convertToWebp ? await convertImportedImageToWebp(file, filename) : file;
 	} catch {
 		return null;
+	}
+}
+
+async function importImagesForEditingRestaurant() {
+	if (!form.classList.contains('editing-record') || importingRestaurantImages) return;
+	if (!imageBaselineReady) {
+		showToast('Esperá a que terminen de cargar las imágenes actuales');
+		return;
+	}
+	const targetRestaurantId = activeRestaurantId;
+	const available = MAX_IMAGES - restaurantImages.length;
+	if (available <= 0) {
+		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
+		return;
+	}
+	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+	if (!name) {
+		showToast('Ingresá el nombre del lugar antes de buscar imágenes');
+		return;
+	}
+	const address = (form.elements.namedItem('address') as HTMLInputElement).value.trim();
+	const city = (form.elements.namedItem('city') as HTMLInputElement).value.trim();
+	importingRestaurantImages = true;
+	renderImagePreviews();
+	try {
+		const response = await fetch('/api/search-google-place', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				name: [name, address, city].filter(Boolean).join(', '),
+				instagramUrl: instagramInput.value.trim(),
+				facebookUrl: facebookInput.value.trim(),
+			}),
+		});
+		const result = await response.json() as ImportedRestaurant & { error?: string };
+		if (!response.ok) throw new Error(result.error || 'No se pudieron buscar imágenes');
+		const urls = [...new Set(result.imageUrls ?? [])].slice(0, available);
+		if (!urls.length) throw new Error('No se encontraron imágenes públicas para este lugar');
+		const downloads = await Promise.allSettled(urls.map((url, index) => downloadImportedImage(url, `imagen-importada-${index + 1}`, true)));
+		const files = downloads.flatMap((download) => download.status === 'fulfilled' && download.value ? [download.value] : []);
+		if (activeRestaurantId !== targetRestaurantId || !dialog.open || !form.classList.contains('editing-record')) return;
+		if (!files.length) throw new Error('Las fuentes encontradas no permitieron descargar sus imágenes');
+		addImageFiles(files);
+		const sourceText = result.sources?.length ? ` desde ${result.sources.join(', ')}` : '';
+		showToast(`${files.length} ${files.length === 1 ? 'imagen importada' : 'imágenes importadas'} en WebP${sourceText}. Revisá y actualizá para guardar.`);
+	} catch (error) {
+		showToast(error instanceof Error ? error.message : 'No se pudieron importar las imágenes');
+	} finally {
+		importingRestaurantImages = false;
+		renderImagePreviews();
 	}
 }
 
@@ -4327,6 +4410,7 @@ insertImageButton.addEventListener('click', () => {
 	imageInsertMode = 'append';
 	imageInput.click();
 });
+importRestaurantImagesButton.addEventListener('click', () => void importImagesForEditingRestaurant());
 clearRestaurantImagesButton.addEventListener('click', () => {
 	if (!restaurantImages.length) return;
 	const imageCount = restaurantImages.length;

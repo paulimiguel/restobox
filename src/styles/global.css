@@ -973,7 +973,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .editing-record .image-gallery-column { grid-template-rows: minmax(auto, 1fr) auto; align-content: stretch; }
 .images-logo-row .image-previews { grid-template-columns: repeat(4, 1fr); align-content: start; }
 .image-gallery-actions { display: flex; min-height: 29px; justify-content: flex-end; gap: 6px; margin-top: 2px; }
-.insert-image-button, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
+.insert-image-button, .import-restaurant-images, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
+.import-restaurant-images { display: none; }
+.editing-record .import-restaurant-images { display: inline-flex; }
 .image-sidebar { display: grid; width: 100%; align-content: start; justify-self: end; gap: 10px; }
 .image-sidebar .image-drop-zone { min-height: 118px; padding: 10px; }
 .image-sidebar .image-drop-zone small { max-width: 225px; font-size: 9px; }

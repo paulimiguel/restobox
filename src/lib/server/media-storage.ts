@@ -14,12 +14,13 @@ const allowedTypes: Record<string, string> = {
 
 const MAX_SAVED_IMAGE_SIZE = 1600;
 const SAVED_JPEG_QUALITY = 65;
+const SAVED_WEBP_QUALITY = 78;
 
-export async function storeImage(file: File, optimizeAsJpeg = false) {
+export async function storeImage(file: File, optimizedFormat?: 'jpeg' | 'webp') {
 	const originalExtension = allowedTypes[file.type];
 	if (!originalExtension) throw new Error('Formato de imagen no permitido');
 	if (file.size <= 0 || file.size > 15 * 1024 * 1024) throw new Error('Cada imagen debe pesar menos de 15 MB');
-	if (!optimizeAsJpeg) {
+	if (!optimizedFormat) {
 		const original = Buffer.from(await file.arrayBuffer());
 		const filename = `${randomUUID()}${originalExtension}`;
 		await writeFile(join(uploadsDirectory, filename), original, { flag: 'wx' });
@@ -27,23 +28,25 @@ export async function storeImage(file: File, optimizeAsJpeg = false) {
 	}
 	let optimized: Buffer;
 	try {
-		optimized = await sharp(Buffer.from(await file.arrayBuffer()))
+		const pipeline = sharp(Buffer.from(await file.arrayBuffer()))
 			.rotate()
 			.resize({
 				width: MAX_SAVED_IMAGE_SIZE,
 				height: MAX_SAVED_IMAGE_SIZE,
 				fit: 'inside',
 				withoutEnlargement: true,
-			})
-			.flatten({ background: '#ffffff' })
-			.jpeg({ quality: SAVED_JPEG_QUALITY, progressive: true, mozjpeg: true })
-			.toBuffer();
+			});
+		optimized = optimizedFormat === 'webp'
+			? await pipeline.webp({ quality: SAVED_WEBP_QUALITY, effort: 4 }).toBuffer()
+			: await pipeline.flatten({ background: '#ffffff' }).jpeg({ quality: SAVED_JPEG_QUALITY, progressive: true, mozjpeg: true }).toBuffer();
 	} catch {
 		throw new Error('No se pudo procesar la imagen');
 	}
-	const filename = `${randomUUID()}.jpg`;
+	const extension = optimizedFormat === 'webp' ? '.webp' : '.jpg';
+	const mimeType = optimizedFormat === 'webp' ? 'image/webp' : 'image/jpeg';
+	const filename = `${randomUUID()}${extension}`;
 	await writeFile(join(uploadsDirectory, filename), optimized, { flag: 'wx' });
-	return { filename, mimeType: 'image/jpeg', size: optimized.length };
+	return { filename, mimeType, size: optimized.length };
 }
 
 export async function readStoredImage(filename: string) {

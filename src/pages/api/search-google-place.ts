@@ -22,6 +22,13 @@ type GooglePlace = {
 	allowsDogs?: boolean; goodForGroups?: boolean; goodForWatchingSports?: boolean;
 };
 type PublicPageData = { links: string[]; images: string[]; description: string; keywords: string[]; text: string };
+type RequestedImageSources = { instagramUrl?: string; facebookUrl?: string };
+type RestaurantSearchResult = Record<string, unknown> & {
+	instagramUrl?: string;
+	facebookUrl?: string;
+	imageUrls?: string[];
+	sources?: string[];
+};
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
 const component = (place: GooglePlace, ...types: string[]) => place.addressComponents?.find((item) => types.some((type) => item.types?.includes(type)))?.longText?.trim() ?? '';
@@ -101,6 +108,25 @@ async function pageDataOrEmpty(url: string): Promise<PublicPageData> {
 	try { return await readPublicPage(url); } catch { return { links: [], images: [], description: '', keywords: [], text: '' }; }
 }
 const socialLink = (links: string[], pattern: RegExp) => links.find((link) => pattern.test(link)) ?? '';
+
+async function addRequestedSocialImages(result: RestaurantSearchResult, requested: RequestedImageSources) {
+	const instagramUrl = socialLink([requested.instagramUrl ?? '', result.instagramUrl ?? ''], /(?:^|\.)instagram\.com\//i);
+	const facebookUrl = socialLink([requested.facebookUrl ?? '', result.facebookUrl ?? ''], /(?:^|\.)facebook\.com\//i);
+	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
+	const existingImages = Array.isArray(result.imageUrls) ? result.imageUrls : [];
+	const imageUrls = unique([
+		...existingImages.slice(0, 6),
+		...instagramPage.images.slice(0, 3),
+		...facebookPage.images.slice(0, 3),
+		...existingImages.slice(6),
+	]).slice(0, 12);
+	const sources = unique([
+		...(Array.isArray(result.sources) ? result.sources : []),
+		...(instagramUrl ? ['Instagram'] : []),
+		...(facebookUrl ? ['Facebook'] : []),
+	]);
+	return { ...result, instagramUrl, facebookUrl, imageUrls, sources };
+}
 
 type WokiPlace = {
 	displayName?: string; slug?: string; address?: string; info?: string; subtitle?: string; category?: string; tags?: string[];
@@ -364,12 +390,18 @@ function averagePrice(place: GooglePlace) {
 
 export const POST: APIRoute = async ({ request }) => {
 	try {
-		const body = await request.json() as { name?: string };
+		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string };
 		const name = body.name?.trim() ?? '';
 		if (name.length < 2) return json({ error: 'Ingresá el nombre del lugar que querés buscar' }, 400);
+		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body);
+		const publicFallback = async () => {
+			const fallback = await fallbackWithoutGoogle(name);
+			const enriched = await enrichResult(fallback ?? { name, imageUrls: [], sources: [] });
+			return fallback || enriched.imageUrls.length ? enriched : null;
+		};
 		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 		if (!apiKey) {
-			const fallback = await fallbackWithoutGoogle(name);
+			const fallback = await publicFallback();
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes públicas disponibles` }, 404);
 		}
 
@@ -388,17 +420,17 @@ export const POST: APIRoute = async ({ request }) => {
 				body: JSON.stringify({ textQuery: name, languageCode: 'es', regionCode: 'AR', pageSize: 1 }),
 			});
 		} catch {
-			const fallback = await fallbackWithoutGoogle(name);
+			const fallback = await publicFallback();
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 		const result = await response.json() as { places?: GooglePlace[]; error?: { message?: string } };
 		if (!response.ok) {
-			const fallback = await fallbackWithoutGoogle(name);
+			const fallback = await publicFallback();
 			return fallback ? json(fallback) : json({ error: result.error?.message ?? 'No se pudo completar la búsqueda' }, response.status);
 		}
 		const place = result.places?.[0];
 		if (!place) {
-			const fallback = await fallbackWithoutGoogle(name);
+			const fallback = await publicFallback();
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 
@@ -457,7 +489,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const notes = place.reviewSummary?.text?.text?.trim() || '';
 		const imageUrls = unique([...(place.photos ?? []).slice(0, 8).map((photo) => photo.name ? `/api/google-place-photo?name=${encodeURIComponent(photo.name)}` : ''), wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...officialPage.images, ...wokiPage.images, ...facebookPage.images]).slice(0, 12);
 
-		return json({
+		return json(await enrichResult({
 			name: place.displayName?.text?.trim() || name, description, notes,
 			establishmentTypes: unique([...establishmentTypes, ...detectedEstablishments]).length ? unique([...establishmentTypes, ...detectedEstablishments]) : ['Restaurante'], cuisines, mealTypes, tags,
 			rating: place.rating ? String(Math.min(5, Math.max(1, Math.round(place.rating)))) : '', score: place.rating ? String(place.rating) : '',
@@ -472,6 +504,6 @@ export const POST: APIRoute = async ({ request }) => {
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout), reservations: Boolean(place.reservable),
 			logoUrl: instagramPage.images[0] || '', imageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
-		});
+		}));
 	} catch (error) { return json({ error: error instanceof Error ? error.message : 'No se pudo buscar el lugar en Google' }, 500); }
 };
