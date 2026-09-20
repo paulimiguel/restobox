@@ -647,7 +647,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 
 dialog { width: min(896px, calc(100% - 30px)); max-height: calc(100vh - 30px); padding: 0; border: 0; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 80px rgba(15,30,23,.25); }
 #restaurant-dialog { height: min(760px, calc(100vh - 30px)); overflow: hidden; }
-#restaurant-dialog > form { display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
+#restaurant-dialog > form { position: relative; display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
 #restaurant-dialog > form .tab-panel { min-height: 0; overflow-y: auto; }
 dialog form { max-height: calc(100vh - 30px); overflow-y: auto; }
 dialog::backdrop { background: rgba(15,32,25,.55); backdrop-filter: blur(3px); }
@@ -786,6 +786,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .record-navigation button:not(:disabled):hover { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 12px rgba(33,79,63,.14); transform: translateY(-1px); }
 .record-navigation button:disabled { cursor: default; opacity: .32; }
 .record-navigation svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.form-scroll-navigation { position: absolute; right: 10px; bottom: 74px; z-index: 35; display: flex; flex-direction: column; gap: 7px; pointer-events: none; }
+.form-scroll-navigation button { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: white; background: color-mix(in srgb, var(--forest) 72%, transparent); box-shadow: 0 5px 13px rgba(20,28,24,.2); backdrop-filter: blur(5px); cursor: pointer; pointer-events: auto; transition: background .18s, transform .18s, box-shadow .18s; }
+.form-scroll-navigation button:hover { background: color-mix(in srgb, var(--forest) 88%, transparent); box-shadow: 0 7px 16px rgba(20,28,24,.25); transform: scale(1.05); }
+.form-scroll-navigation button:focus-visible { outline: 3px solid color-mix(in srgb, var(--forest) 24%, transparent); outline-offset: 2px; }
+.form-scroll-navigation svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .icon-button { flex: 0 0 auto; width: 40px; height: 40px; color: var(--button-ink); background: color-mix(in srgb, var(--forest) 72%, white); font-size: 24px; line-height: 1; }
 .icon-button:hover { color: var(--button-ink); background: var(--forest); }
 .form-tabs { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f8f6f0; }
@@ -848,6 +853,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .editing-record #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
 .editing-record #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
 .editing-record #panel-information .schedule-table .schedule-hours-input { height: 24px; font-size: 11px; }
+.editing-record #panel-information .notes-field { margin-top: -6px; }
 #panel-images .form-grid { padding-top: 12px; }
 .form-grid label, .form-field { display: grid; gap: 7px; color: #505852; font-size: 11px; font-weight: 600; }
 .form-field > label { display: block; }
@@ -976,7 +982,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .logo-drop-zone { position: relative; display: grid; min-height: 150px; place-items: center; padding: 6px; border: 1px dashed #c8c9c3; border-radius: 7px; color: var(--muted); background: #faf9f5; overflow: hidden; text-align: center; cursor: pointer; transition: border-color .18s, background .18s; }
 .logo-drop-zone:hover, .logo-drop-zone.dragging { color: var(--forest); border-color: var(--forest); background: var(--sage); }
 .logo-preview { display: grid; width: 100%; height: 100%; min-height: 120px; place-items: center; overflow: hidden; }
-.logo-preview img { width: 78%; height: 78%; object-fit: contain; }
+.logo-preview img { width: 88%; height: 88%; object-fit: contain; }
 .logo-preview svg { width: 22px; }
 .logo-drop-zone small { font-size: 9px; font-weight: 500; }
 .logo-drop-zone.has-logo small { display: none; }

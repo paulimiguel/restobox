@@ -327,6 +327,8 @@ const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-sta
 const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
 const formTabs = document.querySelectorAll<HTMLButtonElement>('[data-form-tab]');
 const tabPanels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
+const scrollFormToTopButton = document.querySelector<HTMLButtonElement>('#scroll-form-to-top')!;
+const scrollFormToBottomButton = document.querySelector<HTMLButtonElement>('#scroll-form-to-bottom')!;
 const dialogTitle = document.querySelector<HTMLHeadingElement>('#dialog-title')!;
 const dialogRecordName = document.querySelector<HTMLElement>('#dialog-record-name')!;
 const viewEditButton = document.querySelector<HTMLButtonElement>('#view-edit-button')!;
@@ -1625,6 +1627,12 @@ function activateFormTab(tabName: string) {
 		tab.tabIndex = active ? 0 : -1;
 	});
 	tabPanels.forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== tabName; });
+}
+
+function scrollActiveFormPanel(toBottom: boolean) {
+	const activePanel = [...tabPanels].find((panel) => !panel.hidden);
+	if (!activePanel) return;
+	activePanel.scrollTo({ top: toBottom ? activePanel.scrollHeight : 0, behavior: 'smooth' });
 }
 
 function updateExternalLink(input: HTMLInputElement, link: HTMLAnchorElement) {
@@ -3436,6 +3444,8 @@ dialog.addEventListener('close', () => {
 	clearPreviewUrls();
 });
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
+scrollFormToTopButton.addEventListener('click', () => scrollActiveFormPanel(false));
+scrollFormToBottomButton.addEventListener('click', () => scrollActiveFormPanel(true));
 openLongTextEditorButtons.forEach((button) => button.addEventListener('click', () => {
 	const opensNotes = button.dataset.openLongTextEditor === 'notes';
 	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
