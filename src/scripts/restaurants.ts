@@ -2315,7 +2315,7 @@ function updateImportRestaurantImagesButton() {
 }
 
 function updateImportRestaurantLogoButton() {
-	importRestaurantLogoButton.disabled = importingRestaurantLogo || !imageBaselineReady;
+	importRestaurantLogoButton.disabled = importingRestaurantLogo || !logoBaselineReady;
 	importRestaurantLogoButton.textContent = importingRestaurantLogo ? 'Importando…' : 'Importar logo';
 }
 
@@ -2624,6 +2624,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 			imageBaselineReady = true;
 			logoBaselineReady = true;
 			updateImportRestaurantImagesButton();
+			updateImportRestaurantLogoButton();
 			updateDirtyState();
 		} catch {
 			if (activeRestaurantId !== restaurant.id) return;
@@ -2633,6 +2634,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 			imageBaselineReady = true;
 			logoBaselineReady = true;
 			updateImportRestaurantImagesButton();
+			updateImportRestaurantLogoButton();
 			updateDirtyState();
 			showToast('No se pudieron cargar las imágenes');
 		}
@@ -2687,7 +2689,7 @@ async function downloadImportedImage(url: string, filename: string, convertToWeb
 
 async function importImagesForEditingRestaurant() {
 	if (!form.classList.contains('editing-record') || importingRestaurantImages) return;
-	if (!imageBaselineReady) {
+	if (!logoBaselineReady) {
 		showToast('Esperá a que terminen de cargar las imágenes actuales');
 		return;
 	}

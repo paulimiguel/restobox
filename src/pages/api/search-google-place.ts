@@ -30,6 +30,7 @@ type RestaurantSearchResult = Record<string, unknown> & {
 	imageUrls?: string[];
 	wokiImageUrls?: string[];
 	googleImageUrls?: string[];
+	publicImageUrls?: string[];
 	sources?: string[];
 };
 
@@ -106,9 +107,33 @@ async function readPublicPage(value: string): Promise<PublicPageData> {
 	return { links: [], images: [], description: '', keywords: [], text: '' };
 }
 
+async function instagramProfileImage(value: string) {
+	try {
+		const profileUrl = new URL(value);
+		if (!/(?:^|\.)instagram\.com$/i.test(profileUrl.hostname)) return '';
+		const username = profileUrl.pathname.split('/').filter(Boolean)[0] ?? '';
+		if (!/^[a-z0-9._]+$/i.test(username)) return '';
+		const embedUrl = await safePublicUrl(`https://www.instagram.com/${encodeURIComponent(username)}/embed/`);
+		const response = await fetch(embedUrl, {
+			redirect: 'manual', signal: AbortSignal.timeout(10_000),
+			headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' },
+		});
+		if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) return '';
+		const html = await response.text();
+		if (html.length > 3_000_000) return '';
+		const match = html.match(/"profile_pic_url":"((?:\\.|[^"\\])+)"/);
+		if (!match) return '';
+		const imageUrl = JSON.parse(`"${match[1]}"`) as string;
+		return (await safePublicUrl(imageUrl)).href;
+	} catch { return ''; }
+}
+
 async function pageDataOrEmpty(url: string): Promise<PublicPageData> {
 	if (!url) return { links: [], images: [], description: '', keywords: [], text: '' };
-	try { return await readPublicPage(url); } catch { return { links: [], images: [], description: '', keywords: [], text: '' }; }
+	try {
+		const [page, profileImage] = await Promise.all([readPublicPage(url), instagramProfileImage(url)]);
+		return { ...page, images: unique([profileImage, ...page.images]) };
+	} catch { return { links: [], images: [], description: '', keywords: [], text: '' }; }
 }
 const socialLink = (links: string[], pattern: RegExp) => links.find((link) => pattern.test(link)) ?? '';
 
@@ -121,17 +146,20 @@ async function addRequestedSocialImages(result: RestaurantSearchResult, requeste
 	if (imagesOnly) {
 		const wokiImageUrls = Array.isArray(result.wokiImageUrls) ? result.wokiImageUrls : [];
 		const googleImageUrls = Array.isArray(result.googleImageUrls) ? result.googleImageUrls : [];
+		const publicImageUrls = Array.isArray(result.publicImageUrls) ? result.publicImageUrls : [];
 		const imageUrls = unique([
 			...wokiImageUrls.slice(0, 3),
 			...googleImageUrls.slice(0, 3),
 			...facebookPage.images.slice(0, 3),
 			...instagramPage.images.slice(1, 4),
+			...publicImageUrls,
 		]).slice(0, 12);
 		const sources = [
 			...(wokiImageUrls.length ? ['Woki'] : []),
 			...(googleImageUrls.length ? ['Google'] : []),
 			...(facebookPage.images.length ? ['Facebook'] : []),
 			...(instagramLogoUrl || instagramPage.images.length > 1 ? ['Instagram'] : []),
+			...(publicImageUrls.length ? ['Fuentes públicas'] : []),
 		];
 		return { ...result, instagramUrl, facebookUrl, logoUrl: instagramLogoUrl, imageUrls, sources };
 	}
@@ -394,6 +422,7 @@ async function publicWebFallback(requestedName: string) {
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
 		delivery: false, takeAway: false, reservations: allLinks.some((link) => /reserv/i.test(link)),
 		logoUrl: instagramPage.images[0] || '', imageUrls: pageImages.slice(0, 12),
+		publicImageUrls: pageImages.filter((imageUrl) => imageUrl !== instagramPage.images[0]),
 		sources: ['Fuentes públicas', ...(openMapPlace ? ['OpenStreetMap'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 	};
 }
