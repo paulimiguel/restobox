@@ -871,7 +871,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .notes-field { gap: 7px; }
 .long-text-field { gap: 7px; }
 .long-text-field-heading { display: flex; min-height: 27px; align-items: center; justify-content: space-between; gap: 12px; }
-.long-text-editor-button { min-height: 27px; padding: 4px 9px; font-size: 10px; }
+.long-text-editor-button { min-height: 27px; justify-self: end; padding: 4px 9px; font-size: 10px; }
 .clearable-control { position: relative; min-width: 0; }
 .clearable-control > input, .clearable-control > select, .clearable-control > textarea { display: block; padding-right: 32px; }
 .clearable-control > select { padding-right: 48px; }
