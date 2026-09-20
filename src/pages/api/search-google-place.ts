@@ -27,6 +27,8 @@ type RestaurantSearchResult = Record<string, unknown> & {
 	instagramUrl?: string;
 	facebookUrl?: string;
 	imageUrls?: string[];
+	wokiImageUrls?: string[];
+	googleImageUrls?: string[];
 	sources?: string[];
 };
 
@@ -109,10 +111,27 @@ async function pageDataOrEmpty(url: string): Promise<PublicPageData> {
 }
 const socialLink = (links: string[], pattern: RegExp) => links.find((link) => pattern.test(link)) ?? '';
 
-async function addRequestedSocialImages(result: RestaurantSearchResult, requested: RequestedImageSources) {
+async function addRequestedSocialImages(result: RestaurantSearchResult, requested: RequestedImageSources, imagesOnly = false) {
 	const instagramUrl = socialLink([requested.instagramUrl ?? '', result.instagramUrl ?? ''], /(?:^|\.)instagram\.com\//i);
 	const facebookUrl = socialLink([requested.facebookUrl ?? '', result.facebookUrl ?? ''], /(?:^|\.)facebook\.com\//i);
 	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
+	if (imagesOnly) {
+		const wokiImageUrls = Array.isArray(result.wokiImageUrls) ? result.wokiImageUrls : [];
+		const googleImageUrls = Array.isArray(result.googleImageUrls) ? result.googleImageUrls : [];
+		const imageUrls = unique([
+			...wokiImageUrls.slice(0, 3),
+			...googleImageUrls.slice(0, 3),
+			...facebookPage.images.slice(0, 3),
+			...instagramPage.images.slice(0, 3),
+		]).slice(0, 12);
+		const sources = [
+			...(wokiImageUrls.length ? ['Woki'] : []),
+			...(googleImageUrls.length ? ['Google'] : []),
+			...(facebookPage.images.length ? ['Facebook'] : []),
+			...(instagramPage.images.length ? ['Instagram'] : []),
+		];
+		return { ...result, instagramUrl, facebookUrl, imageUrls, sources };
+	}
 	const existingImages = Array.isArray(result.imageUrls) ? result.imageUrls : [];
 	const imageUrls = unique([
 		...existingImages.slice(0, 6),
@@ -160,7 +179,7 @@ async function wokiCandidates(country: string, state: string, city: string) {
 }
 
 function matchingWokiPlace(candidates: WokiPlace[], requestedName: string) {
-	const target = normalized(requestedName.split(',')[0]).replace(/[^a-z0-9]+/g, ' ').trim();
+	const target = normalized(requestedName.split(',')[0]).replace(/\brestaurante\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
 	return candidates.find((item) => {
 		const candidate = normalized(item.displayName || item.slug || '').replace(/[^a-z0-9]+/g, ' ').trim();
 		return candidate === target || (candidate.length >= 5 && target.length >= 5 && (candidate.includes(target) || target.includes(candidate)));
@@ -232,6 +251,7 @@ async function wokiFallback(requestedName: string) {
 		delivery: false, takeAway: false, reservations: true,
 		logoUrl: instagramPage.images[0] || place.squareImageUrl || '',
 		imageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images, ...instagramPage.images, ...facebookPage.images]).slice(0, 12),
+		wokiImageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images]),
 		sources: ['Woki', ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 	};
 }
@@ -390,10 +410,10 @@ function averagePrice(place: GooglePlace) {
 
 export const POST: APIRoute = async ({ request }) => {
 	try {
-		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string };
+		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string; mode?: string };
 		const name = body.name?.trim() ?? '';
 		if (name.length < 2) return json({ error: 'Ingresá el nombre del lugar que querés buscar' }, 400);
-		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body);
+		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body, body.mode === 'images');
 		const publicFallback = async () => {
 			const fallback = await fallbackWithoutGoogle(name);
 			const enriched = await enrichResult(fallback ?? { name, imageUrls: [], sources: [] });
@@ -487,7 +507,9 @@ export const POST: APIRoute = async ({ request }) => {
 		const tags = unique([...featureTags, ...officialPage.keywords, ...instagramPage.keywords, ...facebookPage.keywords, ...wokiPage.keywords, ...(wokiMatch?.tags ?? []), ...(place.types ?? []).filter((type) => !ignoredTypes.has(type)).map(titleCase)]).slice(0, 20).join(', ');
 		const description = place.generativeSummary?.overview?.text?.trim() || place.generativeSummary?.description?.text?.trim() || place.editorialSummary?.text?.trim() || officialPage.description || wokiMatch?.info?.trim() || wokiPage.description || '';
 		const notes = place.reviewSummary?.text?.text?.trim() || '';
-		const imageUrls = unique([...(place.photos ?? []).slice(0, 8).map((photo) => photo.name ? `/api/google-place-photo?name=${encodeURIComponent(photo.name)}` : ''), wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...officialPage.images, ...wokiPage.images, ...facebookPage.images]).slice(0, 12);
+		const googleImageUrls = unique((place.photos ?? []).slice(0, 8).map((photo) => photo.name ? `/api/google-place-photo?name=${encodeURIComponent(photo.name)}` : ''));
+		const wokiImageUrls = unique([wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...wokiPage.images]);
+		const imageUrls = unique([...googleImageUrls, ...wokiImageUrls, ...officialPage.images, ...facebookPage.images]).slice(0, 12);
 
 		return json(await enrichResult({
 			name: place.displayName?.text?.trim() || name, description, notes,
@@ -502,7 +524,7 @@ export const POST: APIRoute = async ({ request }) => {
 			mapUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl,
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout), reservations: Boolean(place.reservable),
-			logoUrl: instagramPage.images[0] || '', imageUrls,
+			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));
 	} catch (error) { return json({ error: error instanceof Error ? error.message : 'No se pudo buscar el lugar en Google' }, 500); }

@@ -2694,8 +2694,7 @@ async function importImagesForEditingRestaurant() {
 		showToast('Ingresá el nombre del lugar antes de buscar imágenes');
 		return;
 	}
-	const address = (form.elements.namedItem('address') as HTMLInputElement).value.trim();
-	const city = (form.elements.namedItem('city') as HTMLInputElement).value.trim();
+	const imageSearchName = /\brestaurante\s*$/i.test(name) ? name : `${name} restaurante`;
 	importingRestaurantImages = true;
 	renderImagePreviews();
 	try {
@@ -2703,9 +2702,10 @@ async function importImagesForEditingRestaurant() {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				name: [name, address, city].filter(Boolean).join(', '),
+				name: imageSearchName,
 				instagramUrl: instagramInput.value.trim(),
 				facebookUrl: facebookInput.value.trim(),
+				mode: 'images',
 			}),
 		});
 		const result = await response.json() as ImportedRestaurant & { error?: string };
