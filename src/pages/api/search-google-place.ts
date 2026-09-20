@@ -121,9 +121,10 @@ async function instagramProfileImage(value: string) {
 		if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) return '';
 		const html = await response.text();
 		if (html.length > 3_000_000) return '';
-		const match = html.match(/"profile_pic_url":"((?:\\.|[^"\\])+)"/);
+		const match = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|[^"\\])+)\\?"/);
 		if (!match) return '';
-		const imageUrl = JSON.parse(`"${match[1]}"`) as string;
+		let imageUrl = match[1];
+		for (let level = 0; level < 3 && !/^https?:\/\//i.test(imageUrl); level += 1) imageUrl = JSON.parse(`"${imageUrl}"`) as string;
 		return (await safePublicUrl(imageUrl)).href;
 	} catch { return ''; }
 }
