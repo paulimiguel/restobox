@@ -163,6 +163,9 @@ const cancelNeighborhoodEditor = document.querySelector<HTMLButtonElement>('#can
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
+const pasteSearchButton = document.querySelector<HTMLButtonElement>('#paste-search')!;
+const clearSearchButton = document.querySelector<HTMLButtonElement>('#clear-search')!;
+const quickPlaceFilterButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-place-type]')];
 const directoryOwnerSummary = document.querySelector<HTMLElement>('#directory-owner-summary')!;
 const resultDescription = document.querySelector<HTMLElement>('#result-description')!;
 const directoryActiveFilters = document.querySelector<HTMLElement>('#directory-active-filters')!;
@@ -458,7 +461,8 @@ let selectedTags: string[] = [];
 let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
 let searchTerms: string[] = [];
-let searchScope: 'keyword' | 'name' = 'keyword';
+let searchScope: 'name' | 'category' | 'cuisine' | 'zone' = 'name';
+let quickPlaceType: 'all' | 'restaurant' | 'cafe' = 'all';
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -1982,21 +1986,24 @@ function render() {
 		return;
 	}
 	const normalizedSearchTerms = [...searchTerms, search.value]
-		.map((term) => term.trim().toLocaleLowerCase('es'))
+		.map(neighborhoodImageKey)
 		.filter(Boolean);
-	const keywordSearchTerms = normalizedSearchTerms.flatMap((term) => term.split(/\s+/).filter(Boolean));
 	const filtered = restaurants.filter((restaurant) => {
-		const searchable = [
-			restaurant.name, restaurant.description, restaurant.tags ?? '', restaurant.address, ...(restaurant.branchAddresses ?? []), restaurant.neighborhood, restaurant.country, restaurant.province, restaurant.city,
-			...getRestaurantCuisines(restaurant), ...getRestaurantEstablishmentTypes(restaurant), ...(restaurant.mealTypes ?? []),
-		].map((value) => (value ?? '').toLocaleLowerCase('es'));
-		const normalizedName = restaurant.name.toLocaleLowerCase('es');
-		const matchesTerm = searchScope === 'name'
-			? normalizedSearchTerms.every((term) => normalizedName.includes(term))
-			: keywordSearchTerms.every((term) => searchable.some((value) => value.includes(term)));
 		const restaurantEstablishments = getRestaurantEstablishmentTypes(restaurant);
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
+		const searchValues = (searchScope === 'category'
+			? restaurantEstablishments
+			: searchScope === 'cuisine'
+				? restaurantCuisines
+				: searchScope === 'zone'
+					? [restaurant.neighborhood ?? '']
+					: [restaurant.name]
+		).map(neighborhoodImageKey);
+		const matchesTerm = normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
+		const normalizedEstablishments = restaurantEstablishments.map(neighborhoodImageKey);
+		const matchesQuickType = quickPlaceType === 'all'
+			|| normalizedEstablishments.some((value) => quickPlaceType === 'restaurant' ? value.startsWith('restaur') : value.startsWith('cafe'));
 		const restaurantTagValues = restaurantTags(restaurant).map((tag) => tag.toLocaleLowerCase('es'));
 		const matchesEstablishment = !selectedEstablishmentFilters.size || [...selectedEstablishmentFilters].some((value) => restaurantEstablishments.includes(value));
 		const matchesMeal = !selectedMealFilters.size || [...selectedMealFilters].some((value) => restaurantMeals.includes(value));
@@ -2013,6 +2020,7 @@ function render() {
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
 		return matchesTerm
+			&& matchesQuickType
 			&& matchesEstablishment
 			&& matchesMeal
 			&& matchesCuisine
@@ -2035,6 +2043,7 @@ function render() {
 		return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 	});
 	const isFiltered = normalizedSearchTerms.length > 0
+		|| quickPlaceType !== 'all'
 		|| selectedEstablishmentFilters.size > 0
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
@@ -2067,10 +2076,7 @@ function render() {
 		button.classList.toggle('descending', active && (directorySort === 'recent' || directorySort.endsWith('-desc')));
 		button.setAttribute('aria-pressed', String(active));
 	});
-	resultDescription.textContent = isFiltered
-		? (filtered.length === 1 ? '1 lugar encontrado' : `${filtered.length} lugares encontrados`)
-		: (restaurants.length === 1 ? '1 lugar registrado' : `${restaurants.length} lugares registrados`);
-	directoryOwnerSummary.classList.toggle('is-filtered', isFiltered);
+	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.length} lugares`;
 
 	list.innerHTML = filtered.map((restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
@@ -4140,6 +4146,20 @@ wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
 countryInput.addEventListener('input', updateWhatsAppWebLink);
+function updateSearchInlineActions() {
+	const hasSearchValue = Boolean(search.value.trim());
+	pasteSearchButton.hidden = hasSearchValue;
+	clearSearchButton.hidden = !hasSearchValue;
+}
+
+function updateQuickPlaceFilterButtons() {
+	quickPlaceFilterButtons.forEach((button) => {
+		const active = button.dataset.placeType === quickPlaceType;
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-checked', String(active));
+	});
+}
+
 function renderSearchTerms() {
 	searchTermsList.innerHTML = searchTerms.map((term, index) => `
 		<span class="search-term-chip">
@@ -4153,11 +4173,13 @@ function renderSearchTerms() {
 function clearSearchTerms() {
 	searchTerms = [];
 	search.value = '';
+	updateSearchInlineActions();
 	renderSearchTerms();
 }
 
 search.addEventListener('input', () => {
 	showingCatalog = null;
+	updateSearchInlineActions();
 	render();
 });
 search.addEventListener('keydown', (event) => {
@@ -4167,6 +4189,7 @@ search.addEventListener('keydown', (event) => {
 	if (!term) return;
 	if (!searchTerms.some((item) => item.toLocaleLowerCase('es') === term.toLocaleLowerCase('es'))) searchTerms.push(term);
 	search.value = '';
+	updateSearchInlineActions();
 	renderSearchTerms();
 	render();
 });
@@ -4182,13 +4205,45 @@ clearSearchTermsButton.addEventListener('click', () => {
 	render();
 	search.focus();
 });
+pasteSearchButton.addEventListener('click', async () => {
+	try {
+		const clipboardText = (await navigator.clipboard.readText()).trim().replace(/\s+/g, ' ');
+		if (!clipboardText) {
+			showToast('El portapapeles no contiene texto');
+			return;
+		}
+		search.value = clipboardText;
+		showingCatalog = null;
+		updateSearchInlineActions();
+		render();
+		search.focus();
+	} catch {
+		showToast('El navegador no permitió acceder al portapapeles');
+		search.focus();
+	}
+});
+clearSearchButton.addEventListener('click', () => {
+	search.value = '';
+	updateSearchInlineActions();
+	render();
+	search.focus();
+});
 searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
-	searchScope = button.dataset.searchScope === 'name' ? 'name' : 'keyword';
+	const nextScope = button.dataset.searchScope;
+	if (nextScope === 'name' || nextScope === 'category' || nextScope === 'cuisine' || nextScope === 'zone') searchScope = nextScope;
 	searchScopeButtons.forEach((option) => {
 		const active = option.dataset.searchScope === searchScope;
 		option.classList.toggle('active', active);
 		option.setAttribute('aria-checked', String(active));
 	});
+	render();
+}));
+quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () => {
+	const nextType = button.dataset.placeType;
+	if (nextType === 'all') quickPlaceType = 'all';
+	else if (nextType === 'restaurant' || nextType === 'cafe') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
+	showingCatalog = null;
+	updateQuickPlaceFilterButtons();
 	render();
 }));
 directoryFilterPanel.addEventListener('change', (event) => {
@@ -4278,6 +4333,8 @@ takeAwayFilterButton.addEventListener('click', () => {
 	render();
 });
 function clearDirectoryFilterSelections() {
+	quickPlaceType = 'all';
+	updateQuickPlaceFilterButtons();
 	selectedEstablishmentFilters.clear();
 	selectedMealFilters.clear();
 	selectedCuisineFilters.clear();
