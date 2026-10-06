@@ -15,7 +15,7 @@ type GooglePlace = {
 	rating?: number; priceLevel?: string; priceRange?: { startPrice?: GoogleMoney; endPrice?: GoogleMoney };
 	types?: string[]; primaryType?: string; editorialSummary?: GoogleText;
 	generativeSummary?: { overview?: GoogleText; description?: GoogleText }; reviewSummary?: { text?: GoogleText };
-	photos?: Array<{ name?: string }>; delivery?: boolean; takeout?: boolean; reservable?: boolean;
+	photos?: Array<{ name?: string }>; delivery?: boolean; takeout?: boolean;
 	servesBreakfast?: boolean; servesBrunch?: boolean; servesLunch?: boolean; servesDinner?: boolean;
 	servesBeer?: boolean; servesWine?: boolean; servesCocktails?: boolean; servesDessert?: boolean; servesCoffee?: boolean;
 	servesVegetarianFood?: boolean; outdoorSeating?: boolean; liveMusic?: boolean; goodForChildren?: boolean;
@@ -280,7 +280,7 @@ async function wokiFallback(requestedName: string) {
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl,
 		tripAdvisorUrl: socialLink(allLinks, /(?:^|\.)tripadvisor\./i), linktreeUrl: socialLink(allLinks, /(?:^|\.)linktr\.ee\//i),
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
-		delivery: false, takeAway: false, reservations: true,
+		delivery: false, takeAway: false,
 		logoUrl: instagramPage.images[0] || place.squareImageUrl || '',
 		imageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images, ...instagramPage.images, ...facebookPage.images]).slice(0, 12),
 		wokiImageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images]),
@@ -421,7 +421,7 @@ async function publicWebFallback(requestedName: string) {
 		mapUrl: googleUrl || openMapUrl, hours: '',
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl: socialLink(allLinks, /(?:^|\.)wokiapp\.com\//i), tripAdvisorUrl, linktreeUrl,
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
-		delivery: false, takeAway: false, reservations: allLinks.some((link) => /reserv/i.test(link)),
+		delivery: false, takeAway: false,
 		logoUrl: instagramPage.images[0] || '', imageUrls: pageImages.slice(0, 12),
 		publicImageUrls: pageImages.filter((imageUrl) => imageUrl !== instagramPage.images[0]),
 		sources: ['Fuentes públicas', ...(openMapPlace ? ['OpenStreetMap'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
@@ -468,7 +468,7 @@ export const POST: APIRoute = async ({ request }) => {
 			'id', 'displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'internationalPhoneNumber',
 			'websiteUri', 'googleMapsUri', 'googleMapsLinks', 'regularOpeningHours', 'rating', 'priceLevel', 'priceRange',
 			'types', 'primaryType', 'editorialSummary', 'generativeSummary', 'reviewSummary', 'photos', 'delivery', 'takeout',
-			'reservable', 'servesBreakfast', 'servesBrunch', 'servesLunch', 'servesDinner', 'servesBeer', 'servesWine',
+			'servesBreakfast', 'servesBrunch', 'servesLunch', 'servesDinner', 'servesBeer', 'servesWine',
 			'servesCocktails', 'servesDessert', 'servesCoffee', 'servesVegetarianFood', 'outdoorSeating', 'liveMusic',
 			'goodForChildren', 'allowsDogs', 'goodForGroups', 'goodForWatchingSports',
 		].map((field) => `places.${field}`).join(',');
@@ -562,7 +562,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout), reservations: Boolean(place.reservable),
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout),
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));

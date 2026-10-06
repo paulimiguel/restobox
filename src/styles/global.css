@@ -1045,8 +1045,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .primary-image-edit:hover { background: var(--forest); }
 .lead-data { display: grid; gap: 13px; }
 .lead-contacts { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
-.lead-contacts .reservations-check-control { display: flex; width: fit-content; min-height: 30px; grid-column: 1; gap: 7px; padding: 5px 9px; font-size: 11px; }
-.view-status-row { display: none; }
+.place-kind-options { display: grid; min-width: 0; grid-column: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.place-kind-options .boolean-check-control { display: inline-flex; width: 100%; min-width: 0; min-height: 30px; flex-direction: row; align-items: center; gap: 7px; padding: 5px 9px; font-size: 11px; white-space: nowrap; }
+.view-personal-statuses { display: none; }
 .location-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 27px; border-top: 1px solid var(--line); background: #f8f6f0; }
 .dialog-actions .primary-button { min-height: 40px; }
@@ -1067,18 +1068,21 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-general .primary-image-preview { width: 210px; }
 .view-mode #panel-general .lead-data { gap: 0; }
 .view-mode #panel-general .lead-contacts { grid-template-columns: 1fr; gap: 0; }
-.view-mode #panel-general .reservations-check-control { display: flex; min-height: 37px; align-items: center; gap: 7px; padding: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); background: transparent; font-size: 14px; font-weight: 500; }
-.view-mode #panel-general .reservations-check-control:not(:has(input:checked)) { display: none; }
-.view-mode #panel-general .reservations-check-control input { display: none; }
-.view-mode #panel-general .reservations-check-control::before { content: '✓'; color: #22a95b; font-size: 18px; font-weight: 800; line-height: 1; }
+.view-mode #panel-general .lead-contacts > .form-field { order: 1; }
+.view-mode #panel-general .place-kind-options { width: 231px; min-height: 37px; order: 2; align-items: center; gap: 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-general .place-kind-options .boolean-check-control { display: inline-flex; min-height: 0; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; font-size: 13px; font-weight: 600; }
+.view-mode #panel-general .place-kind-options .boolean-check-control:not(:has(input:checked)) { display: none; }
+.view-mode #panel-general .place-kind-options:not(:has(input:checked)) { display: none; }
+.view-mode #panel-general .view-personal-statuses { display: flex; min-height: 37px; order: 3; align-items: center; gap: 18px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-general .view-personal-statuses:not(:has(strong:not([hidden]))) { display: none; }
+.view-mode #panel-general .view-personal-statuses strong { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; }
+.view-mode #panel-general .view-personal-statuses strong[hidden] { display: none; }
+.view-mode #panel-general .lead-contacts > label { order: 4; }
 .view-mode #panel-general label, .view-mode #panel-general .form-field { display: grid; grid-template-columns: 155px minmax(0, 1fr); min-height: 37px; align-items: center; gap: 11px; font-size: 13px; }
 .view-mode #panel-general .form-field > label { display: block; min-height: 0; }
 .view-mode #panel-general .lead-data > label, .view-mode #panel-general .lead-contacts > label, .view-mode #panel-general .lead-contacts > .form-field { border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
-.view-mode #panel-general .view-status-row { display: flex; min-height: 37px; align-items: center; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
-.view-mode #panel-general .view-status-row[hidden] { display: none; }
-.view-mode #panel-general .view-status-row strong { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; }
-.view-mode #panel-general .view-status-row svg { width: 18px; }
-.view-mode #panel-general .view-status-row .checked-icon { width: 20px; height: 20px; }
+.view-mode #panel-general .view-personal-statuses svg { width: 18px; }
+.view-mode #panel-general .view-personal-statuses .checked-icon { width: 20px; height: 20px; }
 .view-mode #panel-general .favorite-status { color: #ef4444; }
 .view-mode #panel-general .favorite-status svg { fill: currentColor; }
 .view-mode #panel-general .visited-status { color: #22a95b; }

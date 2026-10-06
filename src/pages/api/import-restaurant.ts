@@ -99,14 +99,6 @@ function uniqueValues(values: string[]) {
 		.map((value) => [normalizedText(value), value])).values()];
 }
 
-function schemaBoolean(value: unknown): boolean | undefined {
-	if (typeof value === 'boolean') return value;
-	const normalized = normalizedText(text(value));
-	if (['true', '1', 'yes', 'si'].includes(normalized)) return true;
-	if (['false', '0', 'no'].includes(normalized)) return false;
-	return undefined;
-}
-
 function hasTypedAction(value: unknown, actionType: string) {
 	return collectNodes(value).some((node) => typesOf(node).includes(actionType));
 }
@@ -303,8 +295,6 @@ export const POST: APIRoute = async ({ request }) => {
 		const delivery = hasTypedAction(schema.potentialAction, 'OrderAction')
 			|| /\b(delivery|envios? a domicilio|entrega a domicilio)\b/.test(normalizedPageText);
 		const takeAway = /\b(take[ -]?away|takeout|para llevar|retiro por (?:el )?local|retir[ao] en (?:el )?local|pick[ -]?up)\b/.test(normalizedPageText);
-		const reservations = schemaBoolean(schema.acceptsReservations)
-			?? (hasTypedAction(schema.potentialAction, 'ReserveAction') || /\b(reservas?|reservar|reserva tu mesa|book a table)\b/.test(normalizedPageText));
 		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
 		return json({
 			name: text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim(),
@@ -336,7 +326,6 @@ export const POST: APIRoute = async ({ request }) => {
 			delivery,
 			takeAway,
 			glutenFree,
-			reservations,
 			sourceUrl: finalUrl.href,
 		});
 	} catch (error) {

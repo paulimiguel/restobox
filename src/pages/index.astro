@@ -371,10 +371,15 @@ const userInitials = userDisplayName
 										</div>
 									</div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
-									<label class="boolean-check-control reservations-check-control"><input name="reservations" type="checkbox" /><span>Reservas</span></label>
-									<div id="view-favorite-status" class="view-status-row" hidden><strong class="favorite-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong></div>
-									<div id="view-visited-status" class="view-status-row" hidden><strong class="visited-status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong></div>
-									<div id="view-checked-status" class="view-status-row" hidden><strong class="checked-status"><span class="checked-icon" aria-hidden="true"></span>Checked</strong></div>
+									<div class="place-kind-options" aria-label="Tipo de lugar">
+										<label class="boolean-check-control"><input name="placeRestaurant" type="checkbox" /><span>Restaurante</span></label>
+										<label class="boolean-check-control"><input name="placeCafe" type="checkbox" /><span>Café</span></label>
+									</div>
+									<div class="view-personal-statuses" aria-label="Estado del lugar">
+										<strong id="view-favorite-status" class="favorite-status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong>
+										<strong id="view-visited-status" class="visited-status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitado</strong>
+										<strong id="view-checked-status" class="checked-status" hidden><span class="checked-icon" aria-hidden="true"></span>Checked</strong>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -718,7 +723,7 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
 				<label for="excel-import-file">Planilla</label>
 				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
-				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Reservas, Rate, Puntuación Google, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Rate, Puntuación Google, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
 				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div id="excel-import-preview" class="excel-import-preview" hidden>
 					<strong id="excel-import-summary"></strong>
@@ -756,7 +761,6 @@ const userInitials = userDisplayName
 					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
 					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
 					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
-					<label><span>Reservas</span><select name="reservations"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field"><span>Servicios</span><div id="bulk-service-options" class="bulk-choice-list"></div></div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Tipo de cocina</span>
