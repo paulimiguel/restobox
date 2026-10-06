@@ -264,14 +264,18 @@ async function wokiFallback(requestedName: string) {
 	const facebookUrl = socialLink(page.links, /(?:^|\.)facebook\.com\//i);
 	const tiktokUrl = socialLink(page.links, /(?:^|\.)tiktok\.com\//i);
 	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
-	const detected = detectedPublicValues([place.category, place.info, place.subtitle, ...(place.tags ?? []), page.description, page.text, instagramPage.description, facebookPage.description].filter(Boolean).join(' '));
+	const detected = detectedPublicValues([
+		place.category, place.info, place.subtitle, ...(place.tags ?? []),
+		page.description, ...page.keywords,
+		instagramPage.description, ...instagramPage.keywords,
+	].filter(Boolean).join(' '));
 	const allLinks = unique([...page.links, ...instagramPage.links, ...facebookPage.links]);
 	const whatsappUrl = socialLink(allLinks, /(?:wa\.me|whatsapp\.com)/i);
 	let mobile = '';
 	if (whatsappUrl) { const parsed = new URL(whatsappUrl); mobile = parsed.hostname.includes('wa.me') ? parsed.pathname.replace(/\D/g, '') : (parsed.searchParams.get('phone') ?? '').replace(/\D/g, ''); }
 	return {
 		name: place.displayName || requestedName.split(',')[0].trim(), description: place.info || page.description || '', notes: '',
-		establishmentTypes: unique([place.category || '', ...detected.establishments]), cuisines: detected.cuisines, mealTypes: detected.meals,
+		establishmentTypes: detected.establishments, cuisines: detected.cuisines, mealTypes: detected.meals,
 		tags: unique([...(place.tags ?? []), ...page.keywords, ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
 		price: /^\${1,4}$/.test(place.price || '') ? place.price : '', averagePrice: '', rating: '', score: '',
 		country: place.zones?.country?.name || 'Argentina', province: place.zones?.state?.name || '', city: place.zones?.city?.name || '',
@@ -388,28 +392,34 @@ async function publicWebFallback(requestedName: string) {
 		}
 		catch { return false; }
 	}) ?? '';
-	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
+	const wokiUrl = socialLink(allLinks, /(?:^|\.)wokiapp\.com\//i);
+	const [instagramPage, facebookPage, officialPage, wokiPage] = await Promise.all([
+		pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl), pageDataOrEmpty(website), pageDataOrEmpty(wokiUrl),
+	]);
 	const sourceText = [
 		...results.flatMap((result) => [result.title, result.snippet]),
 		...pages.flatMap((page) => [page.description, page.text, ...page.keywords]),
 		instagramPage.description, facebookPage.description,
 	].filter(Boolean).join(' ');
-	const detected = detectedPublicValues(sourceText);
+	const trustedClassificationText = [
+		officialPage.description, ...officialPage.keywords,
+		instagramPage.description, ...instagramPage.keywords,
+		wokiPage.description, ...wokiPage.keywords,
+	].filter(Boolean).join(' ');
+	const detected = detectedPublicValues(trustedClassificationText);
 	const properties = openMapPlace?.properties;
 	const mapAddress = [properties?.street, properties?.housenumber].filter(Boolean).join(' ');
 	const publicAddress = addressFromPublicText(sourceText);
 	const address = properties?.housenumber ? mapAddress : publicAddress || mapAddress;
 	const coordinates = openMapPlace?.geometry?.coordinates;
 	const openMapUrl = coordinates?.length === 2 ? `https://www.openstreetmap.org/?mlat=${coordinates[1]}&mlon=${coordinates[0]}#map=18/${coordinates[1]}/${coordinates[0]}` : '';
-	const establishmentByMapType: Record<string, string> = { restaurant: 'Restaurante', cafe: 'Café', bar: 'Bar', pub: 'Pub', bakery: 'Panadería', ice_cream: 'Heladería' };
-	const mapEstablishment = establishmentByMapType[properties?.osm_value ?? ''] ?? '';
 	const descriptions = unique([...pages.map((page) => page.description), ...results.map((result) => result.snippet)]).filter((value) => value.length >= 30);
 	const pageImages = unique([...instagramPage.images, ...pages.flatMap((page) => page.images), ...facebookPage.images]);
 	const inferredMarDelPlata = normalized(sourceText).includes('mar del plata') || normalized(requestedName).includes('mar del plata');
 	return {
 		name: properties?.name || requestedPlaceName(requestedName).replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es')),
 		description: descriptions[0] || '', notes: '',
-		establishmentTypes: unique([mapEstablishment, ...detected.establishments]).length ? unique([mapEstablishment, ...detected.establishments]) : ['Restaurante'],
+		establishmentTypes: detected.establishments,
 		cuisines: detected.cuisines, mealTypes: detected.meals,
 		tags: unique([...pages.flatMap((page) => page.keywords), ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
 		price: '', averagePrice: '', rating: '', score: '',
@@ -419,7 +429,7 @@ async function publicWebFallback(requestedName: string) {
 		phone: '', mobile: '', website,
 		googleUrl: googleSearchUrl(properties?.name || requestedPlaceName(requestedName), address, properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), properties?.state),
 		mapUrl: googleUrl || openMapUrl, hours: '',
-		instagramUrl, facebookUrl, tiktokUrl, wokiUrl: socialLink(allLinks, /(?:^|\.)wokiapp\.com\//i), tripAdvisorUrl, linktreeUrl,
+		instagramUrl, facebookUrl, tiktokUrl, wokiUrl, tripAdvisorUrl, linktreeUrl,
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
 		delivery: false, takeAway: false,
 		logoUrl: instagramPage.images[0] || '', imageUrls: pageImages.slice(0, 12),
@@ -525,16 +535,20 @@ export const POST: APIRoute = async ({ request }) => {
 			thai_restaurant: 'Tailandesa', turkish_restaurant: 'Turca', vegan_restaurant: 'Vegana', vegetarian_restaurant: 'Vegetariana', vietnamese_restaurant: 'Vietnamita',
 		};
 		const establishmentTypes = unique((place.types ?? []).map((type) => establishmentMap[type]).filter(Boolean));
-		const sourceText = normalized([officialPage, instagramPage, facebookPage, wokiPage].flatMap((page) => [page.description, page.text, ...page.keywords]).join(' '));
-		const enrichedSourceText = `${sourceText} ${normalized([wokiMatch?.category, wokiMatch?.info, wokiMatch?.subtitle, ...(wokiMatch?.tags ?? [])].filter(Boolean).join(' '))}`;
-		const detectedEstablishments = Object.entries({ Restaurante: /\brestaurante\b/, Café: /\bcafe\b|coffee shop/, Bar: /\bbar\b/, Pub: /\bpub\b/, Panadería: /\bpanaderia\b|bakery/, Heladería: /\bheladeria\b|ice cream/, Cervecería: /\bcerveceria\b|brewery/ }).filter(([, pattern]) => pattern.test(enrichedSourceText)).map(([value]) => value);
+		const trustedClassificationText = normalized([
+			officialPage.description, ...officialPage.keywords,
+			instagramPage.description, ...instagramPage.keywords,
+			wokiPage.description, ...wokiPage.keywords,
+			wokiMatch?.category, wokiMatch?.info, wokiMatch?.subtitle, ...(wokiMatch?.tags ?? []),
+		].filter(Boolean).join(' '));
+		const detectedEstablishments = Object.entries({ Restaurante: /\brestaurante\b/, Café: /\bcafe\b|coffee shop/, Bar: /\bbar\b/, Pub: /\bpub\b/, Panadería: /\bpanaderia\b|bakery/, Heladería: /\bheladeria\b|ice cream/, Cervecería: /\bcerveceria\b|brewery/ }).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value);
 		const cuisineTerms: Record<string, RegExp> = {
 			Pastas: /\bpastas?\b/, Parrilla: /\bparrilla\b|steak/, Pizzas: /\bpizzas?\b/, Sushi: /\bsushi\b/, Mariscos: /\bmariscos?\b|seafood/,
 			Argentina: /\bargentin[ao]\b/, Italiana: /\bitalian[ao]\b/, Japonesa: /\bjapones[ao]\b/, Peruana: /\bperuan[ao]\b/,
 			Mexicana: /\bmexican[ao]\b/, Mediterránea: /\bmediterrane[ao]\b/, Vegana: /\bvegan[ao]\b/, Vegetariana: /\bvegetarian[ao]\b/,
 		};
-		const cuisines = unique([...(place.types ?? []).map((type) => cuisineMap[type]).filter(Boolean), ...Object.entries(cuisineTerms).filter(([, pattern]) => pattern.test(enrichedSourceText)).map(([value]) => value)]);
-		const sourceMeals = Object.entries({ Desayuno: /\bdesayuno\b|breakfast/, Brunch: /\bbrunch\b/, Almuerzo: /\balmuerzo\b|lunch/, Merienda: /\bmerienda\b/, Cena: /\bcena\b|dinner/, Drunch: /\bdrunch\b/, 'After dinner': /after dinner/, Poscena: /\bposcena\b/ }).filter(([, pattern]) => pattern.test(enrichedSourceText)).map(([value]) => value);
+		const cuisines = unique([...(place.types ?? []).map((type) => cuisineMap[type]).filter(Boolean), ...Object.entries(cuisineTerms).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value)]);
+		const sourceMeals = Object.entries({ Desayuno: /\bdesayuno\b|breakfast/, Brunch: /\bbrunch\b/, Almuerzo: /\balmuerzo\b|lunch/, Merienda: /\bmerienda\b/, Cena: /\bcena\b|dinner/, Drunch: /\bdrunch\b/, 'After dinner': /after dinner/, Poscena: /\bposcena\b/ }).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value);
 		const mealTypes = unique([...(place.servesBreakfast ? ['Desayuno'] : []), ...(place.servesBrunch ? ['Brunch'] : []), ...(place.servesLunch ? ['Almuerzo'] : []), ...(place.servesDinner ? ['Cena'] : []), ...sourceMeals]);
 		const featureTags = [
 			...(place.servesBeer ? ['Cerveza'] : []), ...(place.servesWine ? ['Vinos'] : []), ...(place.servesCocktails ? ['Coctelería'] : []),
@@ -552,7 +566,7 @@ export const POST: APIRoute = async ({ request }) => {
 
 		return json(await enrichResult({
 			name: place.displayName?.text?.trim() || name, description, notes,
-			establishmentTypes: unique([...establishmentTypes, ...detectedEstablishments]).length ? unique([...establishmentTypes, ...detectedEstablishments]) : ['Restaurante'], cuisines, mealTypes, tags,
+			establishmentTypes: unique([...establishmentTypes, ...detectedEstablishments]), cuisines, mealTypes, tags,
 			rating: place.rating ? String(Math.min(5, Math.max(1, Math.round(place.rating)))) : '', score: place.rating ? String(place.rating) : '',
 			price: priceMap[place.priceLevel ?? ''] ?? wokiMatch?.price ?? '', averagePrice: averagePrice(place),
 			country: component(place, 'country'), province: component(place, 'administrative_area_level_1'), city: component(place, 'locality', 'administrative_area_level_2'),

@@ -691,6 +691,13 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .excel-preview-table-wrap tr.is-invalid td { color: #8a3e36; background: #fff6f4; }
 .excel-preview-table-wrap td:nth-child(2) { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
 .name-import-dialog { width: min(500px, calc(100% - 30px)); }
+.txt-import-dialog { width: min(500px, calc(100% - 30px)); }
+.txt-import-dialog input[type="file"] { height: auto; padding: 10px 12px; }
+.name-import-text-actions { display: flex; justify-content: flex-end; gap: 4px; }
+.name-import-text-actions button { min-height: 24px; padding: 3px 7px; border-radius: 6px; font-size: 9px; line-height: 1; text-transform: uppercase; }
+.import-name-button { width: 100%; margin-top: 6px; }
+.import-place-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 6px; }
+.import-place-methods button { min-width: 0; padding-right: 8px; padding-left: 8px; white-space: normal; }
 .long-text-editor-dialog { width: min(720px, calc(100% - 30px)); }
 .long-text-editor-dialog form { max-height: min(760px, calc(100dvh - 30px)); }
 .long-text-editor-dialog textarea { min-height: min(430px, calc(100dvh - 210px)); font-size: 14px; line-height: 1.65; }
@@ -772,7 +779,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .extension-steps small { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .extension-steps code { padding: 2px 5px; border-radius: 4px; background: var(--sage); }
 .extension-dialog .mini-dialog-actions { margin-top: 2px; }
-.url-import-actions #clear-url-import { margin-right: auto; }
 .manage-list-content { display: grid; gap: 10px; padding: 25px; }
 .manage-list-content h2 { margin-bottom: 0; }
 .manage-list-content > p { margin: 0 0 3px; color: var(--muted); font-size: 11px; }

@@ -241,7 +241,9 @@ const mobileServiceOptions = document.querySelector<HTMLDivElement>('#mobile-ser
 const mobileCuisineOptions = document.querySelector<HTMLDivElement>('#mobile-cuisine-options')!;
 const mobileNeighborhoodOptions = document.querySelector<HTMLDivElement>('#mobile-neighborhood-options')!;
 const showCatalogButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-show-catalog]')];
-const toolbarImportUrl = document.querySelector<HTMLButtonElement>('#toolbar-import-url')!;
+const openImportPlaceButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-import-place]')];
+const openUrlImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-url-import]')];
+const openTxtImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-txt-import]')];
 const openExcelImportButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-excel-import]')];
 const cuisineSelect = document.querySelector<HTMLInputElement>('#cuisine')!;
 const cuisineCombobox = document.querySelector<HTMLDivElement>('#cuisine-combobox')!;
@@ -346,7 +348,6 @@ const updateDataButton = document.querySelector<HTMLButtonElement>('#update-data
 const toast = document.querySelector<HTMLDivElement>('#toast')!;
 const pasteScheduleHoursButton = document.querySelector<HTMLButtonElement>('#paste-schedule-hours')!;
 const clearScheduleHoursButton = document.querySelector<HTMLButtonElement>('#clear-schedule-hours')!;
-const openUrlImportButton = document.querySelector<HTMLButtonElement>('#open-url-import')!;
 const urlImportDialog = document.querySelector<HTMLDialogElement>('#url-import-dialog')!;
 const urlImportForm = document.querySelector<HTMLFormElement>('#url-import-form')!;
 const restaurantSourceUrl = document.querySelector<HTMLTextAreaElement>('#restaurant-source-url')!;
@@ -359,9 +360,18 @@ const urlImportProgress = document.querySelector<HTMLDivElement>('#url-import-pr
 const nameImportDialog = document.querySelector<HTMLDialogElement>('#name-import-dialog')!;
 const nameImportForm = document.querySelector<HTMLFormElement>('#name-import-form')!;
 const placeSearchName = document.querySelector<HTMLTextAreaElement>('#place-search-name')!;
+const pasteNameImport = document.querySelector<HTMLButtonElement>('#paste-name-import')!;
+const clearNameImport = document.querySelector<HTMLButtonElement>('#clear-name-import')!;
 const nameImportProgress = document.querySelector<HTMLDivElement>('#name-import-progress')!;
 const cancelNameImport = document.querySelector<HTMLButtonElement>('#cancel-name-import')!;
 const searchNameImport = document.querySelector<HTMLButtonElement>('#search-name-import')!;
+const finishNameImport = document.querySelector<HTMLButtonElement>('#finish-name-import')!;
+const txtImportDialog = document.querySelector<HTMLDialogElement>('#txt-import-dialog')!;
+const txtImportForm = document.querySelector<HTMLFormElement>('#txt-import-form')!;
+const txtImportFile = document.querySelector<HTMLInputElement>('#txt-import-file')!;
+const txtImportProgress = document.querySelector<HTMLDivElement>('#txt-import-progress')!;
+const cancelTxtImport = document.querySelector<HTMLButtonElement>('#cancel-txt-import')!;
+const importTxtButton = document.querySelector<HTMLButtonElement>('#import-txt-button')!;
 const excelImportDialog = document.querySelector<HTMLDialogElement>('#excel-import-dialog')!;
 const excelImportForm = document.querySelector<HTMLFormElement>('#excel-import-form')!;
 const excelImportFile = document.querySelector<HTMLInputElement>('#excel-import-file')!;
@@ -2838,12 +2848,43 @@ async function fetchImportedRestaurant(url: string) {
 	const result = await response.json() as ImportedRestaurant & { error?: string };
 	if (!response.ok) throw new Error(result.error || 'No se pudo leer la página');
 	if (!result.collectionUrls?.length && !result.name?.trim()) throw new Error('La página no publica un nombre de restaurante reconocible');
+	let sourceUrl: URL | null = null;
+	try { sourceUrl = new URL(url); } catch { /* La API ya valida la URL. */ }
+	if (sourceUrl && /(?:^|\.)instagram\.com$/i.test(sourceUrl.hostname) && result.name?.trim()) {
+		const username = sourceUrl.pathname.split('/').filter(Boolean)[0] ?? '';
+		const instagramUrl = /^[a-z0-9._]+$/i.test(username) && !/^(?:p|reel|reels|stories|explore|accounts)$/i.test(username)
+			? `${sourceUrl.origin}/${username}/`
+			: sourceUrl.href;
+		try {
+			const googleResponse = await fetch('/api/search-google-place', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ name: result.name.trim(), instagramUrl }),
+			});
+			if (googleResponse.ok) {
+				const googleResult = await googleResponse.json() as ImportedRestaurant;
+				let googleWebsite = googleResult.website?.trim() ?? '';
+				try {
+					if (googleWebsite && /(?:^|\.)instagram\.com$/i.test(new URL(googleWebsite).hostname)) googleWebsite = '';
+				} catch { googleWebsite = ''; }
+				return {
+					...result,
+					...googleResult,
+					instagramUrl,
+					website: googleWebsite,
+					logoUrl: result.logoUrl || googleResult.logoUrl,
+					sourceUrl: result.sourceUrl || url,
+				};
+			}
+		} catch { /* Si Google no puede completar el lugar, se conservan los datos de Instagram. */ }
+		return { ...result, instagramUrl, website: '', sourceUrl: result.sourceUrl || url };
+	}
 	return result;
 }
 
 async function saveImportedRestaurant(imported: ImportedRestaurant) {
 	const restaurantId = crypto.randomUUID();
-	const establishmentTypesForImport = valuesFromExistingCatalog((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean), establishmentTypes);
+	const establishmentTypesForImport = valuesFromExistingCatalog((imported.establishmentTypes ?? []).filter(Boolean), establishmentTypes);
 	const cuisinesForImport = valuesFromExistingCatalog((imported.cuisines ?? []).filter(Boolean), cuisines);
 	const servicesForImport = valuesFromExistingCatalog((imported.mealTypes ?? []).filter(Boolean), serviceTypes);
 	const tagsForImport = valuesFromExistingCatalog(imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [], tagCatalog);
@@ -2974,7 +3015,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	(form.elements.namedItem('delivery') as HTMLInputElement).checked = Boolean(imported.delivery);
 	(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(imported.takeAway);
 	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
-	selectedEstablishments = valuesFromExistingCatalog((imported.establishmentTypes ?? ['Restaurante']).filter(Boolean), establishmentTypes);
+	selectedEstablishments = valuesFromExistingCatalog((imported.establishmentTypes ?? []).filter(Boolean), establishmentTypes);
 	selectedEstablishments.forEach((type) => {
 		if (!establishmentTypes.some((item) => item.toLocaleLowerCase('es') === type.toLocaleLowerCase('es'))) establishmentTypes.push(type);
 		removedEstablishmentTypes = removedEstablishmentTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
@@ -3025,18 +3066,53 @@ document.querySelectorAll<HTMLElement>('[data-open-form]').forEach((button) => b
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	void openForm();
 }));
-document.querySelectorAll<HTMLButtonElement>('[data-open-name-import]').forEach((button) => button.addEventListener('click', () => {
-	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+function openImportPlaceDialog() {
 	nameImportForm.reset();
 	nameImportProgress.hidden = true;
 	nameImportProgress.classList.remove('is-error');
 	nameImportProgress.textContent = '';
 	searchNameImport.disabled = false;
+	pasteNameImport.disabled = false;
+	clearNameImport.disabled = false;
+	cancelNameImport.disabled = false;
+	finishNameImport.disabled = false;
 	searchNameImport.textContent = 'Importar';
 	nameImportDialog.showModal();
 	window.setTimeout(() => placeSearchName.focus(), 50);
+}
+
+openImportPlaceButtons.forEach((button) => button.addEventListener('click', () => {
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	openImportPlaceDialog();
 }));
 cancelNameImport.addEventListener('click', () => nameImportDialog.close());
+finishNameImport.addEventListener('click', () => nameImportDialog.close());
+pasteNameImport.addEventListener('click', async () => {
+	try {
+		const clipboardText = await navigator.clipboard.readText();
+		if (!clipboardText.trim()) {
+			showToast('El portapapeles no contiene texto');
+			return;
+		}
+		const start = placeSearchName.selectionStart ?? placeSearchName.value.length;
+		const end = placeSearchName.selectionEnd ?? start;
+		placeSearchName.setRangeText(clipboardText, start, end, 'end');
+		placeSearchName.dispatchEvent(new Event('input', { bubbles: true }));
+		placeSearchName.focus();
+		showToast('Texto pegado');
+	} catch {
+		showToast('El navegador no permitió acceder al portapapeles');
+	}
+});
+clearNameImport.addEventListener('click', () => {
+	placeSearchName.value = '';
+	placeSearchName.dispatchEvent(new Event('input', { bubbles: true }));
+	nameImportProgress.hidden = true;
+	nameImportProgress.classList.remove('is-error');
+	nameImportProgress.textContent = '';
+	placeSearchName.focus();
+	showToast('Texto borrado');
+});
 nameImportForm.addEventListener('submit', async (event) => {
 	event.preventDefault();
 	const names = [...new Set(placeSearchName.value.split(/\r?\n/).map((name) => name.trim()).filter(Boolean))].slice(0, 50);
@@ -3048,7 +3124,10 @@ nameImportForm.addEventListener('submit', async (event) => {
 		return;
 	}
 	searchNameImport.disabled = true;
+	pasteNameImport.disabled = true;
+	clearNameImport.disabled = true;
 	cancelNameImport.disabled = true;
+	finishNameImport.disabled = true;
 	searchNameImport.textContent = names.length > 1 ? `Importando 1 de ${names.length}…` : 'Buscando…';
 	nameImportProgress.hidden = false;
 	nameImportProgress.classList.remove('is-error');
@@ -3096,6 +3175,7 @@ nameImportForm.addEventListener('submit', async (event) => {
 		nameImportProgress.classList.toggle('is-error', failures.length > 0);
 		nameImportProgress.textContent = `Listo: ${importedCount} importados${skippedCount ? `, ${skippedCount} ya existentes` : ''}${failures.length ? ` y ${failures.length} con error (${failures.join(', ')})` : ''}.`;
 		showToast(`${importedCount} lugares importados${skippedCount ? ` · ${skippedCount} existentes` : ''}`);
+		placeSearchName.value = '';
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'No se pudo buscar el lugar';
 		nameImportProgress.hidden = false;
@@ -3104,8 +3184,47 @@ nameImportForm.addEventListener('submit', async (event) => {
 		showToast(message);
 	} finally {
 		searchNameImport.disabled = false;
+		pasteNameImport.disabled = false;
+		clearNameImport.disabled = false;
 		cancelNameImport.disabled = false;
+		finishNameImport.disabled = false;
 		searchNameImport.textContent = 'Importar';
+	}
+});
+
+openTxtImportButtons.forEach((button) => button.addEventListener('click', () => {
+	if (nameImportDialog.open) nameImportDialog.close();
+	txtImportForm.reset();
+	txtImportProgress.hidden = true;
+	txtImportProgress.classList.remove('is-error');
+	txtImportProgress.textContent = '';
+	importTxtButton.disabled = false;
+	cancelTxtImport.disabled = false;
+	txtImportDialog.showModal();
+	window.setTimeout(() => txtImportFile.focus(), 50);
+}));
+cancelTxtImport.addEventListener('click', () => txtImportDialog.close());
+txtImportForm.addEventListener('submit', async (event) => {
+	event.preventDefault();
+	const file = txtImportFile.files?.[0];
+	if (!file) return;
+	importTxtButton.disabled = true;
+	cancelTxtImport.disabled = true;
+	txtImportProgress.hidden = false;
+	txtImportProgress.classList.remove('is-error');
+	txtImportProgress.textContent = 'Leyendo el archivo…';
+	try {
+		const names = [...new Set((await file.text()).split(/\r?\n/).map((name) => name.trim()).filter(Boolean))].slice(0, 50);
+		if (!names.length || names.some((name) => name.length < 2)) throw new Error('El archivo debe contener al menos un nombre válido, uno por línea');
+		txtImportDialog.close();
+		openImportPlaceDialog();
+		placeSearchName.value = names.join('\n');
+		nameImportForm.requestSubmit();
+	} catch (error) {
+		txtImportProgress.classList.add('is-error');
+		txtImportProgress.textContent = error instanceof Error ? error.message : 'No se pudo leer el archivo TXT';
+		importTxtButton.disabled = false;
+		cancelTxtImport.disabled = false;
 	}
 });
 
@@ -3310,6 +3429,7 @@ function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Resta
 
 openExcelImportButtons.forEach((button) => button.addEventListener('click', () => {
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	if (nameImportDialog.open) nameImportDialog.close();
 	excelImportForm.reset();
 	spreadsheetPreviewRows = [];
 	excelImportProgress.hidden = true;
@@ -3395,8 +3515,8 @@ excelImportForm.addEventListener('submit', async (event) => {
 	}
 });
 
-openUrlImportButton.addEventListener('click', () => {
-	openUrlImportButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+function openUrlImportDialog() {
+	if (nameImportDialog.open) nameImportDialog.close();
 	urlImportForm.reset();
 	urlImportProgress.hidden = true;
 	urlImportProgress.classList.remove('is-error');
@@ -3409,7 +3529,11 @@ openUrlImportButton.addEventListener('click', () => {
 	importUrlButton.textContent = 'Importar';
 	urlImportDialog.showModal();
 	window.setTimeout(() => restaurantSourceUrl.focus(), 50);
-});
+}
+openUrlImportButtons.forEach((button) => button.addEventListener('click', () => {
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	openUrlImportDialog();
+}));
 cancelUrlImport.addEventListener('click', () => urlImportDialog.close());
 finishUrlImport.addEventListener('click', () => urlImportDialog.close());
 clearUrlImport.addEventListener('click', () => {
@@ -4381,7 +4505,6 @@ closeDirectoryFilterPanelButton.addEventListener('click', () => {
 	filterActionMenu.removeAttribute('open');
 	directoryFilterPanel.hidden = true;
 });
-toolbarImportUrl.addEventListener('click', () => openUrlImportButton.click());
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {
 	showingCatalog = null;
 	directoryView = button.dataset.directoryView || 'normal';
@@ -4723,7 +4846,7 @@ mobileMenuLayer.addEventListener('click', (event) => {
 		if (targetSelector) document.querySelector<HTMLButtonElement>(targetSelector)?.click();
 		return;
 	}
-	if ((event.target as HTMLElement).closest('[data-open-form], [data-open-name-import], [data-open-excel-import]')) closeMobileMenu({ restoreFocus: false });
+	if ((event.target as HTMLElement).closest('[data-open-form], [data-open-import-place]')) closeMobileMenu({ restoreFocus: false });
 });
 document.addEventListener('keydown', (event) => {
 	if (event.key === 'Escape' && !mobileMenuLayer.hidden) closeMobileMenu();
@@ -4844,10 +4967,6 @@ document.querySelector('#header-print-directory')?.addEventListener('click', () 
 	updatePrintPanelState();
 	render();
 	printPlacesPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-});
-document.querySelector('#header-import-place')?.addEventListener('click', () => {
-	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
-	openUrlImportButton.click();
 });
 document.querySelector('#header-edit-places')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
@@ -5658,7 +5777,7 @@ if (extensionImportUrl) {
 	try {
 		const parsedImportUrl = new URL(extensionImportUrl);
 		if (['http:', 'https:'].includes(parsedImportUrl.protocol)) {
-			openUrlImportButton.click();
+			openUrlImportDialog();
 			restaurantSourceUrl.value = parsedImportUrl.toString();
 			restaurantSourceUrl.dispatchEvent(new Event('input', { bubbles: true }));
 			const cleanUrl = new URL(window.location.href);

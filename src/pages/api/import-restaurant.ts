@@ -142,6 +142,26 @@ function normalizeCountry(value: string) {
 	return countries[value.toUpperCase()] ?? value;
 }
 
+function isInstagramUrl(url: URL) {
+	return /(?:^|\.)instagram\.com$/i.test(url.hostname);
+}
+
+function instagramProfileUrl(url: URL) {
+	if (!isInstagramUrl(url)) return '';
+	const username = url.pathname.split('/').filter(Boolean)[0] ?? '';
+	if (!/^[a-z0-9._]+$/i.test(username) || /^(?:p|reel|reels|stories|explore|accounts)$/i.test(username)) return url.href;
+	return `${url.origin}/${username}/`;
+}
+
+function instagramPlaceName(value: string, url: URL) {
+	const withoutSuffix = value
+		.replace(/\s*[•|]\s*Instagram(?: photos and videos)?\s*$/i, '')
+		.replace(/\s*\(@[^)]+\)\s*$/i, '')
+		.trim();
+	if (withoutSuffix && !/^instagram$/i.test(withoutSuffix)) return withoutSuffix;
+	return (url.pathname.split('/').filter(Boolean)[0] ?? '').replace(/[._]+/g, ' ').trim();
+}
+
 async function getWokiSearchRestaurantUrls(sourceUrl: URL) {
 	const apiParams = new URLSearchParams();
 	const directMappings: Record<string, string> = {
@@ -242,7 +262,8 @@ export const POST: APIRoute = async ({ request }) => {
 			...(schemaTypes.includes('Winery') ? ['Bodega'] : []),
 		];
 		const importingFromWoki = /(^|\.)wokiapp\.com$/i.test(finalUrl.hostname);
-		const website = importingFromWoki ? '' : absolute(schema.url, finalUrl.href) || finalUrl.href;
+		const importingFromInstagram = isInstagramUrl(finalUrl);
+		const website = importingFromWoki || importingFromInstagram ? '' : absolute(schema.url, finalUrl.href) || finalUrl.href;
 		const contentRoot = $('body').clone();
 		contentRoot.find('script, style, noscript, nav, header, footer, svg').remove();
 		const pageText = contentRoot.text().replace(/\s+/g, ' ').trim();
@@ -296,8 +317,9 @@ export const POST: APIRoute = async ({ request }) => {
 			|| /\b(delivery|envios? a domicilio|entrega a domicilio)\b/.test(normalizedPageText);
 		const takeAway = /\b(take[ -]?away|takeout|para llevar|retiro por (?:el )?local|retir[ao] en (?:el )?local|pick[ -]?up)\b/.test(normalizedPageText);
 		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
+		const pageName = text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim();
 		return json({
-			name: text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim(),
+			name: importingFromInstagram ? instagramPlaceName(pageName, finalUrl) : pageName,
 			description: text(schema.description) || meta('description') || meta('og:description'),
 			address: text(schema.streetAddress) || text(address.streetAddress) || $('[itemprop="streetAddress"]').first().text().trim(),
 			neighborhood: text(address.addressNeighborhood) || $('[itemprop="addressNeighborhood"]').first().text().trim(),
@@ -310,7 +332,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: findAllLink(/google\.[^/]+\/(?:search|maps)|g\.page/i),
 			menuUrl: absolute(schema.hasMenu ?? schema.menu, finalUrl.href) || findLink(/menu|carta/i),
 			mapUrl: findAllLink(/google\.[^/]+\/maps|maps\.app\.goo\.gl/i),
-			instagramUrl: importingFromWoki ? '' : findAllLink(/instagram\.com/i),
+			instagramUrl: importingFromWoki ? '' : importingFromInstagram ? instagramProfileUrl(finalUrl) : findAllLink(/instagram\.com/i),
 			tiktokUrl: importingFromWoki ? '' : findAllLink(/tiktok\.com/i),
 			facebookUrl: importingFromWoki ? '' : findAllLink(/facebook\.com/i),
 			wokiUrl: importingFromWoki ? finalUrl.href : findAllLink(/wokiapp\.com/i),
@@ -322,10 +344,11 @@ export const POST: APIRoute = async ({ request }) => {
 			rating,
 			cuisines,
 			mealTypes,
-			establishmentTypes: uniqueValues(establishmentTypes.length ? establishmentTypes : ['Restaurante']),
+			establishmentTypes: uniqueValues(establishmentTypes.length || importingFromInstagram ? establishmentTypes : ['Restaurante']),
 			delivery,
 			takeAway,
 			glutenFree,
+			logoUrl: importingFromInstagram ? absolute(meta('og:image'), finalUrl.href) : '',
 			sourceUrl: finalUrl.href,
 		});
 	} catch (error) {

@@ -59,9 +59,7 @@ const userInitials = userDisplayName
 							<summary class="top-nav-button"><span>ACCIONES</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel actions-panel">
 								<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
-								<button type="button" id="header-import-place"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar por URL</button>
-								<button type="button" data-open-name-import><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg>Importar por nombre</button>
-								<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
+								<button type="button" id="header-import-place" data-open-import-place><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
 								<button type="button" id="header-edit-places"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" id="header-delete-places"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 								<button type="button" id="header-print-directory"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -75,9 +73,7 @@ const userInitials = userDisplayName
 							</summary>
 							<div class="dropdown-panel add-panel">
 								<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
-								<button type="button" id="open-url-import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar por URL</button>
-								<button type="button" data-open-name-import><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg>Importar por nombre</button>
-								<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
+								<button type="button" data-open-import-place><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
 							</div>
 						</details>
 
@@ -158,9 +154,7 @@ const userInitials = userDisplayName
 								<summary><span>ACCIONES</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options">
 									<button type="button" data-open-form><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo lugar</button>
-									<button type="button" data-mobile-menu-action="import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar por URL</button>
-									<button type="button" data-open-name-import><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg>Importar por nombre</button>
-									<button type="button" data-open-excel-import><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg>Importar Excel</button>
+									<button type="button" data-open-import-place><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 17v3h14v-3"/></svg>Importar lugar</button>
 									<button type="button" data-mobile-menu-action="edit"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 									<button type="button" data-mobile-menu-action="delete"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 									<button type="button" data-mobile-menu-action="print"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -225,9 +219,7 @@ const userInitials = userDisplayName
 								<summary><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo</span></summary>
 								<div class="directory-action-popover">
 									<button type="button" data-open-form>Nuevo lugar</button>
-									<button type="button" id="toolbar-import-url">Importar por URL</button>
-									<button type="button" data-open-name-import>Importar por nombre</button>
-									<button type="button" data-open-excel-import>Importar desde Excel</button>
+									<button type="button" data-open-import-place>Importar lugar</button>
 								</div>
 							</details>
 									</div>
@@ -691,13 +683,15 @@ const userInitials = userDisplayName
 				<h2>Importar por URL</h2>
 				<label for="restaurant-source-url">Pegá uno o varios enlaces</label>
 				<textarea id="restaurant-source-url" rows="6" placeholder="https://www.restaurante.com/&#10;https://www.otro-restaurante.com/" required></textarea>
+				<div class="name-import-text-actions">
+					<button id="paste-url-import" class="secondary-button" type="button">PEGAR TEXTO</button>
+					<button id="clear-url-import" class="secondary-button" type="button">BORRAR TEXTO</button>
+				</div>
 				<p class="url-import-help">Pegá un enlace por línea. Con un solo enlace podrás revisar la ficha antes de guardarla; con varios se guardarán automáticamente sin borrar los restaurantes existentes.</p>
 				<div id="url-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
-				<div class="mini-dialog-actions url-import-actions">
-					<button id="clear-url-import" class="secondary-button" type="button">Borrar texto</button>
-					<button id="paste-url-import" class="secondary-button" type="button">Pegar</button>
+				<button id="import-url-button" class="primary-button import-name-button" type="submit">Importar</button>
+				<div class="mini-dialog-actions">
 					<button id="cancel-url-import" class="secondary-button" type="button">Cancelar</button>
-					<button id="import-url-button" class="primary-button" type="submit">Importar</button>
 					<button id="finish-url-import" class="primary-button" type="button">Finalizar</button>
 				</div>
 			</form>
@@ -705,14 +699,38 @@ const userInitials = userDisplayName
 
 		<dialog id="name-import-dialog" class="mini-dialog name-import-dialog">
 			<form id="name-import-form">
-				<h2>Importar por nombre</h2>
+				<h2>Importar lugar</h2>
 				<label for="place-search-name">Pegá uno o varios nombres</label>
 				<textarea id="place-search-name" rows="6" placeholder="Piazza Ristorante, Mar del Plata&#10;Otro restaurante, ciudad" required></textarea>
+				<div class="name-import-text-actions">
+					<button id="paste-name-import" class="secondary-button" type="button">PEGAR TEXTO</button>
+					<button id="clear-name-import" class="secondary-button" type="button">BORRAR TEXTO</button>
+				</div>
 				<p class="url-import-help">Ingresá un nombre por línea. Agregá la ciudad o zona para mejorar la precisión. Con un nombre podrás revisar la ficha; con varios se guardarán automáticamente.</p>
 				<div id="name-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
+				<button id="search-name-import" class="primary-button import-name-button" type="submit">Importar</button>
+				<div class="import-place-methods" aria-label="Otras formas de importar">
+					<button class="secondary-button" type="button" data-open-url-import>Importar por URL</button>
+					<button class="secondary-button" type="button" data-open-txt-import>Importar de TXT</button>
+					<button class="secondary-button" type="button" data-open-excel-import>Importar de XLS</button>
+				</div>
 				<div class="mini-dialog-actions">
 					<button id="cancel-name-import" class="secondary-button" type="button">Cancelar</button>
-					<button id="search-name-import" class="primary-button" type="submit">Importar</button>
+					<button id="finish-name-import" class="primary-button" type="button">Finalizar</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog id="txt-import-dialog" class="mini-dialog txt-import-dialog">
+			<form id="txt-import-form">
+				<h2>Importar de TXT</h2>
+				<p class="url-import-help">Seleccioná un archivo TXT con un nombre de lugar por línea. Podés agregar la ciudad o zona para mejorar la precisión.</p>
+				<label for="txt-import-file">Archivo TXT</label>
+				<input id="txt-import-file" type="file" accept=".txt,text/plain" required />
+				<div id="txt-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
+				<div class="mini-dialog-actions">
+					<button id="cancel-txt-import" class="secondary-button" type="button">Cancelar</button>
+					<button id="import-txt-button" class="primary-button" type="submit">Importar lugares</button>
 				</div>
 			</form>
 		</dialog>
