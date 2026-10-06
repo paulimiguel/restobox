@@ -146,10 +146,15 @@ function isInstagramUrl(url: URL) {
 	return /(?:^|\.)instagram\.com$/i.test(url.hostname);
 }
 
-function instagramProfileUrl(url: URL) {
+function instagramUsername(url: URL) {
 	if (!isInstagramUrl(url)) return '';
 	const username = url.pathname.split('/').filter(Boolean)[0] ?? '';
-	if (!/^[a-z0-9._]+$/i.test(username) || /^(?:p|reel|reels|stories|explore|accounts)$/i.test(username)) return url.href;
+	return /^[a-z0-9._]+$/i.test(username) && !/^(?:p|reel|reels|stories|explore|accounts)$/i.test(username) ? username : '';
+}
+
+function instagramProfileUrl(url: URL) {
+	const username = instagramUsername(url);
+	if (!username) return url.href;
 	return `${url.origin}/${username}/`;
 }
 
@@ -160,6 +165,29 @@ function instagramPlaceName(value: string, url: URL) {
 		.trim();
 	if (withoutSuffix && !/^instagram$/i.test(withoutSuffix)) return withoutSuffix;
 	return (url.pathname.split('/').filter(Boolean)[0] ?? '').replace(/[._]+/g, ' ').trim();
+}
+
+function decodeInstagramEmbedValue(value: string) {
+	let decoded = value;
+	for (let level = 0; level < 3; level += 1) {
+		try {
+			const next = JSON.parse(`"${decoded}"`) as string;
+			if (next === decoded) break;
+			decoded = next;
+		} catch { break; }
+	}
+	return decoded.trim();
+}
+
+function instagramEmbedDetails(html: string) {
+	const escapedName = html.match(/\\"full_name\\":\\"(.*?)\\",\\"(?:verified|is_verified)\\"/s)?.[1] ?? '';
+	const plainName = html.match(/"full_name":"(.*?)","(?:verified|is_verified)"/s)?.[1] ?? '';
+	const escapedLogo = html.match(/\\"profile_pic_url\\":\\"(.*?)\\",\\"username\\"/s)?.[1] ?? '';
+	const plainLogo = html.match(/"profile_pic_url":"(.*?)","username"/s)?.[1] ?? '';
+	return {
+		name: decodeInstagramEmbedValue(escapedName || plainName),
+		logoUrl: decodeInstagramEmbedValue(escapedLogo || plainLogo),
+	};
 }
 
 async function getWokiSearchRestaurantUrls(sourceUrl: URL) {
@@ -199,7 +227,18 @@ export const POST: APIRoute = async ({ request }) => {
 	try {
 		const body = await request.json() as { url?: string; mode?: string };
 		if (!body.url) return json({ error: 'Ingresá la dirección de la página' }, 400);
-		const { response, finalUrl } = await fetchRemote(body.url);
+		const requestedUrl = await validateUrl(body.url);
+		let response: Response;
+		let finalUrl: URL;
+		try {
+			({ response, finalUrl } = await fetchRemote(requestedUrl.href));
+		} catch (error) {
+			const username = instagramUsername(requestedUrl);
+			if (!username || body.mode === 'image') throw error;
+			const embedded = await fetchRemote(`${requestedUrl.origin}/${username}/embed/`);
+			response = embedded.response;
+			finalUrl = new URL(`${requestedUrl.origin}/${username}/`);
+		}
 		if (/^(?:www\.)?wokiapp\.com$/i.test(finalUrl.hostname) && /^\/search\/?$/i.test(finalUrl.pathname)) {
 			const collectionUrls = await getWokiSearchRestaurantUrls(finalUrl);
 			if (!collectionUrls.length) return json({ error: 'La búsqueda de Woki no contiene lugares para importar' }, 404);
@@ -219,6 +258,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const html = await response.text();
 		if (html.length > 3_000_000) return json({ error: 'La página es demasiado grande para importarla' }, 413);
 		const $ = cheerio.load(html);
+		const instagramEmbed = instagramEmbedDetails(html);
 		const nodes: Record<string, unknown>[] = [];
 		$('script[type="application/ld+json"]').each((_, element) => {
 			try { collectNodes(JSON.parse($(element).text()), nodes); } catch { /* JSON-LD inválido. */ }
@@ -317,7 +357,7 @@ export const POST: APIRoute = async ({ request }) => {
 			|| /\b(delivery|envios? a domicilio|entrega a domicilio)\b/.test(normalizedPageText);
 		const takeAway = /\b(take[ -]?away|takeout|para llevar|retiro por (?:el )?local|retir[ao] en (?:el )?local|pick[ -]?up)\b/.test(normalizedPageText);
 		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
-		const pageName = text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim();
+		const pageName = instagramEmbed.name || text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim();
 		return json({
 			name: importingFromInstagram ? instagramPlaceName(pageName, finalUrl) : pageName,
 			description: text(schema.description) || meta('description') || meta('og:description'),
@@ -348,7 +388,7 @@ export const POST: APIRoute = async ({ request }) => {
 			delivery,
 			takeAway,
 			glutenFree,
-			logoUrl: importingFromInstagram ? absolute(meta('og:image'), finalUrl.href) : '',
+			logoUrl: importingFromInstagram ? absolute(instagramEmbed.logoUrl || meta('og:image'), finalUrl.href) : '',
 			sourceUrl: finalUrl.href,
 		});
 	} catch (error) {

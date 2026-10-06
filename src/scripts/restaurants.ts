@@ -3632,6 +3632,7 @@ urlImportForm.addEventListener('submit', async (event) => {
 			urlImportProgress.textContent = `Se importaron ${importedNames.length} de ${urls.length}${skippedNames.length ? `; ${skippedNames.length} ya existían` : ''}. No se pudieron leer: ${failedHosts}.`;
 			showToast(`${importedNames.length} importados · ${failures.length} con error`);
 		}
+		restaurantSourceUrl.value = '';
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'No se pudo importar la página';
 		urlImportProgress.hidden = false;
