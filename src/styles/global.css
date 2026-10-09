@@ -841,7 +841,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details :is(.cuisine-type-field, .tags-field) .select-with-action > button { width: 31px; height: 31px; }
 .boolean-check-control { display: flex; min-height: 39px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; }
 :is(#panel-general, #panel-details) .boolean-check-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
-.characteristics-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.characteristics-checks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
 .rate-control { display: flex; min-height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; }

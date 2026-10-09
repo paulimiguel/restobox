@@ -182,11 +182,10 @@ function decodeInstagramEmbedValue(value: string) {
 function instagramEmbedDetails(html: string) {
 	const escapedName = html.match(/\\"full_name\\":\\"(.*?)\\",\\"(?:verified|is_verified)\\"/s)?.[1] ?? '';
 	const plainName = html.match(/"full_name":"(.*?)","(?:verified|is_verified)"/s)?.[1] ?? '';
-	const escapedLogo = html.match(/\\"profile_pic_url\\":\\"(.*?)\\",\\"username\\"/s)?.[1] ?? '';
-	const plainLogo = html.match(/"profile_pic_url":"(.*?)","username"/s)?.[1] ?? '';
+	const embeddedLogo = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|[^"\\])+)\\?"/)?.[1] ?? '';
 	return {
 		name: decodeInstagramEmbedValue(escapedName || plainName),
-		logoUrl: decodeInstagramEmbedValue(escapedLogo || plainLogo),
+		logoUrl: decodeInstagramEmbedValue(embeddedLogo),
 	};
 }
 
