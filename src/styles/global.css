@@ -807,10 +807,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .record-navigation button:disabled { cursor: default; opacity: .32; }
 .record-navigation svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .form-scroll-navigation { position: absolute; right: 10px; bottom: 74px; z-index: 35; display: flex; flex-direction: column; gap: 7px; pointer-events: none; }
-.form-scroll-navigation button { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: white; background: color-mix(in srgb, var(--forest) 72%, transparent); box-shadow: 0 5px 13px rgba(20,28,24,.2); backdrop-filter: blur(5px); cursor: pointer; pointer-events: auto; transition: background .18s, transform .18s, box-shadow .18s; }
-.form-scroll-navigation button:hover { background: color-mix(in srgb, var(--forest) 88%, transparent); box-shadow: 0 7px 16px rgba(20,28,24,.25); transform: scale(1.05); }
+.form-scroll-navigation[hidden] { display: none; }
+.form-scroll-navigation button { display: grid; width: 28px; height: 28px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: color-mix(in srgb, white 82%, transparent); background: color-mix(in srgb, var(--forest) 48%, transparent); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(4px); cursor: pointer; pointer-events: auto; transition: background .18s, transform .18s, box-shadow .18s; }
+.form-scroll-navigation button:hover { background: color-mix(in srgb, var(--forest) 68%, transparent); box-shadow: 0 5px 12px rgba(20,28,24,.18); transform: scale(1.04); }
 .form-scroll-navigation button:focus-visible { outline: 3px solid color-mix(in srgb, var(--forest) 24%, transparent); outline-offset: 2px; }
-.form-scroll-navigation svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.form-scroll-navigation svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icon-button { flex: 0 0 auto; width: 40px; height: 40px; color: var(--button-ink); background: color-mix(in srgb, var(--forest) 72%, white); font-size: 24px; line-height: 1; }
 .icon-button:hover { color: var(--button-ink); background: var(--forest); }
 .form-tabs { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f8f6f0; }
@@ -830,7 +831,12 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details .form-grid label, #panel-details .form-field { gap: 5px; }
 #panel-details .form-grid input:not([type="checkbox"]), #panel-details .form-grid select { height: 39px; }
 #panel-details .select-with-action, #panel-details .url-with-action { grid-template-columns: minmax(0, 1fr) 39px; gap: 6px; }
-#panel-links .url-with-action { grid-template-columns: minmax(0, 1fr) 39px; gap: 6px; }
+#panel-links .url-with-action { grid-template-columns: minmax(0, 1fr) 37px; gap: 6px; }
+#panel-links .form-grid { row-gap: 9px; padding-block: 8px 14px; }
+.editing-record #panel-links .form-grid { padding-block: 14px 8px; }
+#panel-links .form-field { gap: 5px; }
+#panel-links .form-grid input { height: 37px; }
+#panel-links .external-link-button { width: 37px; height: 37px; }
 #panel-details .cuisine-select-actions { grid-template-columns: minmax(0, 1fr) 39px; align-items: center; }
 #panel-details .select-with-action > button, #panel-details .external-link-button { width: 39px; height: 39px; }
 #panel-details .cuisine-select-actions svg { width: 16px; }
@@ -854,7 +860,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .creating-record #panel-details .characteristics-checks, .editing-record #panel-details .characteristics-checks { margin-top: 6px; }
 .view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 #panel-information .form-grid { padding-top: 12px; }
-#panel-links .form-grid { padding-top: 12px; }
 #panel-links .view-map-link-field { display: none; }
 .schedule-field { gap: 7px; }
 .schedule-table { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: white; }
@@ -869,7 +874,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .schedule-help { color: var(--muted); font-size: 10px; font-weight: 400; }
 .schedule-paste-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .schedule-paste-actions { display: flex; flex: 0 0 auto; gap: 7px; }
-.schedule-paste-button { min-height: 32px; padding-inline: 13px; font-size: 11px; }
+.schedule-paste-button { min-height: 27px; padding: 4px 9px; font-size: 10px; }
 .editing-record #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
 .editing-record #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
 .editing-record #panel-information .schedule-table .schedule-hours-input { height: 24px; font-size: 11px; }
@@ -893,7 +898,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }
 .editing-record textarea[name="notes"] { height: 62px; min-height: 62px; overflow-y: auto; }
-.editing-record textarea[name="description"] { height: 72px; min-height: 72px; overflow-y: auto; }
+.editing-record textarea[name="description"] { height: 62px; min-height: 62px; overflow-y: auto; }
 .notes-field { gap: 7px; }
 .long-text-field { gap: 7px; }
 .long-text-field-heading { display: flex; min-height: 27px; align-items: center; justify-content: space-between; gap: 12px; }

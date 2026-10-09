@@ -334,6 +334,7 @@ const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-sta
 const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
 const formTabs = document.querySelectorAll<HTMLButtonElement>('[data-form-tab]');
 const tabPanels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
+const formScrollNavigation = document.querySelector<HTMLElement>('.form-scroll-navigation')!;
 const scrollFormToTopButton = document.querySelector<HTMLButtonElement>('#scroll-form-to-top')!;
 const scrollFormToBottomButton = document.querySelector<HTMLButtonElement>('#scroll-form-to-bottom')!;
 const dialogTitle = document.querySelector<HTMLHeadingElement>('#dialog-title')!;
@@ -1664,6 +1665,13 @@ function activateFormTab(tabName: string) {
 		tab.tabIndex = active ? 0 : -1;
 	});
 	tabPanels.forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== tabName; });
+	window.requestAnimationFrame(updateFormScrollNavigation);
+}
+
+function updateFormScrollNavigation() {
+	const activePanel = [...tabPanels].find((panel) => !panel.hidden);
+	const supportsScrollNavigation = form.classList.contains('editing-record') || form.classList.contains('view-mode');
+	formScrollNavigation.hidden = !supportsScrollNavigation || !activePanel || activePanel.scrollHeight <= activePanel.clientHeight + 1;
 }
 
 function scrollActiveFormPanel(toBottom: boolean) {
@@ -3720,6 +3728,12 @@ dialog.addEventListener('close', () => {
 formTabs.forEach((tab) => tab.addEventListener('click', () => activateFormTab(tab.dataset.formTab!)));
 scrollFormToTopButton.addEventListener('click', () => scrollActiveFormPanel(false));
 scrollFormToBottomButton.addEventListener('click', () => scrollActiveFormPanel(true));
+window.addEventListener('resize', updateFormScrollNavigation);
+const formPanelResizeObserver = new ResizeObserver(updateFormScrollNavigation);
+tabPanels.forEach((panel) => {
+	formPanelResizeObserver.observe(panel);
+	Array.from(panel.children).forEach((child) => formPanelResizeObserver.observe(child));
+});
 openLongTextEditorButtons.forEach((button) => button.addEventListener('click', () => {
 	const opensNotes = button.dataset.openLongTextEditor === 'notes';
 	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
