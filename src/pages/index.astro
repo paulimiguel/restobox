@@ -355,13 +355,6 @@ const userInitials = userDisplayName
 									</div>
 								</label>
 								<div class="lead-contacts">
-									<div class="form-field">
-										<label for="whatsapp-number">WhatsApp</label>
-										<div class="url-with-action">
-											<input id="whatsapp-number" name="mobile" type="tel" maxlength="30" placeholder="+54 9 223…" />
-											<a id="open-whatsapp-web" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
-										</div>
-									</div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 									<div class="place-kind-options" aria-label="Tipo de lugar">
 										<label class="boolean-check-control"><input name="placeRestaurant" type="checkbox" /><span>Restaurante</span></label>
@@ -455,37 +448,24 @@ const userInitials = userDisplayName
 						</label>
 						<datalist id="average-price-options"></datalist>
 						<label>Puntuación Google <input name="score" type="number" min="0" max="5" step="0.1" placeholder="0 a 5" /></label>
-						<div class="form-field characteristics-checks wide">
-							<div class="rate-control form-field">
-								<span class="rate-label">Rate</span>
-								<input id="personal-rate" name="rating" type="hidden" />
-								<div class="rate-stars" role="group" aria-label="Mi puntuación">
-									{[1, 2, 3, 4, 5].map((value) => <button type="button" data-rate-value={value} aria-label={`${value} ${value === 1 ? 'estrella' : 'estrellas'}`} aria-pressed="false">★</button>)}
-								</div>
+						<div class="rate-control form-field">
+							<span class="rate-label">Rate</span>
+							<input id="personal-rate" name="rating" type="hidden" />
+							<div class="rate-stars" role="group" aria-label="Mi puntuación">
+								{[1, 2, 3, 4, 5].map((value) => <button type="button" data-rate-value={value} aria-label={`${value} ${value === 1 ? 'estrella' : 'estrellas'}`} aria-pressed="false">★</button>)}
 							</div>
+						</div>
+						<div class="form-field characteristics-checks wide">
 							<label class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Delivery</span></label>
 							<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
 							<label class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Sin gluten</span></label>
+							<label class="boolean-check-control"><input name="healthy" type="checkbox" /><span>Saludable</span></label>
 						</div>
 					</div>
 				</section>
 
 				<section class="tab-panel" id="panel-links" role="tabpanel" aria-labelledby="tab-links" data-tab-panel="links" hidden>
 					<div class="form-grid">
-						<div id="map-field-links-anchor" class="field-position-anchor" aria-hidden="true"></div>
-						<div id="view-map-link-field" class="form-field view-map-link-field">
-							<label>Ubicación en el mapa</label>
-							<div class="url-with-action">
-								<a id="view-open-map" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir ubicación en Google Maps" title="Abrir Google Maps"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></a>
-							</div>
-						</div>
-						<div class="form-field">
-							<label for="website-url">Sitio web</label>
-							<div class="url-with-action">
-								<input id="website-url" name="website" type="url" maxlength="150" placeholder="https://…" />
-								<a id="open-website" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir sitio web" title="Abrir sitio web"><span class="website-brand-icon" aria-hidden="true"></span></a>
-							</div>
-						</div>
 						<div class="form-field">
 							<label for="google-url">Google</label>
 							<div class="url-with-action">
@@ -493,11 +473,11 @@ const userInitials = userDisplayName
 								<a id="open-google" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Google" title="Abrir Google"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.8 6.4A8 8 0 1 0 20 15h-8v-3h8"/><path d="M20 12v3"/></svg></a>
 							</div>
 						</div>
-						<div class="form-field">
-							<label for="woki-url">Woki</label>
+						<div id="map-field-links-anchor" class="field-position-anchor" aria-hidden="true"></div>
+						<div id="view-map-link-field" class="form-field view-map-link-field">
+							<label>Ubicación en el mapa</label>
 							<div class="url-with-action">
-								<input id="woki-url" name="wokiUrl" type="url" maxlength="300" placeholder="https://…" />
-								<a id="open-woki" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Woki" title="Abrir Woki"><span class="woki-brand-icon" aria-hidden="true"></span></a>
+								<a id="view-open-map" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir ubicación en Google Maps" title="Abrir Google Maps"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></a>
 							</div>
 						</div>
 						<div class="form-field">
@@ -508,13 +488,6 @@ const userInitials = userDisplayName
 							</div>
 						</div>
 						<div class="form-field">
-							<label for="tiktok-url">TikTok</label>
-							<div class="url-with-action">
-								<input id="tiktok-url" name="tiktokUrl" type="url" maxlength="300" placeholder="https://tiktok.com/@…" />
-								<a id="open-tiktok" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TikTok" title="Abrir TikTok"><svg viewBox="0 0 24 24"><path d="M14 4v10.5a4.5 4.5 0 1 1-4-4.47"/><path d="M14 4c1 2.4 2.8 3.8 5 4"/></svg></a>
-							</div>
-						</div>
-						<div class="form-field">
 							<label for="facebook-url">Facebook</label>
 							<div class="url-with-action">
 								<input id="facebook-url" name="facebookUrl" type="url" maxlength="300" placeholder="https://facebook.com/…" />
@@ -522,17 +495,31 @@ const userInitials = userDisplayName
 							</div>
 						</div>
 						<div class="form-field">
-							<label for="tripadvisor-url">TripAdvisor</label>
+							<label for="website-url">Sitio web</label>
 							<div class="url-with-action">
-								<input id="tripadvisor-url" name="tripAdvisorUrl" type="url" maxlength="300" placeholder="https://www.tripadvisor.com.ar/…" />
-								<a id="open-tripadvisor" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TripAdvisor" title="Abrir TripAdvisor"><span class="tripadvisor-brand-icon" aria-hidden="true"></span></a>
+								<input id="website-url" name="website" type="url" maxlength="150" placeholder="https://…" />
+								<a id="open-website" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir sitio web" title="Abrir sitio web"><span class="website-brand-icon" aria-hidden="true"></span></a>
 							</div>
 						</div>
 						<div class="form-field">
-							<label for="linktree-url">Linktr.ee</label>
+							<label for="tiktok-url">Tik Tok</label>
 							<div class="url-with-action">
-								<input id="linktree-url" name="linktreeUrl" type="url" maxlength="300" placeholder="https://linktr.ee/PIAZZARISTO" />
-								<a id="open-linktree" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Linktr.ee" title="Abrir Linktr.ee"><span class="linktree-brand-icon" aria-hidden="true"></span></a>
+								<input id="tiktok-url" name="tiktokUrl" type="url" maxlength="300" placeholder="https://tiktok.com/@…" />
+								<a id="open-tiktok" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TikTok" title="Abrir TikTok"><svg viewBox="0 0 24 24"><path d="M14 4v10.5a4.5 4.5 0 1 1-4-4.47"/><path d="M14 4c1 2.4 2.8 3.8 5 4"/></svg></a>
+							</div>
+						</div>
+						<div class="form-field">
+							<label for="woki-url">Woki</label>
+							<div class="url-with-action">
+								<input id="woki-url" name="wokiUrl" type="url" maxlength="300" placeholder="https://…" />
+								<a id="open-woki" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Woki" title="Abrir Woki"><span class="woki-brand-icon" aria-hidden="true"></span></a>
+							</div>
+						</div>
+						<div class="form-field">
+							<label for="tripadvisor-url">Trip Advisor</label>
+							<div class="url-with-action">
+								<input id="tripadvisor-url" name="tripAdvisorUrl" type="url" maxlength="300" placeholder="https://www.tripadvisor.com.ar/…" />
+								<a id="open-tripadvisor" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TripAdvisor" title="Abrir TripAdvisor"><span class="tripadvisor-brand-icon" aria-hidden="true"></span></a>
 							</div>
 						</div>
 						<div class="form-field">
@@ -540,6 +527,27 @@ const userInitials = userDisplayName
 							<div class="url-with-action">
 								<input id="menu-url" name="menuUrl" type="url" maxlength="300" placeholder="https://…" />
 								<a id="open-menu-link" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir menú" title="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></a>
+							</div>
+						</div>
+						<div class="form-field">
+							<label for="linktree-url">Linktree</label>
+							<div class="url-with-action">
+								<input id="linktree-url" name="linktreeUrl" type="url" maxlength="300" placeholder="https://linktr.ee/PIAZZARISTO" />
+								<a id="open-linktree" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Linktr.ee" title="Abrir Linktr.ee"><span class="linktree-brand-icon" aria-hidden="true"></span></a>
+							</div>
+						</div>
+						<div class="form-field">
+							<label for="pedidosya-url">Pedidos Ya</label>
+							<div class="url-with-action">
+								<input id="pedidosya-url" name="pedidosYaUrl" type="url" maxlength="300" placeholder="https://www.pedidosya.com.ar/…" />
+								<a id="open-pedidosya" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir PedidosYa" title="Abrir PedidosYa"><span class="pedidosya-brand-icon" aria-hidden="true">PY</span></a>
+							</div>
+						</div>
+						<div class="form-field">
+							<label for="whatsapp-number">WhatsApp</label>
+							<div class="url-with-action">
+								<input id="whatsapp-number" name="mobile" type="tel" maxlength="30" placeholder="+54 9 223…" />
+								<a id="open-whatsapp-web" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
 							</div>
 						</div>
 					</div>
@@ -571,16 +579,16 @@ const userInitials = userDisplayName
 						<div class="form-field wide long-text-field">
 							<div class="long-text-field-heading">
 								<label for="restaurant-description">Descripción</label>
+								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="description">Agregar descripción</button>
 							</div>
 							<textarea id="restaurant-description" name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea>
-							<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="description">Agregar descripción</button>
 						</div>
 						<div class="form-field notes-field long-text-field wide">
 							<div class="long-text-field-heading">
 								<label for="restaurant-notes">Notas</label>
+								<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="notes">Agregar nota</button>
 							</div>
 							<textarea id="restaurant-notes" name="notes" rows="3" placeholder="Información adicional sobre el lugar…"></textarea>
-							<button class="secondary-button long-text-editor-button" type="button" data-open-long-text-editor="notes">Agregar nota</button>
 						</div>
 					</div>
 				</section>
@@ -741,7 +749,7 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Seleccioná una planilla de Excel o CSV. La primera fila debe contener los nombres de las columnas y <strong>Nombre</strong> es la única columna obligatoria.</p>
 				<label for="excel-import-file">Planilla</label>
 				<input id="excel-import-file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required />
-				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Rate, Puntuación Google, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
+				<p class="excel-import-columns">Columnas reconocidas: Nombre, Descripción, Categorías, Cocina, Servicios, Etiquetas, Delivery, Take away, Sin gluten, Saludable, Rate, Puntuación Google, Nivel de precio, Precio promedio, País, Provincia, Ciudad, Dirección, Zona, Teléfono, Celular, Sitio web, Google, Linktree, Menú, Instagram, TikTok, Facebook, Woki, TripAdvisor, Mapa, Horarios, Notas, Favorito y Visitado.</p>
 				<div id="excel-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<div id="excel-import-preview" class="excel-import-preview" hidden>
 					<strong id="excel-import-summary"></strong>
@@ -809,6 +817,7 @@ const userInitials = userDisplayName
 							<label><span>Delivery</span><select name="delivery"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 							<label><span>Take away</span><select name="takeAway"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 							<label><span>Sin gluten</span><select name="glutenFree"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
+							<label><span>Saludable</span><select name="healthy"><option value="">Sin cambios</option><option value="true">Sí</option><option value="false">No</option></select></label>
 						</div>
 					</div>
 				</div>

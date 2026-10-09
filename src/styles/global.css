@@ -590,6 +590,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .tripadvisor-brand-icon { display: block; width: 22px; height: 16px; color: inherit; background: currentColor; -webkit-mask: url('/icons/tripadvisor.png') center / contain no-repeat; mask: url('/icons/tripadvisor.png') center / contain no-repeat; transition: transform .2s; }
 .external-link-button .woki-brand-icon { width: 16px; height: 16px; }
 .external-link-button .tripadvisor-brand-icon { width: 20px; height: 15px; }
+.pedidosya-brand-icon { font-size: 10px; font-weight: 800; letter-spacing: -.04em; }
 .restaurant-list.view-columns-5 .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 18px; height: 18px; }
 .restaurant-list.view-columns-5 .restaurant-card-footer .tripadvisor-brand-icon { width: 18px; height: 14px; }
 .restaurant-list.view-columns-6 .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 58%; max-width: 14px; height: 58%; max-height: 14px; }
@@ -828,6 +829,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .tab-panel > .form-grid { padding-top: 0; }
 #panel-details .form-grid { row-gap: 9px; padding-top: 10px; }
+#panel-details .average-price-field { grid-column: span 2; }
 #panel-details .form-grid label, #panel-details .form-field { gap: 5px; }
 #panel-details .form-grid input:not([type="checkbox"]), #panel-details .form-grid select { height: 39px; }
 #panel-details .select-with-action, #panel-details .url-with-action { grid-template-columns: minmax(0, 1fr) 39px; gap: 6px; }
@@ -847,7 +849,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details :is(.cuisine-type-field, .tags-field) .select-with-action > button { width: 31px; height: 31px; }
 .boolean-check-control { display: flex; min-height: 39px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; }
 :is(#panel-general, #panel-details) .boolean-check-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
-.characteristics-checks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.characteristics-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
 .rate-control { display: flex; min-height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; }
@@ -857,7 +859,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .rate-stars button:hover { transform: scale(1.08); }
 .rate-stars button.is-active { color: #f2b01e; }
 .rate-stars button:disabled { opacity: 1; }
-.creating-record #panel-details .characteristics-checks, .editing-record #panel-details .characteristics-checks { margin-top: 6px; }
+
 .view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 #panel-information .form-grid { padding-top: 12px; }
 #panel-links .view-map-link-field { display: none; }
@@ -891,9 +893,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .form-grid input, .form-grid select { height: 42px; padding: 0 12px; }
 .form-grid textarea { padding: 11px 12px; resize: vertical; }
 .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus { border-color: #789586; outline: 3px solid rgba(33,79,63,.09); }
-#panel-details .characteristics-checks > :is(.rate-control, .boolean-check-control) { height: 40px; min-height: 40px; padding-block: 4px; }
-#panel-details .characteristics-checks > .rate-control { display: flex; }
-#panel-details .characteristics-checks .rate-stars button { width: 21px; height: 21px; font-size: 19px; }
+#panel-details .characteristics-checks > .boolean-check-control { height: 40px; min-height: 40px; padding-block: 4px; }
+#panel-details .form-grid > .rate-control { height: 39px; min-height: 39px; display: flex; }
 .editing-record input::placeholder, .editing-record textarea::placeholder { color: transparent; opacity: 0; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }
@@ -1115,9 +1116,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-details .establishment-type-field, .view-mode #panel-details .meal-type-field { grid-column: 1 / -1; }
 .view-mode #panel-details .form-grid > label, .view-mode #panel-details .form-grid > .form-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); min-height: 54px; align-items: center; gap: 10px; padding-block: 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-details .form-grid > .characteristics-checks { display: flex; min-height: 54px; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding-block: 8px; }
-.view-mode #panel-details .form-grid > .characteristics-checks:not(:has(input:checked)):not(:has(.rate-control.has-rate)) { display: none; }
-.view-mode #panel-details .rate-control { min-height: 0; justify-content: flex-start; padding: 0; border: 0; background: transparent; }
-.view-mode #panel-details .rate-control:not(.has-rate) { display: none; }
+.view-mode #panel-details .form-grid > .characteristics-checks:not(:has(input:checked)) { display: none; }
+.view-mode #panel-details .form-grid > .rate-control { display: grid; grid-template-columns: 135px minmax(0, 1fr); min-height: 54px; height: auto; align-items: center; gap: 10px; padding: 8px 11px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); border-radius: 0; background: transparent; }
+.view-mode #panel-details .form-grid > .rate-control:not(.has-rate) { display: none; }
 .view-mode #panel-details .rate-stars button { cursor: default; }
 .view-mode #panel-details .rate-stars button:hover { transform: none; }
 .view-mode #panel-details .characteristics-checks > .boolean-check-control { display: inline-flex; min-height: 0; align-items: center; gap: 7px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 500; }
