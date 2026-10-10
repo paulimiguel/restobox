@@ -148,6 +148,7 @@ const longTextEditorDialog = document.querySelector<HTMLDialogElement>('#long-te
 const longTextEditorForm = document.querySelector<HTMLFormElement>('#long-text-editor-form')!;
 const longTextEditorTitle = document.querySelector<HTMLElement>('#long-text-editor-title')!;
 const longTextEditorValue = document.querySelector<HTMLTextAreaElement>('#long-text-editor-value')!;
+const pasteLongTextButton = document.querySelector<HTMLButtonElement>('#paste-long-text')!;
 const cancelLongTextEditor = document.querySelector<HTMLButtonElement>('#cancel-long-text-editor')!;
 const openLongTextEditorButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-open-long-text-editor]')];
 const neighborhoodEditorDialog = document.querySelector<HTMLDialogElement>('#neighborhood-editor-dialog')!;
@@ -314,6 +315,7 @@ const facebookInput = document.querySelector<HTMLInputElement>('#facebook-url')!
 const wokiInput = document.querySelector<HTMLInputElement>('#woki-url')!;
 const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-url')!;
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
+const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp-number-general')!;
 const pedidosYaInput = document.querySelector<HTMLInputElement>('#pedidosya-url')!;
 const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
 const notesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
@@ -331,6 +333,7 @@ const openFacebook = document.querySelector<HTMLAnchorElement>('#open-facebook')
 const openWoki = document.querySelector<HTMLAnchorElement>('#open-woki')!;
 const openTripAdvisor = document.querySelector<HTMLAnchorElement>('#open-tripadvisor')!;
 const openWhatsAppWeb = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web')!;
+const openWhatsAppWebGeneral = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web-general')!;
 const openPedidosYa = document.querySelector<HTMLAnchorElement>('#open-pedidosya')!;
 const placeRestaurantInput = form.elements.namedItem('placeRestaurant') as HTMLInputElement;
 const placeCafeInput = form.elements.namedItem('placeCafe') as HTMLInputElement;
@@ -1553,7 +1556,8 @@ function openLongTextEditor(target: HTMLTextAreaElement, title: string) {
 
 function updateLongTextEditorLabels(editing: boolean) {
 	openLongTextEditorButtons.forEach((button) => {
-		const fieldLabel = button.dataset.openLongTextEditor === 'notes' ? 'nota' : 'descripción';
+		const opensNotes = button.dataset.openLongTextEditor === 'notes';
+		const fieldLabel = opensNotes ? (editing ? 'notas' : 'nota') : 'descripción';
 		button.textContent = `${editing ? 'Editar' : 'Agregar'} ${fieldLabel}`;
 	});
 }
@@ -1696,12 +1700,16 @@ function updateExternalLink(input: HTMLInputElement, link: HTMLAnchorElement) {
 }
 
 function updateWhatsAppWebLink() {
+	whatsappGeneralInput.value = whatsappInput.value;
 	const digits = normalizeWhatsAppNumber(whatsappInput.value, countryInput.value);
-	if (digits) openWhatsAppWeb.href = `https://web.whatsapp.com/send/?phone=${digits}&type=phone_number&app_absent=0`;
-	else openWhatsAppWeb.removeAttribute('href');
-	openWhatsAppWeb.classList.toggle('disabled', !digits);
-	openWhatsAppWeb.setAttribute('aria-disabled', String(!digits));
-	openWhatsAppWeb.tabIndex = digits ? 0 : -1;
+	[openWhatsAppWeb, openWhatsAppWebGeneral].forEach((link) => {
+		if (digits) link.href = `https://web.whatsapp.com/send/?phone=${digits}&type=phone_number&app_absent=0`;
+		else link.removeAttribute('href');
+		link.classList.toggle('disabled', !digits);
+		link.setAttribute('aria-disabled', String(!digits));
+		link.tabIndex = digits ? 0 : -1;
+	});
+	whatsappGeneralInput.closest<HTMLElement>('.form-field')!.hidden = form.classList.contains('view-mode') && !whatsappInput.value.trim();
 }
 
 function updateViewMapLink(readOnly: boolean) {
@@ -3750,6 +3758,27 @@ openLongTextEditorButtons.forEach((button) => button.addEventListener('click', (
 	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
 }));
 cancelLongTextEditor.addEventListener('click', () => longTextEditorDialog.close());
+pasteLongTextButton.addEventListener('click', async () => {
+	try {
+		const clipboardText = await navigator.clipboard.readText();
+		if (!clipboardText) {
+			showToast('El portapapeles no contiene texto');
+			return;
+		}
+		const start = longTextEditorValue.selectionStart ?? longTextEditorValue.value.length;
+		const end = longTextEditorValue.selectionEnd ?? start;
+		longTextEditorValue.setRangeText(clipboardText.replace(/\r\n?/g, '\n'), start, end, 'end');
+		longTextEditorValue.dispatchEvent(new InputEvent('input', {
+			bubbles: true,
+			inputType: 'insertFromPaste',
+			data: clipboardText,
+		}));
+		longTextEditorValue.focus();
+		showToast('Texto pegado');
+	} catch {
+		showToast('El navegador no permitió acceder al portapapeles');
+	}
+});
 longTextEditorDialog.addEventListener('close', () => {
 	longTextEditorTarget = null;
 	longTextEditorForm.reset();
@@ -4312,6 +4341,10 @@ wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 pedidosYaInput.addEventListener('input', () => updateExternalLink(pedidosYaInput, openPedidosYa));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
+whatsappGeneralInput.addEventListener('input', () => {
+	whatsappInput.value = whatsappGeneralInput.value;
+	whatsappInput.dispatchEvent(new Event('input', { bubbles: true }));
+});
 countryInput.addEventListener('input', updateWhatsAppWebLink);
 function updateSearchInlineActions() {
 	const hasSearchValue = Boolean(search.value.trim());

@@ -662,6 +662,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 
 dialog { width: min(896px, calc(100% - 30px)); max-height: calc(100vh - 30px); padding: 0; border: 0; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 80px rgba(15,30,23,.25); }
 #restaurant-dialog { height: min(760px, calc(100vh - 30px)); overflow: hidden; }
+#restaurant-dialog:has(> form:is(.editing-record, .view-mode)) { height: min(840px, calc(100vh - 30px)); }
 #restaurant-dialog > form { position: relative; display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
 #restaurant-dialog > form .tab-panel { min-height: 0; overflow-y: auto; }
 dialog form { max-height: calc(100vh - 30px); overflow-y: auto; }
@@ -701,7 +702,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .import-place-methods button { min-width: 0; padding-right: 8px; padding-left: 8px; white-space: normal; }
 .long-text-editor-dialog { width: min(720px, calc(100% - 30px)); }
 .long-text-editor-dialog form { max-height: min(760px, calc(100dvh - 30px)); }
-.long-text-editor-dialog textarea { min-height: min(430px, calc(100dvh - 210px)); font-size: 14px; line-height: 1.65; }
+.long-text-editor-dialog textarea { min-height: min(380px, calc(100dvh - 250px)); font-size: 14px; line-height: 1.65; }
+.long-text-editor-tools { display: flex; justify-content: flex-end; }
+.long-text-editor-tools .secondary-button { min-height: 32px; padding: 5px 11px; font-size: 11px; }
 .neighborhood-editor-dialog { width: min(520px, calc(100% - 30px)); }
 .neighborhood-image-editor { display: grid; gap: 8px; }
 .neighborhood-image-editor > span { color: #505852; font-size: 11px; font-weight: 600; }
@@ -815,7 +818,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .form-scroll-navigation svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icon-button { flex: 0 0 auto; width: 40px; height: 40px; color: var(--button-ink); background: color-mix(in srgb, var(--forest) 72%, white); font-size: 24px; line-height: 1; }
 .icon-button:hover { color: var(--button-ink); background: var(--forest); }
-.form-tabs { display: grid; grid-template-columns: repeat(5, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f8f6f0; }
+.form-tabs { display: grid; grid-template-columns: repeat(6, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f8f6f0; }
 .form-tab { position: relative; min-height: 49px; padding: 0 12px; border: 0; color: var(--muted); background: transparent; font-size: 12px; font-weight: 600; }
 .form-tab:hover { color: var(--accent-text); }
 .form-tab.active { color: var(--accent-text); }
@@ -861,26 +864,26 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .rate-stars button:disabled { opacity: 1; }
 
 .view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
-#panel-information .form-grid { padding-top: 12px; }
+:is(#panel-information, #panel-description) .form-grid { padding-top: 12px; }
 #panel-links .view-map-link-field { display: none; }
 .schedule-field { gap: 7px; }
-.schedule-table { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: white; }
+.schedule-table { margin-top: 5px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: white; }
 .schedule-header, .schedule-table > label { display: grid; grid-template-columns: 145px minmax(0, 1fr); align-items: center; gap: 0; }
 .schedule-header { min-height: 29px; color: #4d5650; background: color-mix(in srgb, var(--sage) 60%, white); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
 .schedule-header span, .schedule-table > label > span { padding-inline: 12px; }
 .schedule-header span + span, .schedule-table > label > .clearable-control { border-left: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
-.schedule-table > label { min-height: 32px; gap: 0 !important; color: #505852; font-size: 11px; font-weight: 600; }
+.schedule-table > label { min-height: 38px; gap: 0 !important; color: #505852; font-size: 11px; font-weight: 600; }
 .schedule-table > label + label { border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
-.schedule-table .schedule-hours-input { height: 31px; padding-inline: 12px 32px; border: 0; border-radius: 0; background: transparent; font-size: 11px; }
+.schedule-table .schedule-hours-input { height: 37px; padding-inline: 12px 32px; border: 0; border-radius: 0; background: transparent; font-size: 11px; }
 .schedule-table .schedule-hours-input:focus { outline: 0; background: color-mix(in srgb, var(--sage) 32%, white); box-shadow: inset 3px 0 var(--forest); }
 .schedule-help { color: var(--muted); font-size: 10px; font-weight: 400; }
 .schedule-paste-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .schedule-paste-actions { display: flex; flex: 0 0 auto; gap: 7px; }
 .schedule-paste-button { min-height: 27px; padding: 4px 9px; font-size: 10px; }
 .editing-record #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
-.editing-record #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
-.editing-record #panel-information .schedule-table .schedule-hours-input { height: 24px; font-size: 11px; }
-.editing-record #panel-information .notes-field { margin-top: -6px; }
+.editing-record #panel-information .schedule-table > label { min-height: 34px; font-size: 11px; }
+.editing-record #panel-information .schedule-table .schedule-hours-input { height: 33px; font-size: 11px; }
+.editing-record #panel-description .notes-field { margin-top: -6px; }
 #panel-images .form-grid { padding-top: 12px; }
 .form-grid label, .form-field { display: grid; gap: 7px; color: #505852; font-size: 11px; font-weight: 600; }
 .form-field > label { display: block; }
@@ -898,8 +901,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .editing-record input::placeholder, .editing-record textarea::placeholder { color: transparent; opacity: 0; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }
-.editing-record textarea[name="notes"] { height: 62px; min-height: 62px; overflow-y: auto; }
-.editing-record textarea[name="description"] { height: 62px; min-height: 62px; overflow-y: auto; }
+#panel-description textarea { height: 180px; min-height: 180px; overflow-y: auto; }
 .notes-field { gap: 7px; }
 .long-text-field { gap: 7px; }
 .long-text-field-heading { display: flex; min-height: 27px; align-items: center; justify-content: space-between; gap: 12px; }
@@ -1157,17 +1159,18 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-information .schedule-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-information .schedule-table { width: 100%; }
 .view-mode #panel-information .schedule-header { min-height: 24px; font-size: 10px; }
-.view-mode #panel-information .schedule-table > label { min-height: 25px; font-size: 11px; }
-.view-mode #panel-information .schedule-table .schedule-hours-input { height: 24px; padding: 0 11px; border: 0; color: var(--ink); background: transparent; font-size: 11px; opacity: 1; -webkit-text-fill-color: var(--ink); }
+.view-mode #panel-information .schedule-table > label { min-height: 34px; font-size: 11px; }
+.view-mode #panel-information .schedule-table .schedule-hours-input { height: 33px; padding: 0 11px; border: 0; color: var(--ink); background: transparent; font-size: 11px; opacity: 1; -webkit-text-fill-color: var(--ink); }
 .view-mode #panel-information .schedule-table input::placeholder { color: transparent; }
 .view-mode #panel-information .schedule-paste-row { display: none; }
-.view-mode #panel-information .form-grid > label { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
-.view-mode #panel-information .clearable-control > textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
-.view-mode #panel-information .long-text-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
-.view-mode #panel-information .long-text-field-heading { display: block; min-height: 0; }
-.view-mode #panel-information .long-text-editor-button { display: none; }
-.view-mode #panel-information .notes-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
-.view-mode #panel-information textarea::placeholder { color: transparent; }
+.view-mode #panel-description .form-grid { row-gap: 0; }
+.view-mode #panel-description .form-grid > label { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
+.view-mode #panel-description .clearable-control > textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
+.view-mode #panel-description .long-text-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
+.view-mode #panel-description .long-text-field-heading { display: block; min-height: 0; }
+.view-mode #panel-description .long-text-editor-button { display: none; }
+.view-mode #panel-description .notes-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
+.view-mode #panel-description textarea::placeholder { color: transparent; }
 .view-mode #panel-images .image-drop-zone, .view-mode #panel-images .image-gallery-actions { display: none; }
 .view-mode #panel-images .image-gallery-column { gap: 0; }
 .view-mode #panel-images .image-field > label { display: none; }
