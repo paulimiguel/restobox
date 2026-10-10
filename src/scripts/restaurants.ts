@@ -31,6 +31,7 @@ type Restaurant = {
 	wokiUrl: string;
 	tripAdvisorUrl: string;
 	pedidosYaUrl?: string;
+	videoUrl?: string;
 	mapUrl: string;
 	hours: string;
 	notes: string;
@@ -297,6 +298,11 @@ const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
 const imageHelp = document.querySelector<HTMLElement>('.image-field label small')!;
 const primaryImagePreview = document.querySelector<HTMLDivElement>('#primary-image-preview')!;
+const videoInput = document.querySelector<HTMLInputElement>('#restaurant-video-url')!;
+const viewRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#view-restaurant-video')!;
+const restaurantVideoDialog = document.querySelector<HTMLDialogElement>('#restaurant-video-dialog')!;
+const restaurantVideoFrame = document.querySelector<HTMLIFrameElement>('#restaurant-video-frame')!;
+const closeRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#close-restaurant-video')!;
 const linktreeInput = document.querySelector<HTMLInputElement>('#linktree-url')!;
 const menuUrlInput = document.querySelector<HTMLInputElement>('#menu-url')!;
 const websiteInput = document.querySelector<HTMLInputElement>('#website-url')!;
@@ -1712,6 +1718,44 @@ function updateWhatsAppWebLink() {
 	whatsappGeneralInput.closest<HTMLElement>('.form-field')!.hidden = form.classList.contains('view-mode') && !whatsappInput.value.trim();
 }
 
+function restaurantVideoEmbedUrl(value: string) {
+	const trimmed = value.trim();
+	if (!trimmed) return '';
+	try {
+		const url = new URL(trimmed);
+		const host = url.hostname.toLocaleLowerCase('en').replace(/^www\./, '');
+		if (host === 'youtu.be') {
+			const id = url.pathname.split('/').filter(Boolean)[0] ?? '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1` : '';
+		}
+		if (host === 'youtube.com' || host === 'm.youtube.com') {
+			const parts = url.pathname.split('/').filter(Boolean);
+			const id = url.pathname === '/watch' ? (url.searchParams.get('v') ?? '')
+				: ['embed', 'shorts', 'live'].includes(parts[0] ?? '') ? (parts[1] ?? '') : '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1` : '';
+		}
+		if (host === 'instagram.com' || host === 'm.instagram.com' || host === 'instagr.am') {
+			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
+			if (!match) return '';
+			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
+			return `https://www.instagram.com/${kind}/${match[2]}/embed/`;
+		}
+	} catch {
+		return '';
+	}
+	return '';
+}
+
+function updateRestaurantVideoButton() {
+	const embedUrl = restaurantVideoEmbedUrl(videoInput.value);
+	videoInput.setCustomValidity(videoInput.value.trim() && !embedUrl ? 'Ingresá un enlace válido de YouTube o Instagram.' : '');
+	viewRestaurantVideoButton.disabled = !embedUrl;
+}
+
+function closeRestaurantVideo() {
+	restaurantVideoDialog.close();
+}
+
 function updateViewMapLink(readOnly: boolean) {
 	const explicitUrl = mapUrlInput.value.trim();
 	const addressQuery = ['address', 'neighborhood', 'city', 'province', 'country']
@@ -1770,7 +1814,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	};
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
-		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl',
+		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
 		'description', 'notes',
 	].forEach(markNamedField);
 
@@ -2572,6 +2616,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	form.classList.toggle('creating-record', !restaurant && !readOnly);
 	form.classList.toggle('view-mode', readOnly);
 	form.classList.toggle('editing-record', Boolean(restaurant) && !readOnly);
+	imageDropZone.tabIndex = readOnly ? -1 : 0;
 	updateLongTextEditorLabels(Boolean(restaurant) && !readOnly);
 	placeMapField(readOnly);
 	viewEditButton.hidden = !readOnly;
@@ -2648,6 +2693,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	updateExternalLink(wokiInput, openWoki);
 	updateExternalLink(tripAdvisorInput, openTripAdvisor);
 	updateExternalLink(pedidosYaInput, openPedidosYa);
+	updateRestaurantVideoButton();
 	updateWhatsAppWebLink();
 	updateViewEmptyFields(readOnly);
 	updateMapPreview(readOnly);
@@ -4694,14 +4740,15 @@ imageInput.addEventListener('change', () => {
 	imageInsertMode = 'append';
 });
 
-imageDropZone.addEventListener('click', () => {
-	if (restaurantImages.length < MAX_IMAGES) {
+imageDropZone.addEventListener('click', (event) => {
+	if ((event.target as HTMLElement).closest('.image-preview')) return;
+	if (!form.classList.contains('view-mode') && restaurantImages.length < MAX_IMAGES) {
 		imageInsertMode = 'append';
 		imageInput.click();
 	}
 });
 imageDropZone.addEventListener('keydown', (event) => {
-	if ((event.key === 'Enter' || event.key === ' ') && restaurantImages.length < MAX_IMAGES) {
+	if (event.target === imageDropZone && !form.classList.contains('view-mode') && (event.key === 'Enter' || event.key === ' ') && restaurantImages.length < MAX_IMAGES) {
 		event.preventDefault();
 		imageInsertMode = 'append';
 		imageInput.click();
@@ -4746,6 +4793,7 @@ primaryImagePreview.addEventListener('drop', (event) => {
 	else if (event.dataTransfer) void addDroppedWebLogo(event.dataTransfer);
 });
 imageDropZone.addEventListener('dragover', (event) => {
+	if (draggedImageIndex !== null) return;
 	event.preventDefault();
 	if (restaurantImages.length < MAX_IMAGES) {
 		event.dataTransfer!.dropEffect = 'copy';
@@ -4756,7 +4804,9 @@ imageDropZone.addEventListener('dragleave', (event) => {
 	if (!imageDropZone.contains(event.relatedTarget as Node | null)) imageDropZone.classList.remove('dragging');
 });
 imageDropZone.addEventListener('drop', (event) => {
+	if (draggedImageIndex !== null) return;
 	event.preventDefault();
+	event.stopPropagation();
 	imageDropZone.classList.remove('dragging');
 	if (restaurantImages.length >= MAX_IMAGES) {
 		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
@@ -4790,6 +4840,26 @@ imagePreviews.addEventListener('click', (event) => {
 	}
 	const preview = (event.target as HTMLElement).closest<HTMLElement>('.image-preview');
 	if (preview) openImageCarousel(Number(preview.dataset.imageIndex));
+});
+
+videoInput.addEventListener('input', updateRestaurantVideoButton);
+viewRestaurantVideoButton.addEventListener('click', () => {
+	const embedUrl = restaurantVideoEmbedUrl(videoInput.value);
+	if (!embedUrl) {
+		showToast('Ingresá un enlace válido de YouTube o Instagram');
+		return;
+	}
+	restaurantVideoFrame.src = embedUrl;
+	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
+	restaurantVideoDialog.showModal();
+});
+closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
+restaurantVideoDialog.addEventListener('click', (event) => {
+	if (event.target === restaurantVideoDialog) closeRestaurantVideo();
+});
+restaurantVideoDialog.addEventListener('close', () => {
+	restaurantVideoFrame.removeAttribute('src');
+	restaurantVideoDialog.classList.remove('instagram-video');
 });
 
 previousCarouselImage.addEventListener('click', () => moveCarouselImage(-1));
@@ -5362,6 +5432,7 @@ form.addEventListener('submit', async (event) => {
 		wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(),
 		pedidosYaUrl: data.pedidosYaUrl.trim(),
+		videoUrl: data.videoUrl.trim(),
 		mapUrl: data.mapUrl.trim(),
 		hours: data.hours.trim(),
 		notes: data.notes.trim(),
