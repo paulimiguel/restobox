@@ -1726,19 +1726,19 @@ function restaurantVideoEmbedUrl(value: string) {
 		const host = url.hostname.toLocaleLowerCase('en').replace(/^www\./, '');
 		if (host === 'youtu.be') {
 			const id = url.pathname.split('/').filter(Boolean)[0] ?? '';
-			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1` : '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=1&playsinline=1` : '';
 		}
 		if (host === 'youtube.com' || host === 'm.youtube.com') {
 			const parts = url.pathname.split('/').filter(Boolean);
 			const id = url.pathname === '/watch' ? (url.searchParams.get('v') ?? '')
 				: ['embed', 'shorts', 'live'].includes(parts[0] ?? '') ? (parts[1] ?? '') : '';
-			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1` : '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=1&playsinline=1` : '';
 		}
 		if (host === 'instagram.com' || host === 'm.instagram.com' || host === 'instagr.am') {
 			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
 			if (!match) return '';
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
-			return `https://www.instagram.com/${kind}/${match[2]}/embed/`;
+			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1`;
 		}
 	} catch {
 		return '';
