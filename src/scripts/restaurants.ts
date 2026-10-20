@@ -1763,6 +1763,17 @@ function isSupportedRestaurantVideoUrl(value: string) {
 	}
 }
 
+function instagramRestaurantVideoRoute(value: string) {
+	try {
+		const url = new URL(value.trim());
+		const host = url.hostname.toLocaleLowerCase('en').replace(/^www\./, '');
+		if (!['instagram.com', 'instagr.am'].includes(host) || !/^\/(?:p|reels?|tv)\/[\w-]+/i.test(url.pathname)) return '';
+		return `/api/video-embed?redirect=1&url=${encodeURIComponent(url.href)}`;
+	} catch {
+		return '';
+	}
+}
+
 async function resolvedRestaurantVideo(value: string) {
 	const directUrl = restaurantVideoEmbedUrl(value);
 	if (directUrl && !directUrl.includes('instagram.com')) return { url: directUrl, kind: 'embed' as const };
@@ -1790,6 +1801,25 @@ function closeRestaurantVideo() {
 }
 
 async function openRestaurantVideo(value: string) {
+	const instagramMediaRoute = instagramRestaurantVideoRoute(value);
+	if (instagramMediaRoute) {
+		restaurantVideoDialog.classList.add('instagram-video');
+		restaurantVideoDialog.classList.toggle('instagram-reel-video', /\/reels?\//i.test(value));
+		restaurantVideoDialog.classList.remove('tiktok-video');
+		restaurantVideoFrame.removeAttribute('src');
+		restaurantVideoFrame.hidden = true;
+		restaurantVideoPlayer.hidden = false;
+		restaurantVideoPlayer.src = instagramMediaRoute;
+		restaurantVideoPlayer.autoplay = true;
+		restaurantVideoPlayer.defaultMuted = false;
+		restaurantVideoPlayer.removeAttribute('muted');
+		restaurantVideoPlayer.muted = false;
+		restaurantVideoPlayer.volume = 1;
+		restaurantVideoDialog.showModal();
+		restaurantVideoPlayer.focus({ preventScroll: true });
+		void restaurantVideoPlayer.play().catch(() => undefined);
+		return true;
+	}
 	const source = await resolvedRestaurantVideo(value);
 	if (!source) return false;
 	const instagramUrl = value.toLocaleLowerCase('en').includes('instagram.com') || value.toLocaleLowerCase('en').includes('instagr.am');

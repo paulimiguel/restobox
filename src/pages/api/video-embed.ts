@@ -76,9 +76,14 @@ export const GET: APIRoute = async ({ url }) => {
 	if (instagramUrl) {
 		try {
 			const mediaUrl = await resolveInstagramVideo(instagramUrl);
-			return mediaUrl
-				? Response.json({ mediaUrl })
-				: Response.json({ error: 'No se encontró el archivo de video de Instagram' }, { status: 422 });
+			if (!mediaUrl) return Response.json({ error: 'No se encontró el archivo de video de Instagram' }, { status: 422 });
+			if (url.searchParams.get('redirect') === '1') {
+				return new Response(null, {
+					status: 302,
+					headers: { location: mediaUrl, 'cache-control': 'private, no-store' },
+				});
+			}
+			return Response.json({ mediaUrl });
 		} catch {
 			return Response.json({ error: 'No se pudo abrir el video de Instagram' }, { status: 502 });
 		}
