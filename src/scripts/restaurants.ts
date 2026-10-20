@@ -1738,7 +1738,7 @@ function restaurantVideoEmbedUrl(value: string) {
 			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
 			if (!match) return '';
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
-			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1&muted=0&playsinline=1`;
+			return `https://www.instagram.com/${kind}/${match[2]}/embed/`;
 		}
 		if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) {
 			const id = url.pathname.match(/^\/@[^/]+\/video\/(\d+)/i)?.[1]
