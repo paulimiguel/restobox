@@ -1756,6 +1756,16 @@ function closeRestaurantVideo() {
 	restaurantVideoDialog.close();
 }
 
+function openRestaurantVideo(value: string) {
+	const embedUrl = restaurantVideoEmbedUrl(value);
+	if (!embedUrl) return false;
+	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
+	restaurantVideoDialog.classList.toggle('instagram-reel-video', embedUrl.includes('instagram.com/reel/'));
+	restaurantVideoDialog.showModal();
+	restaurantVideoFrame.src = embedUrl;
+	return true;
+}
+
 function updateViewMapLink(readOnly: boolean) {
 	const explicitUrl = mapUrlInput.value.trim();
 	const addressQuery = ['address', 'neighborhood', 'city', 'province', 'country']
@@ -2175,6 +2185,7 @@ function render() {
 	list.innerHTML = filtered.map((restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
 		const cardCuisines = getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
+		const hasVideo = Boolean(restaurantVideoEmbedUrl(restaurant.videoUrl ?? ''));
 		const whatsappUrl = getWhatsAppUrl(restaurant.mobile, restaurant.country);
 		const links = [
 			whatsappUrl ? `<a href="${whatsappUrl}" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp de ${safe(restaurant.name)}" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>` : '',
@@ -2200,6 +2211,7 @@ function render() {
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
 						<button class="checked-button${restaurant.checked ? ' active' : ''}" type="button" data-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Marcar como no chequeado' : 'Marcar como chequeado'}" title="Checked"><span class="checked-icon" aria-hidden="true"></span></button>
 						<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>
+						${hasVideo ? `<button class="view-video-button" type="button" data-view-video="${restaurant.id}" aria-label="Ver video de ${safe(restaurant.name)}" title="Ver video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg></button>` : ''}
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
@@ -4844,15 +4856,9 @@ imagePreviews.addEventListener('click', (event) => {
 
 videoInput.addEventListener('input', updateRestaurantVideoButton);
 viewRestaurantVideoButton.addEventListener('click', () => {
-	const embedUrl = restaurantVideoEmbedUrl(videoInput.value);
-	if (!embedUrl) {
+	if (!openRestaurantVideo(videoInput.value)) {
 		showToast('Ingresá un enlace válido de YouTube o Instagram');
-		return;
 	}
-	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
-	restaurantVideoDialog.classList.toggle('instagram-reel-video', embedUrl.includes('instagram.com/reel/'));
-	restaurantVideoDialog.showModal();
-	restaurantVideoFrame.src = embedUrl;
 });
 closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
 restaurantVideoDialog.addEventListener('click', (event) => {
@@ -5679,6 +5685,7 @@ list.addEventListener('click', async (event) => {
 	const checkedButton = target.closest<HTMLButtonElement>('[data-checked]');
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
 	const viewImagesButton = target.closest<HTMLButtonElement>('[data-view-images]');
+	const viewVideoButton = target.closest<HTMLButtonElement>('[data-view-video]');
 	const editButton = target.closest<HTMLButtonElement>('[data-edit]');
 	const duplicateButton = target.closest<HTMLButtonElement>('[data-duplicate]');
 	const printButton = target.closest<HTMLButtonElement>('[data-print]');
@@ -5747,6 +5754,11 @@ list.addEventListener('click', async (event) => {
 		viewImagesButton.disabled = true;
 		await viewRestaurantImages(viewImagesButton.dataset.viewImages);
 		viewImagesButton.disabled = false;
+		return;
+	}
+	if (viewVideoButton?.dataset.viewVideo) {
+		const restaurant = restaurants.find((item) => item.id === viewVideoButton.dataset.viewVideo);
+		if (restaurant && !openRestaurantVideo(restaurant.videoUrl ?? '')) showToast('El enlace de video no es válido');
 		return;
 	}
 	if (editButton) {
