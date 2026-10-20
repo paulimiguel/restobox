@@ -1740,27 +1740,57 @@ function restaurantVideoEmbedUrl(value: string) {
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
 			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1&muted=1&playsinline=1`;
 		}
+		if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) {
+			const id = url.pathname.match(/^\/@[^/]+\/video\/(\d+)/i)?.[1]
+				?? url.pathname.match(/^\/player\/v1\/(\d+)/i)?.[1]
+				?? '';
+			return id ? `https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=0` : '';
+		}
 	} catch {
 		return '';
 	}
 	return '';
 }
 
+function isSupportedRestaurantVideoUrl(value: string) {
+	if (restaurantVideoEmbedUrl(value)) return true;
+	try {
+		const host = new URL(value.trim()).hostname.toLocaleLowerCase('en').replace(/^www\./, '');
+		return host === 'vm.tiktok.com' || host === 'vt.tiktok.com' || host === 'tiktok.com';
+	} catch {
+		return false;
+	}
+}
+
+async function resolvedRestaurantVideoEmbedUrl(value: string) {
+	const directUrl = restaurantVideoEmbedUrl(value);
+	if (directUrl) return directUrl;
+	if (!isSupportedRestaurantVideoUrl(value)) return '';
+	try {
+		const response = requireActiveSession(await fetch(`/api/video-embed?url=${encodeURIComponent(value.trim())}`));
+		if (!response.ok) return '';
+		return ((await response.json()) as { embedUrl?: string }).embedUrl ?? '';
+	} catch {
+		return '';
+	}
+}
+
 function updateRestaurantVideoButton() {
-	const embedUrl = restaurantVideoEmbedUrl(videoInput.value);
-	videoInput.setCustomValidity(videoInput.value.trim() && !embedUrl ? 'Ingresá un enlace válido de YouTube o Instagram.' : '');
-	viewRestaurantVideoButton.disabled = !embedUrl;
+	const supported = isSupportedRestaurantVideoUrl(videoInput.value);
+	videoInput.setCustomValidity(videoInput.value.trim() && !supported ? 'Ingresá un enlace válido de YouTube, Instagram o TikTok.' : '');
+	viewRestaurantVideoButton.disabled = !supported;
 }
 
 function closeRestaurantVideo() {
 	restaurantVideoDialog.close();
 }
 
-function openRestaurantVideo(value: string) {
-	const embedUrl = restaurantVideoEmbedUrl(value);
+async function openRestaurantVideo(value: string) {
+	const embedUrl = await resolvedRestaurantVideoEmbedUrl(value);
 	if (!embedUrl) return false;
 	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
 	restaurantVideoDialog.classList.toggle('instagram-reel-video', embedUrl.includes('instagram.com/reel/'));
+	restaurantVideoDialog.classList.toggle('tiktok-video', embedUrl.includes('tiktok.com/player/'));
 	restaurantVideoFrame.src = embedUrl;
 	restaurantVideoDialog.showModal();
 	restaurantVideoFrame.focus({ preventScroll: true });
@@ -2186,7 +2216,7 @@ function render() {
 	list.innerHTML = filtered.map((restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
 		const cardCuisines = getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
-		const hasVideo = Boolean(restaurantVideoEmbedUrl(restaurant.videoUrl ?? ''));
+		const hasVideo = isSupportedRestaurantVideoUrl(restaurant.videoUrl ?? '');
 		const whatsappUrl = getWhatsAppUrl(restaurant.mobile, restaurant.country);
 		const links = [
 			whatsappUrl ? `<a href="${whatsappUrl}" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp de ${safe(restaurant.name)}" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>` : '',
@@ -4854,9 +4884,9 @@ imagePreviews.addEventListener('click', (event) => {
 });
 
 videoInput.addEventListener('input', updateRestaurantVideoButton);
-viewRestaurantVideoButton.addEventListener('click', () => {
-	if (!openRestaurantVideo(videoInput.value)) {
-		showToast('Ingresá un enlace válido de YouTube o Instagram');
+viewRestaurantVideoButton.addEventListener('click', async () => {
+	if (!await openRestaurantVideo(videoInput.value)) {
+		showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
 	}
 });
 closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
@@ -4865,7 +4895,7 @@ restaurantVideoDialog.addEventListener('click', (event) => {
 });
 restaurantVideoDialog.addEventListener('close', () => {
 	restaurantVideoFrame.removeAttribute('src');
-	restaurantVideoDialog.classList.remove('instagram-video', 'instagram-reel-video');
+	restaurantVideoDialog.classList.remove('instagram-video', 'instagram-reel-video', 'tiktok-video');
 });
 
 previousCarouselImage.addEventListener('click', () => moveCarouselImage(-1));
@@ -5745,7 +5775,7 @@ list.addEventListener('click', async (event) => {
 	}
 	if (viewVideoButton?.dataset.viewVideo) {
 		const restaurant = restaurants.find((item) => item.id === viewVideoButton.dataset.viewVideo);
-		if (restaurant && !openRestaurantVideo(restaurant.videoUrl ?? '')) showToast('El enlace de video no es válido');
+		if (restaurant && !await openRestaurantVideo(restaurant.videoUrl ?? '')) showToast('El enlace de video no es válido');
 		return;
 	}
 	if (editButton) {
