@@ -193,8 +193,12 @@ body.mobile-menu-open { overflow: hidden; }
 .show-catalogs-button { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0 0 6px 6px !important; font-weight: 700; }
 .show-catalogs-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; }
 .show-catalogs-button.active { color: var(--button-ink); background: var(--forest); }
+.map-menu-link { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; color: #454b47; background: transparent; text-decoration: none; font-size: 12px; font-weight: 700; }
+.map-menu-link:hover { color: var(--accent-text); background: var(--sage); }
+.map-menu-link svg { width: 16px; flex: 0 0 auto; }
 .mobile-catalog-menu-options > div { max-height: 240px; overflow-y: auto; }
 .mobile-catalog-menu-options .show-catalogs-button { padding-left: 12px; }
+.mobile-menu-options .map-menu-link { min-height: 40px; padding: 9px 12px; color: #6f6965; font-size: 13px; font-weight: 500; }
 .dropdown-panel { position: absolute; top: calc(100% + 9px); right: 0; z-index: 25; min-width: 190px; padding: 6px; border: 1px solid var(--line); border-radius: 9px; background: white; box-shadow: 0 14px 35px rgba(26,35,30,.15); }
 .dropdown-panel button { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; border: 0; border-radius: 6px; color: #454b47; background: transparent; text-align: left; font-size: 12px; }
 .dropdown-panel button:hover { color: var(--accent-text); background: var(--sage); }
@@ -551,7 +555,6 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card:hover .restaurant-card-image img { transform: scale(1.05); }
 .restaurant-card-placeholder { font-family: var(--font-display); font-size: 58px; color: var(--accent-text); opacity: .65; }
 .restaurant-card-top-actions { position: absolute; top: 9px; right: 9px; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-.restaurant-card-top-actions:has(.view-video-button) { width: 120px; flex-wrap: wrap; }
 .restaurant-card-top-actions > button, .restaurant-card-actions-menu > summary { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #4f5752; background: rgba(255,255,255,.66); box-shadow: 0 3px 9px rgba(20,28,24,.12); backdrop-filter: blur(7px); cursor: pointer; transition: color .18s, background .18s, transform .18s, box-shadow .18s; }
 .restaurant-card-top-actions > button:hover, .restaurant-card-actions-menu > summary:hover, .restaurant-card-actions-menu[open] > summary { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
 .restaurant-card-top-actions svg { width: 19px; }
@@ -1237,7 +1240,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 :root[data-color-mode='dark'] .mobile-menu-button:hover { color: #fff; background: #262a2f; }
 :root[data-color-mode='dark'] .header-brand img { filter: drop-shadow(0 2px 5px rgba(0,0,0,.32)); }
 :root[data-color-mode='dark'] :is(.mobile-main-menu, .dropdown-panel, .directory-action-popover) { color: var(--ink); background: #34373e; border-color: #474c53; box-shadow: 0 16px 38px rgba(0,0,0,.34); }
-:root[data-color-mode='dark'] :is(.mobile-menu-heading h2, .mobile-menu-heading button, .mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button, .dropdown-panel button, .profile-menu-section > summary) { color: #f8fafc; }
+:root[data-color-mode='dark'] :is(.mobile-menu-heading h2, .mobile-menu-heading button, .mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button, .mobile-menu-options .map-menu-link, .dropdown-panel button, .dropdown-panel .map-menu-link, .profile-menu-section > summary) { color: #f8fafc; }
 :root[data-color-mode='dark'] :is(.mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button, .dropdown-panel button, .profile-menu-section > summary):hover,
 :root[data-color-mode='dark'] :is(.mobile-menu-section, .profile-menu-section)[open] > summary { color: #fff; background: #262a2f; }
 :root[data-color-mode='dark'] :is(.directory-actions, .directory-panel, .restaurant-card, .neighborhood-card, .neighborhood-card-copy) { background: #26292e; border-color: #474c53; }
