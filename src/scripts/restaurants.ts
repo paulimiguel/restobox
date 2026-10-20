@@ -1738,7 +1738,7 @@ function restaurantVideoEmbedUrl(value: string) {
 			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
 			if (!match) return '';
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
-			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1`;
+			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1&muted=1&playsinline=1`;
 		}
 	} catch {
 		return '';
@@ -1761,8 +1761,9 @@ function openRestaurantVideo(value: string) {
 	if (!embedUrl) return false;
 	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
 	restaurantVideoDialog.classList.toggle('instagram-reel-video', embedUrl.includes('instagram.com/reel/'));
-	restaurantVideoDialog.showModal();
 	restaurantVideoFrame.src = embedUrl;
+	restaurantVideoDialog.showModal();
+	restaurantVideoFrame.focus({ preventScroll: true });
 	return true;
 }
 
