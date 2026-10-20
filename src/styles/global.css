@@ -106,6 +106,7 @@
 :root[data-theme='pasteles'] { --ink: hsl(60 2% 43%); --muted: hsl(60 2% 43%); --forest: hsl(350 100% 95%); --forest-dark: hsl(350 100% 95%); --orange: hsl(350 100% 95%); --accent-text: hsl(350 58% 40%); --sage: hsl(350 60% 96%); --cream: hsl(0 0% 100%); --paper: hsl(0 0% 100%); --line: hsl(350 50% 90%); --button-ink: hsl(60 2% 30%); }
 :root[data-theme='salmon'] { --ink: hsl(60 2% 43%); --muted: hsl(60 2% 43%); --forest: hsl(0 68.1% 64.3%); --forest-dark: hsl(0 68.1% 64.3%); --orange: hsl(0 68.1% 64.3%); --sage: hsl(0 62% 95%); --cream: hsl(0 0% 100%); --paper: hsl(0 0% 100%); --line: hsl(0 48% 88%); --button-ink: hsl(0 0% 100%); }
 :root[data-theme='grises'] { --ink: hsl(60 2% 43%); --muted: hsl(60 2% 43%); --forest: hsl(217.5 5.6% 72.2%); --forest-dark: hsl(217.5 5.6% 72.2%); --orange: hsl(217.5 5.6% 72.2%); --sage: hsl(218 10% 94%); --cream: hsl(0 0% 100%); --paper: hsl(0 0% 100%); --line: hsl(218 8% 86%); --button-ink: hsl(60 2% 26%); }
+:root[data-color-mode='dark'] { --ink: #f8fafc; --muted: #b0bed0; --cream: #34373e; --paper: #26292e; --line: #474c53; --sage: #262a2f; --accent-text: color-mix(in srgb, var(--forest) 64%, white); color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -202,6 +203,13 @@ body.mobile-menu-open { overflow: hidden; }
 .theme-panel button span { width: 15px; height: 15px; border: 1px solid rgba(0,0,0,.08); border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 2px rgba(255,255,255,.45); }
 .theme-panel button.active { color: var(--button-ink); background: var(--forest); }
 .theme-panel button.active span { border-color: white; }
+.appearance-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px 0 2px 6px; }
+.appearance-panel button { min-width: 0; justify-content: center; border: 1px solid var(--line); }
+.appearance-panel button.active { color: var(--button-ink); border-color: var(--forest); background: var(--forest); }
+.appearance-panel button svg { width: 15px; height: 15px; }
+.mobile-appearance-options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 4px 0 10px 8px; }
+.mobile-appearance-options button { justify-content: center; border: 1px solid var(--line); }
+.mobile-appearance-options button.active { color: var(--button-ink); border-color: var(--forest); background: var(--forest); }
 .font-theme-icon { font-family: Georgia, serif; font-size: 17px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
 .font-theme-panel { display: grid; min-width: 190px; }
 .font-theme-panel button { justify-content: flex-start; }
@@ -1215,6 +1223,67 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .image-carousel-arrow svg { width: 25px; }
 .toast { position: fixed; right: 24px; bottom: 24px; z-index: 30; padding: 12px 17px; border-radius: 8px; color: white; background: var(--forest-dark); font-size: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.18); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s ease; }
 .toast.visible { opacity: 1; transform: translateY(0); }
+
+:root[data-color-mode='dark'] body,
+:root[data-color-mode='dark'] .app-shell,
+:root[data-color-mode='dark'] main { color: var(--ink); background: var(--cream); }
+:root[data-color-mode='dark'] .topbar { background: #26292e; border-color: #202329; box-shadow: 0 3px 14px rgba(0,0,0,.24); }
+:root[data-color-mode='dark'] :is(.top-icon-button, .top-nav-button, .mobile-menu-button) { color: #f8fafc; }
+:root[data-color-mode='dark'] :is(.top-icon-button, .top-nav-button):hover,
+:root[data-color-mode='dark'] .top-dropdown[open] > summary,
+:root[data-color-mode='dark'] .mobile-menu-button:hover { color: #fff; background: #262a2f; }
+:root[data-color-mode='dark'] .header-brand img { filter: drop-shadow(0 2px 5px rgba(0,0,0,.32)); }
+:root[data-color-mode='dark'] :is(.mobile-main-menu, .dropdown-panel, .directory-action-popover) { color: var(--ink); background: #34373e; border-color: #474c53; box-shadow: 0 16px 38px rgba(0,0,0,.34); }
+:root[data-color-mode='dark'] :is(.mobile-menu-heading h2, .mobile-menu-heading button, .mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button, .dropdown-panel button, .profile-menu-section > summary) { color: #f8fafc; }
+:root[data-color-mode='dark'] :is(.mobile-menu-item, .mobile-menu-section > summary, .mobile-menu-options button, .dropdown-panel button, .profile-menu-section > summary):hover,
+:root[data-color-mode='dark'] :is(.mobile-menu-section, .profile-menu-section)[open] > summary { color: #fff; background: #262a2f; }
+:root[data-color-mode='dark'] :is(.directory-actions, .directory-panel, .restaurant-card, .neighborhood-card, .neighborhood-card-copy) { background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] :is(.directory-actions, .directory-panel, .restaurant-card, .neighborhood-card) { box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+:root[data-color-mode='dark'] :is(.restaurant-card:hover, .neighborhood-card:hover) { border-color: color-mix(in srgb, var(--forest) 48%, #474c53); box-shadow: 0 14px 30px rgba(0,0,0,.35); }
+:root[data-color-mode='dark'] :is(.restaurant-card-open, .restaurant-card-image, .neighborhood-card-open) { background: #1d242d; }
+:root[data-color-mode='dark'] .restaurant-card-top-actions > button,
+:root[data-color-mode='dark'] .restaurant-card-actions-menu > summary { color: #d8dee7; background: rgba(29,36,45,.78); box-shadow: 0 3px 10px rgba(0,0,0,.3); }
+:root[data-color-mode='dark'] .restaurant-card-top-actions > button:hover,
+:root[data-color-mode='dark'] .restaurant-card-actions-menu > summary:hover,
+:root[data-color-mode='dark'] .restaurant-card-actions-menu[open] > summary { color: #fff; background: rgba(52,55,62,.96); }
+:root[data-color-mode='dark'] .restaurant-card-footer .row-links a { color: #d5dde7; background: #34373e; box-shadow: 0 3px 10px rgba(0,0,0,.22); }
+:root[data-color-mode='dark'] .restaurant-card-footer .row-links a:hover { color: #fff; background: color-mix(in srgb, var(--forest) 48%, #34373e); }
+:root[data-color-mode='dark'] :is(.directory-active-filter-icon, .clear-active-directory-filters, .quick-place-filter, .filter-status-buttons button, .print-panel-actions button, .close-print-panel, .row-links a, .secondary-button) { color: var(--ink); background: #34373e; border-color: #59606a; }
+:root[data-color-mode='dark'] :is(.quick-place-filter:hover, .search-scope-option:hover, .row-actions button:hover, .icon-button:hover) { color: #fff; background: #262a2f; }
+:root[data-color-mode='dark'] :is(.search-inline-action, .search-inline-clear, .search-scope-options) { color: var(--muted); background: #1d242d; }
+:root[data-color-mode='dark'] :is(.print-places-panel, .directory-filter-panel) { color: var(--ink); background: #2d3137; border-color: #474c53; box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+:root[data-color-mode='dark'] input:not([type='checkbox']):not([type='radio']),
+:root[data-color-mode='dark'] select,
+:root[data-color-mode='dark'] textarea,
+:root[data-color-mode='dark'] :is(.action-search input, .directory-action-menu > summary, .filter-multiselect > summary, .bulk-choice-dropdown > summary) { color: var(--ink); background: #1d242d; border-color: #59606a; }
+:root[data-color-mode='dark'] input::placeholder,
+:root[data-color-mode='dark'] textarea::placeholder { color: #8290a3; }
+:root[data-color-mode='dark'] :is(.filter-checkbox-list, .cuisine-dropdown, .bulk-choice-list, .excel-preview-table-wrap, .neighborhood-image-picker, .neighborhood-option-card, .tag-dropdown-option, .create-cuisine-option, .option-management-list) { color: var(--ink); background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] dialog:not(.image-carousel-dialog):not(.restaurant-video-dialog) { color: var(--ink); background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] :is(.form-tabs, .dialog-actions, .mini-dialog-actions) { background: #202329; border-color: #474c53; }
+:root[data-color-mode='dark'] :is(.form-grid label, .form-field, .form-grid .field-label, .mini-dialog label, .profile-field-title, .profile-dialog form > label > span, .password-editor-fields label > span, .bulk-choice-field, .logo-field > span, .schedule-table > label, .view-mode #panel-general .field-label, .view-mode #panel-general label, .view-mode #panel-general .form-field > label, .view-mode #panel-details .form-grid > label, .view-mode #panel-details .form-grid > .form-field, .view-mode #panel-details .form-field > label, .view-mode #panel-links .form-field, .view-mode #panel-links .form-field > label, .view-mode #panel-information .schedule-field, .view-mode #panel-description .form-grid > label, .view-mode #panel-description .long-text-field) { color: #dce3ec; }
+:root[data-color-mode='dark'] :is(.boolean-check-control, .rate-control, .schedule-table, .meal-types, .restaurant-status-option, .logo-drop-zone, .image-previews-shell, .primary-image-preview, .establishment-lead, .password-editor summary, .record-navigation button) { color: var(--ink); background: #1d242d; border-color: #59606a; }
+:root[data-color-mode='dark'] :is(.schedule-header, .schedule-table .schedule-hours-input:focus) { color: #dce3ec; background: #2d3137; }
+:root[data-color-mode='dark'] :is(.neighborhood-option-card, .tag-dropdown-option):hover,
+:root[data-color-mode='dark'] :is(.neighborhood-option-card, .tag-dropdown-option):focus-within,
+:root[data-color-mode='dark'] :is(.neighborhood-option-card, .tag-dropdown-option).selected { color: #fff; background: #34373e; }
+:root[data-color-mode='dark'] :is(.directory-owner-summary.is-filtered p, .directory-active-filter-chip, .search-term-chip, .filter-chip) { color: var(--accent-text); background: #2d3137; border-color: #59606a; }
+:root[data-color-mode='dark'] .excel-preview-table-wrap th { color: var(--accent-text); background: #1d242d; }
+:root[data-color-mode='dark'] :is(.excel-preview-table-wrap tr.is-invalid td, .url-import-progress.is-error, .profile-message.is-error) { color: #ffb4aa; background: #422c2d; }
+:root[data-color-mode='dark'] .profile-message:not(.is-error) { color: #9ee6be; background: #203a2c; }
+:root[data-color-mode='dark'] :is(.row-actions .delete-button:hover, .option-management-item button:hover, .delete-neighborhood-option:hover, .delete-tag-option:hover) { color: #ffb4aa; background: #422c2d; }
+:root[data-color-mode='dark'] :is(.select-with-action > button, .external-link-button) { color: var(--accent-text); background: #2d3137; border-color: #59606a; }
+:root[data-color-mode='dark'] .external-link-button.disabled { color: #768291; background: #202329; border-color: #474c53; }
+:root[data-color-mode='dark'] :is(.image-preview, .map-preview) { background: #1d242d; }
+:root[data-color-mode='dark'] .view-mode input:disabled,
+:root[data-color-mode='dark'] .view-mode select:disabled,
+:root[data-color-mode='dark'] .view-mode textarea:disabled { color: var(--ink); background: #26292e; -webkit-text-fill-color: var(--ink); }
+:root[data-color-mode='dark'] :is(.selected-option, .url-import-progress, .empty-state) { color: var(--ink); background: #2d3137; }
+:root[data-color-mode='dark'] :is(.user-summary strong, .directory-owner-summary h1, .restaurant-card-name, .neighborhood-card-copy strong, .panel-heading h2, .dialog-heading h2) { color: #fff; }
+:root[data-color-mode='dark'] :is(.user-summary small, .directory-owner-summary p, .restaurant-card-establishments, .restaurant-card-cuisines, .restaurant-card-address, .restaurant-card-neighborhood, .neighborhood-card-copy span) { color: var(--muted); }
+:root[data-color-mode='dark'] .font-preview { color: #f8fafc; background: #1d242d; }
+:root[data-color-mode='dark'] .appearance-panel button:not(.active),
+:root[data-color-mode='dark'] .mobile-appearance-options button:not(.active) { background: #2d3137; }
 
 @media (max-width: 900px) {
 	.app-shell { grid-template-columns: 1fr; }

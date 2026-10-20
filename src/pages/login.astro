@@ -13,25 +13,35 @@ const googleLoginUrl = `/api/auth/google/start?next=${encodeURIComponent(next)}`
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
 		<title>Ingresar | RestoBox</title>
+		<script is:inline>
+			try {
+				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
+				document.documentElement.dataset.colorMode = colorMode;
+				document.documentElement.style.colorScheme = colorMode;
+			} catch {
+				document.documentElement.dataset.colorMode = 'light';
+			}
+		</script>
 		<style>
-			:root { font-family: Inter, system-ui, sans-serif; color: #26382f; background: #f7f6f2; }
+			:root { --login-ink: #26382f; --login-muted: #6b746f; --login-label: #4e5953; --login-canvas: #f7f6f2; --login-panel: #fff; --login-field: #fff; --login-line: #d8e7e2; --login-input-line: #c9ddd6; --login-google-line: #cbd8d3; --login-google-ink: #37433d; --login-google-hover: #f8fbfa; font-family: Inter, system-ui, sans-serif; color: var(--login-ink); background: var(--login-canvas); }
+			:root[data-color-mode='dark'] { --login-ink: #f8fafc; --login-muted: #b0bed0; --login-label: #dce3ec; --login-canvas: #34373e; --login-panel: #26292e; --login-field: #1d242d; --login-line: #474c53; --login-input-line: #59606a; --login-google-line: #59606a; --login-google-ink: #f8fafc; --login-google-hover: #34373e; color-scheme: dark; }
 			body { display: grid; min-height: 100vh; margin: 0; place-items: center; }
-			main { width: min(390px, calc(100% - 32px)); padding: 34px; border: 1px solid #d8e7e2; border-radius: 14px; background: white; box-shadow: 0 20px 55px rgba(25,45,36,.12); }
+			main { width: min(390px, calc(100% - 32px)); padding: 34px; border: 1px solid var(--login-line); border-radius: 14px; background: var(--login-panel); box-shadow: 0 20px 55px rgba(25,45,36,.12); }
 			img { display: block; width: 180px; height: 76px; margin: 0 auto 20px; object-fit: contain; }
 			h1 { margin: 0 0 8px; font-size: 25px; text-align: center; }
-			p { margin: 0 0 22px; color: #6b746f; font-size: 14px; line-height: 1.5; text-align: center; }
+			p { margin: 0 0 22px; color: var(--login-muted); font-size: 14px; line-height: 1.5; text-align: center; }
 			form, label { display: grid; gap: 8px; }
 			form { gap: 16px; }
-			label { color: #4e5953; font-size: 13px; font-weight: 650; }
-			input { height: 44px; padding: 0 13px; border: 1px solid #c9ddd6; border-radius: 8px; font: inherit; }
+			label { color: var(--login-label); font-size: 13px; font-weight: 650; }
+			input { height: 44px; padding: 0 13px; border: 1px solid var(--login-input-line); border-radius: 8px; color: var(--login-ink); background: var(--login-field); font: inherit; }
 			input:focus { border-color: #318b7b; outline: 3px solid rgba(49,139,123,.12); }
 			button { height: 45px; border: 0; border-radius: 8px; color: #173a32; background: #bde9df; font: inherit; font-weight: 750; cursor: pointer; }
 			button:hover { background: #96ddce; }
 			button:disabled { cursor: wait; opacity: .65; }
 			.login-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: #84908a; font-size: 12px; }
 			.login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: #dce7e3; }
-			.google-login { display: flex; height: 45px; align-items: center; justify-content: center; gap: 10px; border: 1px solid #cbd8d3; border-radius: 8px; color: #37433d; background: white; font-size: 14px; font-weight: 700; text-decoration: none; transition: border-color .18s, background .18s, box-shadow .18s; }
-			.google-login:hover { border-color: #9dbab0; background: #f8fbfa; box-shadow: 0 4px 12px rgba(25,45,36,.08); }
+			.google-login { display: flex; height: 45px; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--login-google-line); border-radius: 8px; color: var(--login-google-ink); background: var(--login-field); font-size: 14px; font-weight: 700; text-decoration: none; transition: border-color .18s, background .18s, box-shadow .18s; }
+			.google-login:hover { border-color: #9dbab0; background: var(--login-google-hover); box-shadow: 0 4px 12px rgba(25,45,36,.08); }
 			.google-login svg { width: 19px; height: 19px; flex: 0 0 auto; }
 			.google-login[aria-disabled='true'] { pointer-events: none; opacity: .48; }
 			.google-setup { margin: 9px 0 0; color: #7a837e; font-size: 11px; }

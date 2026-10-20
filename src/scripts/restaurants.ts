@@ -4987,6 +4987,7 @@ window.addEventListener('resize', () => {
 
 const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-theme-value]');
 const fontThemeButtons = document.querySelectorAll<HTMLButtonElement>('[data-font-theme-value]');
+const colorModeButtons = document.querySelectorAll<HTMLButtonElement>('[data-color-mode-value]');
 const headerThemeLogo = document.querySelector<HTMLImageElement>('#header-theme-logo')!;
 const themeLogos: Record<string, string> = {
 	aguamarina: '/restobox-theme-aguamarina-transparent.png',
@@ -5007,6 +5008,27 @@ function applyTheme(theme: string) {
 
 themeButtons.forEach((button) => button.addEventListener('click', () => {
 	applyTheme(button.dataset.themeValue!);
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+}));
+
+function applyColorMode(mode: string) {
+	const selectedMode = mode === 'dark' ? 'dark' : 'light';
+	document.documentElement.dataset.colorMode = selectedMode;
+	document.documentElement.style.colorScheme = selectedMode;
+	try {
+		localStorage.setItem('restobox-color-mode', selectedMode);
+	} catch {
+		// El modo elegido sigue vigente durante la visita actual.
+	}
+	colorModeButtons.forEach((button) => {
+		const active = button.dataset.colorModeValue === selectedMode;
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-pressed', String(active));
+	});
+}
+
+colorModeButtons.forEach((button) => button.addEventListener('click', () => {
+	applyColorMode(button.dataset.colorModeValue!);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 }));
 
@@ -5895,6 +5917,7 @@ document.querySelector<HTMLButtonElement>('#logout-button')?.addEventListener('c
 	else showToast('No se pudo cerrar la sesión');
 });
 applyTheme(localStorage.getItem('theme') || 'carrot');
+applyColorMode(localStorage.getItem('restobox-color-mode') || 'light');
 applyFontTheme(localStorage.getItem('font-theme') || 'original');
 renderSelectedCuisines();
 renderCuisineOptions();
