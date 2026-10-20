@@ -483,7 +483,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 29px; height: 29px; border-radius: 6px; }
 .restaurant-list.view-detail .restaurant-card-top-actions svg { width: 16px; height: 16px; }
 .restaurant-list.view-detail .restaurant-card-top-actions .checked-icon { width: 19px; height: 19px; }
-.restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 114px; align-content: center; align-items: center; gap: 20px; }
+.restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 70px; align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
 .restaurant-list.view-list .restaurant-card-image { min-height: 112px; }
 .restaurant-list.view-list .restaurant-card-body { padding-block: 12px; }
@@ -491,21 +491,21 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-cuisines .restaurant-card { display: grid; grid-template-columns: 42px minmax(0, 1fr) 220px; align-items: center; }
 .restaurant-list.view-cuisines .restaurant-card-media, .restaurant-list.view-cuisines .restaurant-card-open, .restaurant-list.view-cuisines .restaurant-card-image { width: 42px; height: 42px; min-height: 42px; aspect-ratio: 1; }
 .restaurant-list.view-cuisines .restaurant-card-top-actions { display: none; }
-.restaurant-list.view-cuisines .restaurant-card-body { grid-template-columns: 300px minmax(0, 1fr) 114px; align-items: center; padding: 8px 12px; }
+.restaurant-list.view-cuisines .restaurant-card-body { grid-template-columns: 300px minmax(0, 1fr) 70px; align-items: center; padding: 8px 12px; }
 .restaurant-list.view-cuisines .restaurant-card-name { font-size: 16px; }
 .restaurant-list.view-cuisines .restaurant-card-cuisines { font-size: 12px; white-space: normal; }
 .restaurant-list.view-establishments .restaurant-card-cuisines { display: none; }
 .restaurant-list.view-establishments .restaurant-card { display: grid; grid-template-columns: 42px minmax(0, 1fr) 220px; align-items: center; }
 .restaurant-list.view-establishments .restaurant-card-media, .restaurant-list.view-establishments .restaurant-card-open, .restaurant-list.view-establishments .restaurant-card-image { width: 42px; height: 42px; min-height: 42px; aspect-ratio: 1; }
 .restaurant-list.view-establishments .restaurant-card-top-actions { display: none; }
-.restaurant-list.view-establishments .restaurant-card-body { grid-template-columns: 300px minmax(0, 1fr) 114px; align-items: center; padding: 8px 12px; }
+.restaurant-list.view-establishments .restaurant-card-body { grid-template-columns: 300px minmax(0, 1fr) 70px; align-items: center; padding: 8px 12px; }
 .restaurant-list.view-establishments .restaurant-card-name { font-size: 16px; }
 .restaurant-list.view-establishments .restaurant-card-establishments { font-size: 12px; white-space: normal; }
 .restaurant-list.view-cuisines .restaurant-card-footer, .restaurant-list.view-establishments .restaurant-card-footer { min-height: 0; padding: 5px 10px; }
 .restaurant-list.view-cuisines .restaurant-card-footer .row-links, .restaurant-list.view-establishments .restaurant-card-footer .row-links { flex-wrap: wrap; gap: 4px; overflow: visible; }
 .restaurant-list.view-cuisines .restaurant-card-footer .row-links a, .restaurant-list.view-establishments .restaurant-card-footer .row-links a { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 7px; }
 .restaurant-list.view-cuisines .restaurant-card-footer .row-links svg, .restaurant-list.view-establishments .restaurant-card-footer .row-links svg { width: 17px; height: 17px; }
-.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status { display: flex; width: 114px; align-items: center; justify-content: flex-end; gap: 6px; }
+.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status { display: flex; width: 70px; align-items: center; justify-content: flex-end; gap: 6px; }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status button { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #666d69; background: color-mix(in srgb, var(--sage) 75%, white); cursor: pointer; transition: color .18s, background .18s, transform .18s; }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status button:hover { background: color-mix(in srgb, var(--forest) 28%, white); transform: translateY(-1px); }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
@@ -618,7 +618,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-list .restaurant-card { min-height: 78px; grid-template-columns: 78px minmax(520px, 1fr) 232px; border-radius: 8px; }
 .restaurant-list.view-list .restaurant-card:hover { transform: translateY(-1px); }
 .restaurant-list.view-list .restaurant-card-media, .restaurant-list.view-list .restaurant-card-open, .restaurant-list.view-list .restaurant-card-image { width: 78px; height: 78px; min-height: 78px; aspect-ratio: 1; }
-.restaurant-list.view-list .restaurant-card-body { grid-template-columns: 320px minmax(220px, 1fr) 114px; align-content: center; align-items: center; gap: 18px; padding: 8px 16px; }
+.restaurant-list.view-list .restaurant-card-body { grid-template-columns: 320px minmax(220px, 1fr) 70px; align-content: center; align-items: center; gap: 18px; padding: 8px 16px; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-identity, .restaurant-list:is(.view-list, .view-detail) .restaurant-card-location { display: grid; min-width: 0; align-content: center; gap: 3px; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-location { min-height: 40px; grid-template-rows: 20px 17px; align-content: center; padding-left: 18px; border-left: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-address, .restaurant-list:is(.view-list, .view-detail) .restaurant-card-neighborhood { display: block; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -627,7 +627,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-list .restaurant-card-name { font-size: 17px; }
 .restaurant-list.view-list .restaurant-card-establishments { font-size: 12px; }
 .restaurant-list.view-list .restaurant-card-cuisines { font-size: 11px; }
-.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status { display: flex; width: 114px; align-items: center; justify-content: flex-end; gap: 6px; }
+.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status { display: flex; width: 70px; align-items: center; justify-content: flex-end; gap: 6px; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status button { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #666d69; background: color-mix(in srgb, var(--sage) 75%, white); cursor: pointer; transition: color .18s, background .18s, transform .18s; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status button:hover { background: color-mix(in srgb, var(--forest) 28%, white); transform: translateY(-1px); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }

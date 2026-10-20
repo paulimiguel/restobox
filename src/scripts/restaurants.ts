@@ -2209,7 +2209,6 @@ function render() {
 					<div class="restaurant-card-top-actions" aria-label="Acciones del restaurante">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
-						<button class="checked-button${restaurant.checked ? ' active' : ''}" type="button" data-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Marcar como no chequeado' : 'Marcar como chequeado'}" title="Checked"><span class="checked-icon" aria-hidden="true"></span></button>
 						<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>
 						${hasVideo ? `<button class="view-video-button" type="button" data-view-video="${restaurant.id}" aria-label="Ver video de ${safe(restaurant.name)}" title="Ver video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg></button>` : ''}
 						<details class="restaurant-card-actions-menu">
@@ -2233,10 +2232,9 @@ function render() {
 						${restaurant.address ? `<p class="restaurant-card-address">${safe(restaurant.address)}</p>` : '<p class="restaurant-card-address" aria-hidden="true"></p>'}
 						${restaurant.neighborhood ? `<p class="restaurant-card-neighborhood">${safe(restaurant.neighborhood)}</p>` : '<p class="restaurant-card-neighborhood" aria-hidden="true"></p>'}
 					</div>
-					<div class="restaurant-card-list-status" aria-label="Favorito, visitado y checked">
+					<div class="restaurant-card-list-status" aria-label="Favorito y visitado">
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
-						<button class="checked-button${restaurant.checked ? ' active' : ''}" type="button" data-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Marcar como no chequeado' : 'Marcar como chequeado'}" title="Checked"><span class="checked-icon" aria-hidden="true"></span></button>
 					</div>
 				</div>
 				${links ? `<div class="restaurant-card-footer"><div class="row-links">${links}</div></div>` : ''}
@@ -5682,7 +5680,6 @@ list.addEventListener('click', async (event) => {
 	const printSelectButton = target.closest<HTMLButtonElement>('[data-print-select]');
 	const favoriteButton = target.closest<HTMLButtonElement>('[data-favorite]');
 	const visitedButton = target.closest<HTMLButtonElement>('[data-visited]');
-	const checkedButton = target.closest<HTMLButtonElement>('[data-checked]');
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
 	const viewImagesButton = target.closest<HTMLButtonElement>('[data-view-images]');
 	const viewVideoButton = target.closest<HTMLButtonElement>('[data-view-video]');
@@ -5730,17 +5727,6 @@ list.addEventListener('click', async (event) => {
 			saveRestaurants();
 			render();
 			showToast(restaurant.visited ? 'Marcado como visitado' : 'Marcado como no visitado');
-		}
-		return;
-	}
-	if (checkedButton) {
-		const restaurant = restaurants.find((item) => item.id === checkedButton.dataset.checked);
-		if (restaurant) {
-			backupRestaurants();
-			restaurant.checked = !restaurant.checked;
-			saveRestaurants();
-			render();
-			showToast(restaurant.checked ? 'Marcado como chequeado' : 'Marcado como no chequeado');
 		}
 		return;
 	}
