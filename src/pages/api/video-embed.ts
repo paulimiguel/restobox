@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ url }) => {
 	try {
 		for (let redirect = 0; redirect < 6; redirect += 1) {
 			const id = tiktokVideoId(current);
-			if (id) return Response.json({ embedUrl: `https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=0` });
+			if (id) return Response.json({ embedUrl: `https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=0&muted=0` });
 			const response = await fetch(current, {
 				redirect: 'manual',
 				signal: AbortSignal.timeout(8_000),

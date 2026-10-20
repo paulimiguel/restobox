@@ -1738,13 +1738,13 @@ function restaurantVideoEmbedUrl(value: string) {
 			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
 			if (!match) return '';
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
-			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1&muted=1&playsinline=1`;
+			return `https://www.instagram.com/${kind}/${match[2]}/embed/?autoplay=1&muted=0&playsinline=1`;
 		}
 		if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) {
 			const id = url.pathname.match(/^\/@[^/]+\/video\/(\d+)/i)?.[1]
 				?? url.pathname.match(/^\/player\/v1\/(\d+)/i)?.[1]
 				?? '';
-			return id ? `https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=0` : '';
+			return id ? `https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=0&muted=0` : '';
 		}
 	} catch {
 		return '';
