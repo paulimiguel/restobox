@@ -1726,13 +1726,13 @@ function restaurantVideoEmbedUrl(value: string) {
 		const host = url.hostname.toLocaleLowerCase('en').replace(/^www\./, '');
 		if (host === 'youtu.be') {
 			const id = url.pathname.split('/').filter(Boolean)[0] ?? '';
-			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=1&playsinline=1` : '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&playsinline=1` : '';
 		}
 		if (host === 'youtube.com' || host === 'm.youtube.com') {
 			const parts = url.pathname.split('/').filter(Boolean);
 			const id = url.pathname === '/watch' ? (url.searchParams.get('v') ?? '')
 				: ['embed', 'shorts', 'live'].includes(parts[0] ?? '') ? (parts[1] ?? '') : '';
-			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=1&playsinline=1` : '';
+			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&playsinline=1` : '';
 		}
 		if (host === 'instagram.com' || host === 'm.instagram.com' || host === 'instagr.am') {
 			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
@@ -4849,9 +4849,10 @@ viewRestaurantVideoButton.addEventListener('click', () => {
 		showToast('Ingresá un enlace válido de YouTube o Instagram');
 		return;
 	}
-	restaurantVideoFrame.src = embedUrl;
 	restaurantVideoDialog.classList.toggle('instagram-video', embedUrl.includes('instagram.com'));
+	restaurantVideoDialog.classList.toggle('instagram-reel-video', embedUrl.includes('instagram.com/reel/'));
 	restaurantVideoDialog.showModal();
+	restaurantVideoFrame.src = embedUrl;
 });
 closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
 restaurantVideoDialog.addEventListener('click', (event) => {
@@ -4859,7 +4860,7 @@ restaurantVideoDialog.addEventListener('click', (event) => {
 });
 restaurantVideoDialog.addEventListener('close', () => {
 	restaurantVideoFrame.removeAttribute('src');
-	restaurantVideoDialog.classList.remove('instagram-video');
+	restaurantVideoDialog.classList.remove('instagram-video', 'instagram-reel-video');
 });
 
 previousCarouselImage.addEventListener('click', () => moveCarouselImage(-1));
