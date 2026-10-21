@@ -1603,3 +1603,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-detail .restaurant-card-top-actions { padding: 8px 8px 10px 4px; pointer-events: auto; }
 	.restaurant-list.view-detail .restaurant-card-actions-menu { right: auto; bottom: auto; top: 118px; left: 118px; }
 }
+
+/* Tres puntitos sin recuadro, para no tapar la imagen */
+.restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu > summary { color: #fff; background: transparent; box-shadow: none; backdrop-filter: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.75)); transform: none; }
+.restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu > summary:hover, .restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu[open] > summary { color: #fff; background: transparent; box-shadow: none; transform: scale(1.15); }
