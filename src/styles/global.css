@@ -1346,15 +1346,19 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 }
 
 @media (max-width: 1279px) {
-	.top-actions > :not(.mobile-menu-button):not(.user-dropdown) { display: none; }
+	.top-actions > :not(.mobile-menu-button):not(.user-dropdown):not(.add-dropdown) { display: none; }
 	.mobile-menu-button { display: grid; }
+	.add-dropdown .chevron { display: none; }
+	.add-dropdown > summary { width: 40px; padding: 0; justify-content: center; }
+	.directory-actions-grid .new-establishment-menu { display: none; }
+	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.top-actions { gap: 4px; }
 	.restaurant-list.view-detail .restaurant-card-list-status { display: none !important; }
 }
 
 @media (min-width: 981px) and (max-width: 1250px) {
 	.directory-actions { grid-template-columns: 1fr; }
-	.directory-actions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
@@ -1377,9 +1381,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-search-row, .directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
 	.quick-place-filters { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.quick-place-filter { width: 100%; padding-inline: 5px; }
-	.search-scope-options { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	.search-scope-option { min-width: 0; }
-	.directory-actions-grid { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+	.search-scope-options { display: grid; width: 100%; grid-template-columns: auto auto auto auto; justify-content: space-between; }
+	.search-scope-option { min-width: 0; padding-inline: 5px; font-size: 8.5px; letter-spacing: 0; }
+	.directory-actions-grid { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.action-search input { font-size: 16px; }
 	.directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
 	.directory-filter-fields .filter-control, .directory-filter-fields .filter-multiselect { width: 100%; min-width: 0; }
@@ -1395,7 +1399,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.filter-status-buttons button .checked-icon { width: 16px; height: 16px; flex-basis: 16px; }
 	.directory-action-menu > summary { height: 43px; }
 	.directory-action-popover { right: auto; left: 0; }
-	.view-options :is([data-directory-view='columns-6'], [data-directory-view='establishments'], [data-directory-view='cuisines']) { display: none; }
 	.panel-heading { align-items: stretch; flex-direction: column; }
 	.tools { flex-direction: column; }
 	.search-box input, .filter-box select { width: 100%; }
@@ -1406,7 +1409,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.neighborhood-card-copy { padding: 10px 11px 12px; }
 	.neighborhood-card-copy strong { font-size: 19px; }
 	.restaurant-list.view-small-icons { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
-	.restaurant-list.view-columns-1, .restaurant-list.view-columns-2, .restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: 1fr; }
+	.restaurant-list.view-columns-1, .restaurant-list.view-columns-2, .restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5 { grid-template-columns: 1fr; }
+	.restaurant-list.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 	.restaurant-list.view-columns-1 .restaurant-card, .restaurant-list.view-columns-1 .restaurant-card:not(:has(.restaurant-card-footer)) { height: auto; grid-template-columns: 1fr; }
 	.restaurant-list.view-columns-1 .restaurant-card-open, .restaurant-list.view-columns-1 .restaurant-card-image { height: auto; }
 	.restaurant-list.view-columns-1 .restaurant-card-image { min-height: 0; aspect-ratio: 1; }
@@ -1415,12 +1419,16 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-columns-1 .restaurant-card-name { font-size: 29px; }
 	.restaurant-list:is(.view-columns-2, .view-columns-3, .view-columns-4, .view-detail) .restaurant-card-name { font-size: 30px; }
 	.restaurant-list.view-columns-5 .restaurant-card-name { font-size: 25px; }
-	.restaurant-list.view-columns-6 .restaurant-card-name, .restaurant-list.view-list .restaurant-card-name { font-size: 24px; }
+	.restaurant-list.view-list .restaurant-card-name { font-size: 24px; }
 	.restaurant-list.view-small-icons .restaurant-card-name { font-size: 17px; }
 	.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-name { font-size: 23px; }
 	.restaurant-list:not(.view-small-icons) .restaurant-card-establishments { font-size: 17px; }
 	.restaurant-list:not(.view-small-icons) .restaurant-card-cuisines { font-size: 16px; }
-	.restaurant-list:is(.view-columns-5, .view-columns-6) .restaurant-card-neighborhood { font-size: 15px; }
+	.restaurant-list.view-columns-5 .restaurant-card-neighborhood { font-size: 15px; }
+	.restaurant-list.view-columns-6 .restaurant-card-name { font-size: 17px; line-height: 1.2; }
+	.restaurant-list.view-columns-6 .restaurant-card-establishments { font-size: 11px; }
+	.restaurant-list.view-columns-6 .restaurant-card-cuisines { font-size: 10px; }
+	.restaurant-list.view-columns-6 .restaurant-card-neighborhood { font-size: 10px; }
 	.restaurant-list.view-cuisines .restaurant-card-cuisines, .restaurant-list.view-establishments .restaurant-card-establishments { font-size: 18px; }
 	.restaurant-list.view-detail .restaurant-card, .restaurant-list.view-list .restaurant-card { grid-template-columns: 1fr; }
 	.restaurant-list.view-detail .restaurant-card-image, .restaurant-list.view-list .restaurant-card-image { aspect-ratio: 1; }
@@ -1473,7 +1481,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.top-nav-button { padding-inline: 7px; }
 	#main-search-button { width: 40px; padding-inline: 0; }
 	#main-search-button span { display: none; }
-	.add-dropdown { display: none; }
 	.directory-actions { grid-template-columns: 1fr; gap: 12px; }
 	.directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
 	.directory-actions-grid { width: 100%; }
