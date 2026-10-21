@@ -1485,6 +1485,10 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
 	.directory-actions-grid { width: 100%; }
 	.restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 5px; right: 5px; gap: 2px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 22px; height: 22px; border-radius: 5px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 12px; height: 12px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 14px; height: 14px; }
 	.restaurant-list.view-columns-1 .restaurant-card { grid-template-columns: 220px minmax(180px, 1fr) 150px; }
 	.restaurant-list.view-columns-1 .restaurant-card:not(:has(.restaurant-card-footer)) { grid-template-columns: 220px minmax(180px, 1fr); }
 	.restaurant-list.view-columns-1 .restaurant-card-body { padding: 22px; }
