@@ -2302,6 +2302,8 @@ function render() {
 	renderAdditionalFilterOptions();
 	cardPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
 	cardPreviewUrls = [];
+	// El botón Nuevo solo se muestra en el directorio (no en Mi perfil, el mapa ni las vistas de categorías o cocinas).
+	document.body.classList.toggle('hide-new-button', profileMode || mapMode || Boolean(showingCatalog));
 	if (showingCatalog) {
 		renderCatalogCards(showingCatalog);
 		return;

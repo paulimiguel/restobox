@@ -1642,8 +1642,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.map-status { top: 24px; left: 24px; max-width: calc(100% - 48px); }
 }
 
-/* /mapa: sin el botón Nuevo y con los demás botones pegados al margen derecho */
-body[data-map-mode='true'] .directory-actions-grid .new-establishment-menu { display: none; }
-body[data-map-mode='true'] .directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 405px); margin-left: auto; }
-body[data-map-mode='true'] .directory-toolbar-lower-row { justify-content: space-between; }
-@media (max-width: 640px) { body[data-map-mode='true'] .directory-actions-grid { width: 100%; } }
+/* Sin el botón Nuevo (Mi perfil, mapa, categorías y cocinas): los demás botones quedan pegados al margen derecho */
+body.hide-new-button .directory-actions-grid .new-establishment-menu { display: none; }
+body.hide-new-button .directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 405px); margin-left: auto; }
+body.hide-new-button .directory-toolbar-lower-row { justify-content: space-between; }
+@media (max-width: 640px) { body.hide-new-button .directory-actions-grid { width: 100%; } }
