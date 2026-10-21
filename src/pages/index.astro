@@ -885,19 +885,21 @@ const userInitials = userDisplayName
 		</dialog>
 
 		<dialog id="image-carousel-dialog" class="image-carousel-dialog" aria-label="Galería de imágenes">
+			<div id="image-carousel-backdrop" class="image-carousel-backdrop" aria-hidden="true"></div>
 			<div class="image-carousel-heading">
 				<span id="image-carousel-counter"></span>
-				<button id="close-image-carousel" type="button" aria-label="Cerrar galería" title="Cerrar">×</button>
+				<button id="close-image-carousel" type="button" aria-label="Cerrar galería" title="Cerrar (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
 			</div>
 			<div class="image-carousel-stage">
-				<button id="previous-carousel-image" class="image-carousel-arrow previous" type="button" aria-label="Imagen anterior" title="Imagen anterior">
+				<button id="previous-carousel-image" class="image-carousel-arrow previous" type="button" aria-label="Imagen anterior" title="Anterior (←)">
 					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
 				</button>
-				<img id="image-carousel-image" alt="" />
-				<button id="next-carousel-image" class="image-carousel-arrow next" type="button" aria-label="Imagen siguiente" title="Imagen siguiente">
+				<img id="image-carousel-image" alt="" draggable="false" />
+				<button id="next-carousel-image" class="image-carousel-arrow next" type="button" aria-label="Imagen siguiente" title="Siguiente (→)">
 					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
 				</button>
 			</div>
+			<div id="image-carousel-thumbs" class="image-carousel-thumbs" role="tablist" aria-label="Miniaturas"></div>
 		</dialog>
 
 		<dialog id="empty-fields-dialog" class="mini-dialog empty-fields-dialog">

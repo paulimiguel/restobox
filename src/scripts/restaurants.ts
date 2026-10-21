@@ -410,6 +410,8 @@ const scheduleInputs = [...document.querySelectorAll<HTMLInputElement>('.schedul
 const imageCarouselDialog = document.querySelector<HTMLDialogElement>('#image-carousel-dialog')!;
 const imageCarouselImage = document.querySelector<HTMLImageElement>('#image-carousel-image')!;
 const imageCarouselCounter = document.querySelector<HTMLElement>('#image-carousel-counter')!;
+const imageCarouselBackdrop = document.querySelector<HTMLElement>('#image-carousel-backdrop')!;
+const imageCarouselThumbs = document.querySelector<HTMLElement>('#image-carousel-thumbs')!;
 const previousCarouselImage = document.querySelector<HTMLButtonElement>('#previous-carousel-image')!;
 const nextCarouselImage = document.querySelector<HTMLButtonElement>('#next-carousel-image')!;
 const closeImageCarousel = document.querySelector<HTMLButtonElement>('#close-image-carousel')!;
@@ -499,6 +501,7 @@ let imageBaselineReady = false;
 let logoBaselineReady = false;
 let carouselImageIndex = 0;
 let carouselImageUrl = '';
+let carouselThumbUrls: string[] = [];
 let carouselUsesTemporaryImages = false;
 let activeRestaurantId: string | null = null;
 let serverPersistenceReady = false;
@@ -2639,6 +2642,14 @@ function renderCarouselImage() {
 	if (!image) return;
 	carouselImageUrl = URL.createObjectURL(image.blob);
 	imageCarouselImage.src = carouselImageUrl;
+	imageCarouselBackdrop.style.backgroundImage = `url("${carouselImageUrl}")`;
+	imageCarouselImage.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 240, easing: 'ease-out' });
+	imageCarouselThumbs.querySelectorAll<HTMLButtonElement>('.image-carousel-thumb').forEach((thumb, index) => {
+		const active = index === carouselImageIndex;
+		thumb.classList.toggle('active', active);
+		thumb.setAttribute('aria-selected', String(active));
+		if (active) thumb.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+	});
 	imageCarouselImage.alt = `Imagen ${carouselImageIndex + 1} del lugar`;
 	imageCarouselCounter.textContent = `${carouselImageIndex + 1} de ${restaurantImages.length}`;
 	const hasSeveralImages = restaurantImages.length > 1;
@@ -2646,10 +2657,22 @@ function renderCarouselImage() {
 	nextCarouselImage.hidden = !hasSeveralImages;
 }
 
+function revokeCarouselThumbs() {
+	carouselThumbUrls.forEach((url) => URL.revokeObjectURL(url));
+	carouselThumbUrls = [];
+	imageCarouselThumbs.innerHTML = '';
+}
+
 function openImageCarousel(index: number, usesTemporaryImages = false) {
 	if (!restaurantImages[index]) return;
 	carouselUsesTemporaryImages = usesTemporaryImages;
 	carouselImageIndex = index;
+	revokeCarouselThumbs();
+	imageCarouselThumbs.hidden = restaurantImages.length < 2;
+	if (restaurantImages.length > 1) {
+		carouselThumbUrls = restaurantImages.map((image) => URL.createObjectURL(image.blob));
+		imageCarouselThumbs.innerHTML = carouselThumbUrls.map((url, thumbIndex) => `<button type="button" class="image-carousel-thumb" role="tab" data-carousel-thumb="${thumbIndex}" aria-label="Ver imagen ${thumbIndex + 1}"><img src="${url}" alt="" draggable="false" /></button>`).join('');
+	}
 	renderCarouselImage();
 	imageCarouselDialog.showModal();
 }
@@ -5028,8 +5051,26 @@ previousCarouselImage.addEventListener('click', () => moveCarouselImage(-1));
 nextCarouselImage.addEventListener('click', () => moveCarouselImage(1));
 closeImageCarousel.addEventListener('click', () => imageCarouselDialog.close());
 imageCarouselDialog.addEventListener('click', (event) => {
-	if (event.target === imageCarouselDialog) imageCarouselDialog.close();
+	const target = event.target as HTMLElement;
+	if (target === imageCarouselDialog || target.classList.contains('image-carousel-stage')) imageCarouselDialog.close();
 });
+imageCarouselThumbs.addEventListener('click', (event) => {
+	const thumb = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-carousel-thumb]');
+	if (!thumb) return;
+	carouselImageIndex = Number(thumb.dataset.carouselThumb);
+	renderCarouselImage();
+});
+let carouselTouchStartX = 0;
+let carouselTouchStartY = 0;
+imageCarouselDialog.addEventListener('touchstart', (event) => {
+	carouselTouchStartX = event.touches[0].clientX;
+	carouselTouchStartY = event.touches[0].clientY;
+}, { passive: true });
+imageCarouselDialog.addEventListener('touchend', (event) => {
+	const deltaX = event.changedTouches[0].clientX - carouselTouchStartX;
+	const deltaY = event.changedTouches[0].clientY - carouselTouchStartY;
+	if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) moveCarouselImage(deltaX < 0 ? 1 : -1);
+}, { passive: true });
 imageCarouselDialog.addEventListener('keydown', (event) => {
 	if (event.key === 'ArrowLeft') moveCarouselImage(-1);
 	if (event.key === 'ArrowRight') moveCarouselImage(1);
@@ -5038,6 +5079,8 @@ imageCarouselDialog.addEventListener('close', () => {
 	if (carouselImageUrl) URL.revokeObjectURL(carouselImageUrl);
 	carouselImageUrl = '';
 	imageCarouselImage.removeAttribute('src');
+	imageCarouselBackdrop.style.backgroundImage = '';
+	revokeCarouselThumbs();
 	if (carouselUsesTemporaryImages) restaurantImages = [];
 	carouselUsesTemporaryImages = false;
 });
