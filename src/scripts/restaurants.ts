@@ -1458,6 +1458,60 @@ function deleteServiceOption(service: string) {
 	showToast('Servicio eliminado');
 }
 
+// Compartir un lugar: hoja de compartir del sistema o, si no existe, ventana con WhatsApp, Telegram, correo y copiar.
+const shareDialog = document.querySelector<HTMLDialogElement>('#share-dialog')!;
+const shareOptions = document.querySelector<HTMLElement>('#share-options')!;
+const sharePreview = document.querySelector<HTMLElement>('#share-preview')!;
+
+function restaurantShareContent(restaurant: Restaurant) {
+	const category = getRestaurantEstablishmentTypes(restaurant).join(', ');
+	const cuisine = getRestaurantCuisines(restaurant).join(', ');
+	const address = [restaurant.address, restaurant.neighborhood, restaurant.city].filter(Boolean).join(', ');
+	const mapLink = restaurant.mapUrl || (address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([restaurant.name, address].join(', '))}` : '');
+	const lines = [
+		restaurant.name,
+		[category, cuisine].filter(Boolean).join(' · '),
+		address ? `Dirección: ${address}` : '',
+		restaurant.phone || restaurant.mobile ? `Teléfono: ${restaurant.phone || restaurant.mobile}` : '',
+		mapLink ? `Mapa: ${mapLink}` : '',
+		restaurant.instagramUrl ? `Instagram: ${restaurant.instagramUrl}` : '',
+		restaurant.website ? `Web: ${restaurant.website}` : '',
+		restaurant.menuUrl ? `Menú: ${restaurant.menuUrl}` : '',
+	].filter(Boolean);
+	return { title: restaurant.name, text: lines.join('\n'), url: mapLink || restaurant.website || restaurant.instagramUrl || '' };
+}
+
+async function copyShareText(text: string) {
+	try {
+		await navigator.clipboard.writeText(text);
+		showToast('Datos del lugar copiados');
+	} catch {
+		showToast('No se pudo copiar el texto');
+	}
+}
+
+async function shareRestaurant(restaurant: Restaurant) {
+	const { title, text, url } = restaurantShareContent(restaurant);
+	if (typeof navigator.share === 'function') {
+		try {
+			await navigator.share({ title, text });
+			return;
+		} catch (error) {
+			if ((error as DOMException)?.name === 'AbortError') return;
+		}
+	}
+	const encodedText = encodeURIComponent(text);
+	sharePreview.textContent = text;
+	shareOptions.innerHTML = `
+		<a class="share-option" href="https://wa.me/?text=${encodedText}" target="_blank" rel="noreferrer">WhatsApp</a>
+		<a class="share-option" href="https://t.me/share/url?url=${encodeURIComponent(url || 'https://restobox.beweb.com.ar')}&text=${encodedText}" target="_blank" rel="noreferrer">Telegram</a>
+		<a class="share-option" href="mailto:?subject=${encodeURIComponent(title)}&body=${encodedText}">Correo</a>
+		<button class="share-option" type="button" data-share-copy>Copiar</button>`;
+	shareOptions.querySelector('[data-share-copy]')?.addEventListener('click', () => void copyShareText(text));
+	shareDialog.showModal();
+}
+document.querySelector('#close-share')?.addEventListener('click', () => shareDialog.close());
+
 function showToast(message: string) {
 	toast.textContent = message;
 	toast.classList.add('visible');
@@ -2372,6 +2426,7 @@ function render() {
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
+								<button type="button" data-share="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Compartir</button>
 								<button type="button" data-edit="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" data-duplicate="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button>
 								<button type="button" data-print="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
@@ -6040,6 +6095,7 @@ list.addEventListener('click', async (event) => {
 	const viewButton = target.closest<HTMLButtonElement>('[data-view]');
 	const viewImagesButton = target.closest<HTMLButtonElement>('[data-view-images]');
 	const viewVideoButton = target.closest<HTMLButtonElement>('[data-view-video]');
+	const shareButton = target.closest<HTMLButtonElement>('[data-share]');
 	const editButton = target.closest<HTMLButtonElement>('[data-edit]');
 	const duplicateButton = target.closest<HTMLButtonElement>('[data-duplicate]');
 	const printButton = target.closest<HTMLButtonElement>('[data-print]');
@@ -6113,6 +6169,12 @@ list.addEventListener('click', async (event) => {
 	if (viewVideoButton?.dataset.viewVideo) {
 		const restaurant = restaurants.find((item) => item.id === viewVideoButton.dataset.viewVideo);
 		if (restaurant && !await openRestaurantVideo(restaurant.videoUrl ?? '')) showToast('El enlace de video no es válido');
+		return;
+	}
+	if (shareButton) {
+		shareButton.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+		const restaurant = restaurants.find((item) => item.id === shareButton.dataset.share);
+		if (restaurant) void shareRestaurant(restaurant);
 		return;
 	}
 	if (editButton) {

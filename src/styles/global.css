@@ -1609,3 +1609,15 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 /* Tres puntitos sin recuadro, para no tapar la imagen */
 .restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu > summary { color: #fff; background: transparent; box-shadow: none; backdrop-filter: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.75)); transform: none; }
 .restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu > summary:hover, .restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-actions-menu[open] > summary { color: #fff; background: transparent; box-shadow: none; transform: scale(1.15); }
+
+/* Compartir lugar */
+.share-dialog { width: min(440px, calc(100% - 30px)); }
+.share-dialog-content { display: grid; gap: 12px; padding: 24px 25px 22px; }
+.share-dialog-content h2 { margin: 0; }
+.share-preview { max-height: 200px; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--sage); font: 12px/1.5 var(--font-body); white-space: pre-wrap; overflow-wrap: anywhere; }
+.share-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.share-option { display: flex; min-height: 42px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer; transition: border-color .18s, background .18s; }
+.share-option:hover { border-color: var(--forest); background: color-mix(in srgb, var(--sage) 60%, var(--paper)); }
+.share-dialog-content .mini-dialog-actions { margin: 4px -25px -22px; }
+:root[data-color-mode='dark'] .share-option { background: #1d242d; border-color: #59606a; }
+.restaurant-card:has(.restaurant-card-actions-menu[open]) { position: relative; z-index: 15; overflow: visible; }
