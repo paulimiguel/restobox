@@ -390,7 +390,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .filter-status-buttons .clear-directory-filters { width: 140px; height: 39px; min-height: 39px; margin-left: auto; white-space: nowrap; }
 #favorite-filter[aria-pressed="true"] svg { color: #ef4444; fill: #ef4444; stroke: #ef4444; }
 #visited-filter[aria-pressed="true"] svg { color: #22a95b; stroke: #22a95b; stroke-width: 2.5; }
-#checked-filter[aria-pressed="true"], #unchecked-filter[aria-pressed="true"] { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
+#checked-filter[aria-pressed="true"] { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .filter-multiselect { position: relative; }
 .filter-multiselect > summary { display: flex; height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 11px; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; list-style: none; cursor: pointer; }
 .filter-multiselect > summary::-webkit-details-marker { display: none; }
@@ -1224,7 +1224,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .image-field > label small { display: none; }
 
 .restaurant-video-dialog { width: min(820px, calc(100% - 30px)); max-height: calc(100dvh - 40px); padding: 0; overflow: hidden; background: #111; }
-.restaurant-video-close { position: absolute; top: 12px; right: 12px; z-index: 2; display: grid; width: 36px; height: 36px; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.48); border-radius: 8px; color: white; background: rgba(20,24,22,.68); font-size: 25px; line-height: 1; backdrop-filter: blur(7px); }
+.restaurant-video-close { position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; width: 26px; height: 26px; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.48); border-radius: 6px; color: white; background: rgba(20,24,22,.68); font-size: 18px; line-height: 1; backdrop-filter: blur(7px); }
 .restaurant-video-external { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; height: 36px; align-items: center; padding: 0 12px; border: 1px solid rgba(255,255,255,.48); border-radius: 8px; color: white; background: rgba(20,24,22,.68); font-size: 13px; font-weight: 700; text-decoration: none; backdrop-filter: blur(7px); }
 .restaurant-video-external:hover { background: var(--forest); }
 .restaurant-video-external[hidden] { display: none; }
@@ -1624,7 +1624,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 
 /* Mapa de lugares (/mapa): el directorio con un mapa en lugar de las tarjetas */
 .view-options button[data-map-only][hidden] { display: none; }
-.map-panel { position: relative; padding: 18px 24px 0; }
+.map-panel { position: relative; z-index: 0; isolation: isolate; padding: 18px 24px 0; }
 .map-panel[hidden] { display: none; }
 .map-canvas { width: 100%; height: clamp(420px, calc(100vh - 330px), 780px); overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--sage); box-shadow: 0 12px 32px rgba(30,42,35,.1); }
 .map-status { position: absolute; z-index: 1000; top: 32px; left: 38px; max-width: min(390px, calc(100% - 76px)); margin: 0; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); font-size: 12px; box-shadow: 0 6px 18px rgba(30,42,35,.12); }

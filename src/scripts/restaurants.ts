@@ -222,7 +222,6 @@ const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chi
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
 const visitedFilterButton = document.querySelector<HTMLButtonElement>('#visited-filter')!;
 const checkedFilterButton = document.querySelector<HTMLButtonElement>('#checked-filter')!;
-const uncheckedFilterButton = document.querySelector<HTMLButtonElement>('#unchecked-filter')!;
 const glutenFreeFilterButton = document.querySelector<HTMLButtonElement>('#gluten-free-filter')!;
 const deliveryFilterButton = document.querySelector<HTMLButtonElement>('#delivery-filter')!;
 const takeAwayFilterButton = document.querySelector<HTMLButtonElement>('#take-away-filter')!;
@@ -478,7 +477,6 @@ let selectedEmptyFields = new Set<string>();
 let favoriteFilterActive = false;
 let visitedFilterActive = false;
 let checkedFilterActive = false;
-let uncheckedFilterActive = false;
 let glutenFreeFilterActive = false;
 let deliveryFilterActive = false;
 let takeAwayFilterActive = false;
@@ -1040,7 +1038,6 @@ function updateDirectoryFilterLabels() {
 	favoriteFilterButton.setAttribute('aria-pressed', String(favoriteFilterActive));
 	visitedFilterButton.setAttribute('aria-pressed', String(visitedFilterActive));
 	checkedFilterButton.setAttribute('aria-pressed', String(checkedFilterActive));
-	uncheckedFilterButton.setAttribute('aria-pressed', String(uncheckedFilterActive));
 	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
@@ -2335,9 +2332,7 @@ function render() {
 		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
 		const matchesVisited = !visitedFilterActive || Boolean(restaurant.visited);
-		const matchesChecked = checkedFilterActive
-			? Boolean(restaurant.checked)
-			: uncheckedFilterActive ? !Boolean(restaurant.checked) : true;
+		const matchesChecked = !checkedFilterActive || Boolean(restaurant.checked);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -2378,7 +2373,6 @@ function render() {
 		|| favoriteFilterActive
 		|| visitedFilterActive
 		|| checkedFilterActive
-		|| uncheckedFilterActive
 		|| glutenFreeFilterActive
 		|| deliveryFilterActive
 		|| takeAwayFilterActive;
@@ -4847,13 +4841,6 @@ visitedFilterButton.addEventListener('click', () => {
 });
 checkedFilterButton.addEventListener('click', () => {
 	checkedFilterActive = !checkedFilterActive;
-	if (checkedFilterActive) uncheckedFilterActive = false;
-	updateDirectoryFilterLabels();
-	render();
-});
-uncheckedFilterButton.addEventListener('click', () => {
-	uncheckedFilterActive = !uncheckedFilterActive;
-	if (uncheckedFilterActive) checkedFilterActive = false;
 	updateDirectoryFilterLabels();
 	render();
 });
@@ -4885,7 +4872,6 @@ function clearDirectoryFilterSelections() {
 	favoriteFilterActive = false;
 	visitedFilterActive = false;
 	checkedFilterActive = false;
-	uncheckedFilterActive = false;
 	glutenFreeFilterActive = false;
 	deliveryFilterActive = false;
 	takeAwayFilterActive = false;
