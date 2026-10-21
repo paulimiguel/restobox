@@ -5263,6 +5263,16 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 	search.focus({ preventScroll: true });
 });
 
+const tabbarTargets: Record<string, string> = {
+	directory: '#header-directory',
+	search: '#main-search-button',
+	new: '.add-panel [data-open-form]',
+	profile: '#open-profile-dialog',
+};
+document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((button) => button.addEventListener('click', () => {
+	document.querySelector<HTMLElement>(tabbarTargets[button.dataset.tabbar ?? ''])?.click();
+}));
+
 document.querySelector('#header-directory')?.addEventListener('click', () => {
 	showingCatalog = null;
 	clearSearchTerms();
