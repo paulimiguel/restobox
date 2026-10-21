@@ -562,6 +562,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
+.restaurant-card-top-actions .to-visit-button:hover, .restaurant-card-top-actions .to-visit-button.active { color: #2563eb; }
+.restaurant-card-top-actions .to-visit-button.active svg { fill: currentColor; }
 .restaurant-card-top-actions .visited-button svg { width: 21px; height: 21px; stroke-width: 3.4; }
 .restaurant-card-top-actions .visited-button.active svg { stroke-width: 3.7; }
 .restaurant-list:is(.view-columns-5, .view-detail) .restaurant-card-top-actions .visited-button svg { width: 18px; height: 18px; }
@@ -1553,7 +1555,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-detail .restaurant-card-location { grid-area: 2 / 2 / 3 / 3; min-height: 0; padding: 4px 12px 8px; border-top: 0; border-left: 0; }
 	.restaurant-list.view-detail .restaurant-card-address { font-size: 14px; }
 	.restaurant-list.view-detail .restaurant-card-neighborhood { font-size: 12px; overflow: visible; text-overflow: clip; white-space: normal; }
-	.restaurant-list.view-detail .restaurant-card-footer { grid-area: 3 / 1 / 4 / 3; justify-self: start; align-self: center; min-width: 0; max-width: calc(100% - 156px); min-height: 0; justify-content: flex-start; padding: 8px 4px 10px 12px; border-top: 0; }
+	.restaurant-list.view-detail .restaurant-card-footer { grid-area: 3 / 1 / 4 / 3; justify-self: start; align-self: center; min-width: 0; max-width: calc(100% - 192px); min-height: 0; justify-content: flex-start; padding: 8px 4px 10px 12px; border-top: 0; }
 	.restaurant-list.view-detail .restaurant-card-footer .row-links { margin-left: 0; flex-wrap: nowrap; justify-content: flex-start; gap: 4px; }
 	.restaurant-list.view-detail .restaurant-card-footer .row-links a { width: 26px; min-width: 20px; height: 26px; flex: 0 1 26px; border-radius: 7px; }
 	.restaurant-list.view-detail .restaurant-card-footer .row-links svg { width: 16px; height: 16px; }
@@ -1605,4 +1607,27 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 
 @media (max-width: 640px) {
 	.restaurant-list.view-list .restaurant-card-cuisines { display: none; }
+}
+
+/* Mi perfil: barra de búsqueda y vistas */
+.profile-toolbar { position: static; grid-template-columns: 1fr; margin-bottom: 18px; }
+.profile-toolbar .directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.profile-filter-panel { position: static; margin: 0 0 18px; }
+.my-places-grid.view-detail { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.my-places-grid.view-list { grid-template-columns: 1fr; gap: 8px; }
+.my-places-grid.view-list .my-place-tile { padding: 6px 10px; }
+.my-places-grid.view-list .my-place-image { width: 44px; height: 44px; flex-basis: 44px; font-size: 18px; }
+.my-places-grid:is(.view-columns-5, .view-columns-6, .view-small-icons) .my-place-tile { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px; }
+.my-places-grid:is(.view-columns-5, .view-columns-6, .view-small-icons) .my-place-image { width: 100%; height: auto; flex: 0 0 auto; aspect-ratio: 1; font-size: 34px; }
+.my-places-grid.view-columns-5 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.my-places-grid.view-columns-6 { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.my-places-grid.view-small-icons { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 9px; }
+.my-places-grid.view-columns-6 .my-place-text strong { font-size: 13px; }
+.my-places-grid.view-small-icons .my-place-text strong { font-size: 12px; text-align: center; white-space: normal; }
+.my-places-grid.view-small-icons .my-place-text small { display: none; }
+@media (max-width: 640px) {
+	.my-places-grid.view-detail, .my-places-grid.view-list, .my-places-grid.view-columns-5 { grid-template-columns: 1fr; }
+	.my-places-grid.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.my-places-grid.view-small-icons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.profile-toolbar { padding: 11px 0; }
 }
