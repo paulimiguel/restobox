@@ -1015,7 +1015,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .restaurant-status-option svg { width: 18px; color: var(--muted); }
 .restaurant-status-option:has(input[name="visited"]) svg { stroke-width: 2.8; }
 .restaurant-status-option:has(input:checked) { color: var(--accent-text); border-color: var(--forest); background: var(--sage); }
+.restaurant-status-option:has(input[name="favorite"]:checked) { color: #b42318; border-color: #ef4444; background: #fef2f2; }
 .restaurant-status-option:has(input[name="favorite"]:checked) svg { color: #ef4444; fill: currentColor; }
+.restaurant-status-option:has(input[name="visited"]:checked) { color: #15803d; border-color: #22a95b; background: #effaf3; }
 .restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 3; }
 .restaurant-status-option:has(input[name="checked"]:checked) { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .restaurant-status-option:has(input[name="checked"]:checked) svg { color: #b89f12; stroke-width: 2.5; }
