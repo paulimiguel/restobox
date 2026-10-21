@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { getUserProfile } from '../lib/server/auth';
 import pedidosYaLogoUrl from '../../imagenes/logos/logo pedidos ya negro.png?url';
+const profileMode = Astro.props.profile === true;
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
 const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
@@ -28,7 +29,7 @@ const userInitials = userDisplayName
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-title" content="RestoBox" />
-		<title>RestoBox · Directorio de restaurantes</title>
+		<title>{profileMode ? 'RestoBox · Mi perfil' : 'RestoBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -39,7 +40,7 @@ const userInitials = userDisplayName
 			}
 		</script>
 	</head>
-	<body>
+	<body data-profile-mode={profileMode ? 'true' : 'false'}>
 		<div class="app-shell">
 			<main>
 				<header class="topbar">
@@ -199,7 +200,7 @@ const userInitials = userDisplayName
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
-							<h1>Lugares de <span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{profileMode ? 'Mis lugares de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>
@@ -993,10 +994,10 @@ const userInitials = userDisplayName
 		</dialog>
 
 		<nav class="app-tabbar" aria-label="Navegación principal">
-			<button type="button" class="active" aria-current="page" data-tabbar="directory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Directorio</span></button>
+			<button type="button" class={profileMode ? '' : 'active'} aria-current={profileMode ? undefined : 'page'} data-tabbar="directory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Directorio</span></button>
 			<button type="button" data-tabbar="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg><span>Categorías</span></button>
 			<button type="button" data-tabbar="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/></svg><span>Tipo de cocina</span></button>
-			<button type="button" data-tabbar="profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></button>
+			<button type="button" class={profileMode ? 'active' : ''} aria-current={profileMode ? 'page' : undefined} data-tabbar="profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></button>
 		</nav>
 		<div id="toast" class="toast" role="status" aria-live="polite"></div>
 		<script src="../scripts/restaurants.ts"></script>

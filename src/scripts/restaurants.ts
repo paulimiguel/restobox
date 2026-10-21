@@ -173,6 +173,8 @@ const removeNeighborhoodImageButton = document.querySelector<HTMLButtonElement>(
 const neighborhoodEditorError = document.querySelector<HTMLElement>('#neighborhood-editor-error')!;
 const cancelNeighborhoodEditor = document.querySelector<HTMLButtonElement>('#cancel-neighborhood-editor')!;
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
+// En /perfil el mismo directorio se muestra dividido en favoritos, visitados y a visitar.
+const profileMode = document.body.dataset.profileMode === 'true';
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
 const pasteSearchButton = document.querySelector<HTMLButtonElement>('#paste-search')!;
@@ -1044,7 +1046,7 @@ function renderNeighborhoodMenus(values: string[]) {
 	showCatalogButtons.forEach((button) => button.classList.toggle('active', button.dataset.showCatalog === showingCatalog));
 	document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((tab) => {
 		const key = tab.dataset.tabbar;
-		const active = key === 'directory' ? !showingCatalog : key === showingCatalog;
+		const active = profileMode ? key === 'profile' : key === 'directory' ? !showingCatalog : key === showingCatalog;
 		tab.classList.toggle('active', active);
 		if (active) tab.setAttribute('aria-current', 'page');
 		else tab.removeAttribute('aria-current');
@@ -2318,6 +2320,7 @@ function render() {
 	visibleRestaurantIds = filtered.map((restaurant) => restaurant.id);
 	list.classList.remove('view-columns-1', 'view-columns-2', 'view-columns-3', 'view-columns-4', 'view-columns-5', 'view-columns-6', 'view-small-icons', 'view-detail', 'view-list', 'view-cuisines', 'view-establishments', 'view-neighborhoods', 'view-catalogs');
 	list.classList.add(`view-${directoryView}`);
+	list.classList.toggle('profile-sections', profileMode);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
 		const active = button.dataset.directoryView === directoryView;
 		button.classList.toggle('active', active);
@@ -2336,7 +2339,7 @@ function render() {
 	});
 	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.length} lugares`;
 
-	list.innerHTML = filtered.map((restaurant) => {
+	const renderCard = (restaurant: Restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
 		const cardCuisines = getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
 		const hasVideo = isSupportedRestaurantVideoUrl(restaurant.videoUrl ?? '');
@@ -2394,17 +2397,34 @@ function render() {
 				</div>
 				${links ? `<div class="restaurant-card-footer"><div class="row-links">${links}</div></div>` : ''}
 			</article>`;
-	}).join('');
+	};
+	list.innerHTML = profileMode ? renderProfileSections(filtered, renderCard) : filtered.map(renderCard).join('');
 	void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
 
-	emptyState.hidden = filtered.length > 0;
-	list.hidden = filtered.length === 0;
+	emptyState.hidden = profileMode || filtered.length > 0;
+	list.hidden = !profileMode && filtered.length === 0;
 	document.querySelector('#empty-title')!.textContent = isFiltered ? 'No encontramos resultados' : 'Tu directorio está vacío';
 	document.querySelector('#empty-copy')!.textContent = isFiltered
 		? 'Probá con otro término o cambiá el filtro seleccionado.'
 		: 'Agregá tu primer restaurante para empezar a organizar la información.';
 	emptyState.querySelector<HTMLButtonElement>('[data-open-form]')!.hidden = isFiltered;
 	updatePrintPanelState();
+}
+
+function renderProfileSections(filtered: Restaurant[], renderCard: (restaurant: Restaurant) => string) {
+	const sections = [
+		{ id: 'favorites', title: 'Mis lugares favoritos', empty: 'Todavía no marcaste lugares como favoritos.', test: (restaurant: Restaurant) => Boolean(restaurant.favorite) },
+		{ id: 'visited', title: 'Mis lugares visitados', empty: 'Todavía no marcaste lugares como visitados.', test: (restaurant: Restaurant) => Boolean(restaurant.visited) },
+		{ id: 'to-visit', title: 'Mis lugares a visitar', empty: 'Todavía no marcaste lugares como “A visitar”.', test: (restaurant: Restaurant) => Boolean(restaurant.checked) },
+	].map((section) => ({ ...section, items: filtered.filter(section.test), total: restaurants.filter(section.test).length }));
+	const jump = `<nav class="profile-page-jump" aria-label="Ir a una sección">${sections.map((section) => `<a href="#${section.id}">${safe(section.title.replace('Mis lugares ', '').replace(/^./, (letter) => letter.toLocaleUpperCase('es')))}<span>${section.items.length}</span></a>`).join('')}</nav>`;
+	return jump + sections.map((section) => `
+		<section class="my-places-section" id="${section.id}" aria-label="${safe(section.title)}">
+			<header><h2>${safe(section.title)}</h2></header>
+			<div class="restaurant-list view-${directoryView}">${section.items.length
+				? section.items.map(renderCard).join('')
+				: `<p class="my-places-empty">${safe(section.total ? 'Ningún lugar coincide con la búsqueda.' : section.empty)}</p>`}</div>
+		</section>`).join('');
 }
 
 function openLegacyImageDatabase(): Promise<IDBDatabase> {
@@ -2454,23 +2474,27 @@ async function hydrateRestaurantCardLogos(visibleRestaurants: Restaurant[], rend
 	visibleRestaurants.forEach((restaurant) => {
 		const sources = [logosByRestaurant.get(restaurant.id), ...(imagesByRestaurant.get(restaurant.id) ?? [])]
 			.filter((source): source is string => Boolean(source));
-		const target = list.querySelector<HTMLElement>(`[data-card-logo="${CSS.escape(restaurant.id)}"]`);
-		if (!target) return;
+		const targets = [...list.querySelectorAll<HTMLElement>(`[data-card-logo="${CSS.escape(restaurant.id)}"]`)];
+		if (!targets.length) return;
 		if (!sources.length) {
 			if (logoResult.status === 'fulfilled' && imageResult.status === 'fulfilled') {
-				target.classList.add('card-image-empty');
-				target.title = 'Arrastrá una imagen para agregarla';
+				targets.forEach((target) => {
+					target.classList.add('card-image-empty');
+					target.title = 'Arrastrá una imagen para agregarla';
+				});
 			}
 			return;
 		}
 		cardImageSources.set(restaurant.id, sources);
 		cardImageIndexes.set(restaurant.id, 0);
-		const image = document.createElement('img');
-		image.src = sources[0];
-		image.alt = `Imagen 1 de ${sources.length} de ${restaurant.name}`;
-		image.loading = 'lazy';
-		target.replaceChildren(image);
-		if (sources.length > 1) list.querySelector<HTMLElement>(`[data-card-image-navigation="${CSS.escape(restaurant.id)}"]`)?.removeAttribute('hidden');
+		targets.forEach((target) => {
+			const image = document.createElement('img');
+			image.src = sources[0];
+			image.alt = `Imagen 1 de ${sources.length} de ${restaurant.name}`;
+			image.loading = 'lazy';
+			target.replaceChildren(image);
+		});
+		if (sources.length > 1) list.querySelectorAll<HTMLElement>(`[data-card-image-navigation="${CSS.escape(restaurant.id)}"]`).forEach((navigation) => navigation.removeAttribute('hidden'));
 	});
 }
 
@@ -2479,11 +2503,12 @@ function moveCardImage(restaurantId: string, direction: number) {
 	if (!sources || sources.length < 2) return;
 	const nextIndex = ((cardImageIndexes.get(restaurantId) ?? 0) + direction + sources.length) % sources.length;
 	cardImageIndexes.set(restaurantId, nextIndex);
-	const image = list.querySelector<HTMLImageElement>(`[data-card-logo="${CSS.escape(restaurantId)}"] img`);
+	const images = [...list.querySelectorAll<HTMLImageElement>(`[data-card-logo="${CSS.escape(restaurantId)}"] img`)];
 	const restaurant = restaurants.find((item) => item.id === restaurantId);
-	if (!image) return;
-	image.src = sources[nextIndex];
-	image.alt = `Imagen ${nextIndex + 1} de ${sources.length}${restaurant ? ` de ${restaurant.name}` : ''}`;
+	images.forEach((image) => {
+		image.src = sources[nextIndex];
+		image.alt = `Imagen ${nextIndex + 1} de ${sources.length}${restaurant ? ` de ${restaurant.name}` : ''}`;
+	});
 }
 
 async function getRestaurantImages(restaurantId: string): Promise<StoredImage[]> {
@@ -5305,6 +5330,10 @@ function applyUrlIntent() {
 }
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
+	if (profileMode) {
+		window.location.assign('/');
+		return;
+	}
 	showingCatalog = null;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
@@ -5350,6 +5379,10 @@ document.addEventListener('click', (event) => {
 showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	const kind = button.dataset.showCatalog as CatalogCardKind | undefined;
 	if (!kind || !catalogCardMeta[kind]) return;
+	if (profileMode) {
+		window.location.assign(`/?vista=${kind}`);
+		return;
+	}
 	showingCatalog = kind;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
@@ -6234,6 +6267,7 @@ async function initializeServerPersistence() {
 		(['city', 'province', 'country'] as LocationOptionKind[]).forEach(renderLocationOptions);
 		render();
 		applyUrlIntent();
+		if (profileMode && window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView({ block: 'start' });
 		await migrateLegacyImages();
 		render();
 	} catch (error) {
