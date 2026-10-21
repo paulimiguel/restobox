@@ -1528,12 +1528,31 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 
 @media (min-width: 641px) and (max-width: 1279px) {
 	.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 4px; right: 4px; gap: 2px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 20px; height: 20px; border-radius: 5px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 11px; height: 11px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 24px; height: 24px; border-radius: 6px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 13px; height: 13px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 15px; height: 15px; }
 }
 
-@media (min-width: 641px) {
-	.top-dropdown.add-dropdown > summary { color: var(--forest); background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.14); transition: box-shadow .18s, transform .18s; }
-	.top-dropdown.add-dropdown > summary:hover, .top-dropdown.add-dropdown[open] > summary { color: var(--forest); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.22); }
+.top-dropdown.add-dropdown > summary { color: var(--forest); background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.14); transition: box-shadow .18s, transform .18s; }
+.top-dropdown.add-dropdown > summary:hover, .top-dropdown.add-dropdown[open] > summary { color: var(--forest); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.22); }
+
+@media (max-width: 640px) {
+	.restaurant-list.view-detail .restaurant-card { display: grid; grid-template-columns: 150px minmax(0, 1fr); grid-template-areas: "media identity" "location location" "links links"; align-items: start; }
+	.restaurant-list.view-detail .restaurant-card-media { grid-area: media; align-self: start; }
+	.restaurant-list.view-detail .restaurant-card-open { height: auto; }
+	.restaurant-list.view-detail .restaurant-card-image { height: auto; min-height: 0; aspect-ratio: 1; }
+	.restaurant-list.view-detail .restaurant-card-body { display: contents; }
+	.restaurant-list.view-detail .restaurant-card-identity { grid-area: identity; display: grid; min-width: 0; align-content: start; gap: 4px; padding: 12px 12px 6px; }
+	.restaurant-list.view-detail .restaurant-card-name { font-size: 19px; line-height: 1.2; text-align: left; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+	.restaurant-list.view-detail .restaurant-card-establishments { font-size: 13px; line-height: 1.35; }
+	.restaurant-list.view-detail .restaurant-card-cuisines { font-size: 12px; line-height: 1.4; white-space: normal; }
+	.restaurant-list.view-detail .restaurant-card-location { grid-area: location; min-height: 0; padding: 10px 12px 4px; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-left: 0; }
+	.restaurant-list.view-detail .restaurant-card-address { font-size: 14px; }
+	.restaurant-list.view-detail .restaurant-card-neighborhood { font-size: 12px; overflow: visible; text-overflow: clip; white-space: normal; }
+	.restaurant-list.view-detail .restaurant-card-footer { grid-area: links; min-height: 0; justify-content: flex-start; padding: 6px 12px 12px; border-top: 0; }
+	.restaurant-list.view-detail .restaurant-card-footer .row-links { margin-left: 0; justify-content: flex-start; }
+	.restaurant-list.view-detail .restaurant-card-top-actions { top: 5px; right: 5px; gap: 2px; }
+	.restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 24px; height: 24px; border-radius: 6px; }
+	.restaurant-list.view-detail .restaurant-card-top-actions svg, .restaurant-list.view-detail .restaurant-card-top-actions .visited-button svg, .restaurant-list.view-detail .restaurant-card-top-actions :is(.view-images-button, .view-video-button) svg { width: 14px; height: 14px; }
+	.restaurant-list.view-detail .restaurant-card-top-actions .checked-icon { width: 16px; height: 16px; }
 }
