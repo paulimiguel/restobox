@@ -1,3 +1,5 @@
+import { initRestaurantMap, updateMapRestaurants } from './map-view';
+
 type Restaurant = {
 	id: string;
 	name: string;
@@ -175,6 +177,15 @@ const cancelNeighborhoodEditor = document.querySelector<HTMLButtonElement>('#can
 const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 // En /perfil el mismo directorio se muestra dividido en favoritos, visitados y a visitar.
 const profileMode = document.body.dataset.profileMode === 'true';
+// En /mapa el directorio muestra un mapa con los lugares filtrados en lugar de las tarjetas.
+const mapMode = document.body.dataset.mapMode === 'true';
+let mapShowList = false;
+document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode; });
+const mapPanel = document.querySelector<HTMLElement>('#map-panel');
+if (mapMode && mapPanel) {
+	mapPanel.hidden = false;
+	initRestaurantMap(document.querySelector<HTMLElement>('#restaurant-map')!, document.querySelector<HTMLElement>('#map-status')!);
+}
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
 const pasteSearchButton = document.querySelector<HTMLButtonElement>('#paste-search')!;
@@ -1046,7 +1057,7 @@ function renderNeighborhoodMenus(values: string[]) {
 	showCatalogButtons.forEach((button) => button.classList.toggle('active', button.dataset.showCatalog === showingCatalog));
 	document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((tab) => {
 		const key = tab.dataset.tabbar;
-		const active = profileMode ? key === 'profile' : key === 'directory' ? !showingCatalog : key === showingCatalog;
+		const active = profileMode ? key === 'profile' : mapMode ? false : key === 'directory' ? !showingCatalog : key === showingCatalog;
 		tab.classList.toggle('active', active);
 		if (active) tab.setAttribute('aria-current', 'page');
 		else tab.removeAttribute('aria-current');
@@ -2376,7 +2387,16 @@ function render() {
 	list.classList.add(`view-${directoryView}`);
 	list.classList.toggle('profile-sections', profileMode);
 	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
-		const active = button.dataset.directoryView === directoryView;
+		const active = button.dataset.directoryView === directoryView && (!mapMode || mapShowList);
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-pressed', String(active));
+		if (active) {
+			const selectedIcon = button.querySelector('svg');
+			if (selectedIcon) directoryViewIcon.innerHTML = selectedIcon.innerHTML;
+		}
+	});
+	document.querySelectorAll<HTMLButtonElement>('[data-map-view]').forEach((button) => {
+		const active = mapMode && !mapShowList;
 		button.classList.toggle('active', active);
 		button.setAttribute('aria-pressed', String(active));
 		if (active) {
@@ -2426,10 +2446,10 @@ function render() {
 						<details class="restaurant-card-actions-menu">
 							<summary aria-label="Acciones de ${safe(restaurant.name)}" title="Acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></summary>
 							<div class="restaurant-card-actions-popover">
-								<button type="button" data-share="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Compartir</button>
 								<button type="button" data-edit="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/></svg>Editar</button>
 								<button type="button" data-duplicate="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button>
 								<button type="button" data-print="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
+								<button type="button" data-share="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Compartir</button>
 								<button class="delete-button" type="button" data-delete="${restaurant.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 							</div>
 						</details>
@@ -2453,11 +2473,13 @@ function render() {
 				${links ? `<div class="restaurant-card-footer"><div class="row-links">${links}</div></div>` : ''}
 			</article>`;
 	};
-	list.innerHTML = profileMode ? renderProfileSections(filtered, renderCard) : filtered.map(renderCard).join('');
-	void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
+	const showCards = !mapMode || mapShowList;
+	list.innerHTML = !showCards ? '' : profileMode ? renderProfileSections(filtered, renderCard) : filtered.map(renderCard).join('');
+	if (showCards) void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
+	if (mapMode) updateMapRestaurants(filtered, restaurants.length);
 
-	emptyState.hidden = profileMode || filtered.length > 0;
-	list.hidden = !profileMode && filtered.length === 0;
+	emptyState.hidden = profileMode || mapMode || filtered.length > 0;
+	list.hidden = mapMode ? !mapShowList || filtered.length === 0 : !profileMode && filtered.length === 0;
 	document.querySelector('#empty-title')!.textContent = isFiltered ? 'No encontramos resultados' : 'Tu directorio está vacío';
 	document.querySelector('#empty-copy')!.textContent = isFiltered
 		? 'Probá con otro término o cambiá el filtro seleccionado.'
@@ -4886,8 +4908,14 @@ closeDirectoryFilterPanelButton.addEventListener('click', () => {
 });
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {
 	showingCatalog = null;
+	mapShowList = true;
 	directoryView = button.dataset.directoryView || 'normal';
 	localStorage.setItem('restobox-directory-view', directoryView);
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	render();
+}));
+document.querySelectorAll<HTMLButtonElement>('[data-map-view]').forEach((button) => button.addEventListener('click', () => {
+	mapShowList = false;
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	render();
 }));
@@ -5385,7 +5413,7 @@ function applyUrlIntent() {
 }
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
-	if (profileMode) {
+	if (profileMode || mapMode) {
 		window.location.assign('/');
 		return;
 	}
@@ -5434,7 +5462,7 @@ document.addEventListener('click', (event) => {
 showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	const kind = button.dataset.showCatalog as CatalogCardKind | undefined;
 	if (!kind || !catalogCardMeta[kind]) return;
-	if (profileMode) {
+	if (profileMode || mapMode) {
 		window.location.assign(`/?vista=${kind}`);
 		return;
 	}

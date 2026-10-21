@@ -1621,3 +1621,23 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .share-dialog-content .mini-dialog-actions { margin: 4px -25px -22px; }
 :root[data-color-mode='dark'] .share-option { background: #1d242d; border-color: #59606a; }
 .restaurant-card:has(.restaurant-card-actions-menu[open]) { position: relative; z-index: 15; overflow: visible; }
+
+/* Mapa de lugares (/mapa): el directorio con un mapa en lugar de las tarjetas */
+.view-options button[data-map-only][hidden] { display: none; }
+.map-panel { position: relative; padding: 18px 24px 0; }
+.map-panel[hidden] { display: none; }
+.map-canvas { width: 100%; height: clamp(420px, calc(100vh - 330px), 780px); overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--sage); box-shadow: 0 12px 32px rgba(30,42,35,.1); }
+.map-status { position: absolute; z-index: 1000; top: 32px; left: 38px; max-width: min(390px, calc(100% - 76px)); margin: 0; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); font-size: 12px; box-shadow: 0 6px 18px rgba(30,42,35,.12); }
+.map-status[hidden] { display: none; }
+.map-error { display: grid; height: 100%; place-items: center; padding: 32px; color: var(--muted); text-align: center; }
+.map-pin { color: var(--forest); background: transparent; border: 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+.map-pin svg { display: block; }
+.map-info { color: #28312d; font-family: Arial, sans-serif; line-height: 1.35; }
+.map-info strong { display: block; margin-bottom: 4px; font-size: 14px; }
+.map-info span { display: block; max-width: 260px; font-size: 12px; }
+.map-info a { display: inline-block; margin-top: 7px; color: #1769aa; font-size: 12px; font-weight: 700; }
+@media (max-width: 640px) {
+	.map-panel { padding: 12px 12px 0; }
+	.map-canvas { height: 60vh; min-height: 380px; border-radius: 10px; }
+	.map-status { top: 24px; left: 24px; max-width: calc(100% - 48px); }
+}

@@ -1,8 +1,10 @@
 ---
 import '../styles/global.css';
+import 'leaflet/dist/leaflet.css';
 import { getUserProfile } from '../lib/server/auth';
 import pedidosYaLogoUrl from '../../imagenes/logos/logo pedidos ya negro.png?url';
 const profileMode = Astro.props.profile === true;
+const mapMode = Astro.props.map === true;
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
 const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
@@ -29,7 +31,7 @@ const userInitials = userDisplayName
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-title" content="RestoBox" />
-		<title>{profileMode ? 'RestoBox · Mi perfil' : 'RestoBox · Directorio de restaurantes'}</title>
+		<title>{profileMode ? 'RestoBox · Mi perfil' : mapMode ? 'RestoBox · Mapa de lugares' : 'RestoBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -40,7 +42,7 @@ const userInitials = userDisplayName
 			}
 		</script>
 	</head>
-	<body data-profile-mode={profileMode ? 'true' : 'false'}>
+	<body data-profile-mode={profileMode ? 'true' : 'false'} data-map-mode={mapMode ? 'true' : 'false'}>
 		<div class="app-shell">
 			<main>
 				<header class="topbar">
@@ -200,7 +202,7 @@ const userInitials = userDisplayName
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
-							<h1>{profileMode ? 'Mis lugares de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>
@@ -234,6 +236,7 @@ const userInitials = userDisplayName
 							<details class="directory-action-menu view-action-menu">
 								<summary><span><svg id="directory-view-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/></svg>Ver</span><svg class="action-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="directory-action-popover view-options">
+									<button type="button" data-map-view="map" data-map-only hidden><svg viewBox="0 0 24 24"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15"/></svg>Solo mapa</button>
 									<button type="button" data-directory-view="columns-5"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>Iconos grandes</button>
 									<button type="button" data-directory-view="columns-6"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>Iconos medianos</button>
 									<button type="button" data-directory-view="small-icons"><svg viewBox="0 0 24 24"><path d="M3 3h4v4H3zM10 3h4v4h-4zM17 3h4v4h-4zM3 10h4v4H3zM10 10h4v4h-4zM17 10h4v4h-4zM3 17h4v4H3zM10 17h4v4h-4zM17 17h4v4h-4z"/></svg>Iconos pequeños</button>
@@ -325,6 +328,10 @@ const userInitials = userDisplayName
 					</section>
 
 					<section class="directory-panel">
+						<div id="map-panel" class="map-panel" hidden>
+							<p id="map-status" class="map-status" role="status">Preparando el mapa…</p>
+							<div id="restaurant-map" class="map-canvas" aria-label="Mapa con los lugares del directorio"></div>
+						</div>
 						<div id="restaurant-list" class="restaurant-list" aria-live="polite"></div>
 						<div id="empty-state" class="empty-state" hidden>
 							<div class="empty-icon"><svg viewBox="0 0 32 32"><path d="M7 7h18v18H7zM11 12h10M11 17h7"/></svg></div>
