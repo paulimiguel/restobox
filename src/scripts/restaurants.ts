@@ -489,7 +489,7 @@ let selectedTags: string[] = [];
 let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
 let searchTerms: string[] = [];
-let searchScope: 'name' | 'category' | 'cuisine' | 'zone' = 'name';
+let searchScope: 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' = 'all';
 let baselineFormState = '';
 let baselineImageState = '';
@@ -2234,11 +2234,9 @@ function render() {
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
 		const searchValues = (searchScope === 'category'
 			? restaurantEstablishments
-			: searchScope === 'cuisine'
-				? restaurantCuisines
-				: searchScope === 'zone'
-					? [restaurant.neighborhood ?? '']
-					: [restaurant.name]
+			: searchScope === 'zone'
+				? [restaurant.neighborhood ?? '']
+				: [restaurant.name]
 		).map(neighborhoodImageKey);
 		const matchesTerm = normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
 		const normalizedEstablishments = restaurantEstablishments.map(neighborhoodImageKey);
@@ -4645,7 +4643,7 @@ clearSearchButton.addEventListener('click', () => {
 });
 searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextScope = button.dataset.searchScope;
-	if (nextScope === 'name' || nextScope === 'category' || nextScope === 'cuisine' || nextScope === 'zone') searchScope = nextScope;
+	if (nextScope === 'name' || nextScope === 'category' || nextScope === 'zone') searchScope = nextScope;
 	searchScopeButtons.forEach((option) => {
 		const active = option.dataset.searchScope === searchScope;
 		option.classList.toggle('active', active);

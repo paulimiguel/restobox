@@ -1381,7 +1381,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-search-row, .directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
 	.quick-place-filters { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.quick-place-filter { width: 100%; padding-inline: 5px; }
-	.search-scope-options { display: grid; width: 100%; grid-template-columns: auto auto auto auto; justify-content: space-between; }
+	.search-scope-options { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.search-scope-option { min-width: 0; padding-inline: 5px; font-size: 8.5px; letter-spacing: 0; }
 	.directory-actions-grid { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.action-search input { font-size: 16px; }
@@ -1485,10 +1485,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
 	.directory-actions-grid { width: 100%; }
 	.restaurant-list.view-columns-3, .restaurant-list.view-columns-4, .restaurant-list.view-columns-5, .restaurant-list.view-columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 5px; right: 5px; gap: 2px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 22px; height: 22px; border-radius: 5px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 12px; height: 12px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 14px; height: 14px; }
 	.restaurant-list.view-columns-1 .restaurant-card { grid-template-columns: 220px minmax(180px, 1fr) 150px; }
 	.restaurant-list.view-columns-1 .restaurant-card:not(:has(.restaurant-card-footer)) { grid-template-columns: 220px minmax(180px, 1fr); }
 	.restaurant-list.view-columns-1 .restaurant-card-body { padding: 22px; }
@@ -1524,4 +1520,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.password-editor-fields { grid-template-columns: 1fr; }
 	.profile-dialog .mini-dialog-actions, .extension-dialog .mini-dialog-actions { margin-right: -18px; margin-bottom: -18px; margin-left: -18px; padding: 14px 18px; }
 	.extension-dialog .mini-dialog-actions { flex-wrap: wrap; }
+}
+
+@media (min-width: 641px) and (max-width: 1279px) {
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 4px; right: 4px; gap: 2px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 18px; height: 18px; border-radius: 4px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 10px; height: 10px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 12px; height: 12px; }
 }
