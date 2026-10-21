@@ -1800,6 +1800,21 @@ function closeRestaurantVideo() {
 	restaurantVideoDialog.close();
 }
 
+let instagramFallbackValue = '';
+
+// Si no se pudo extraer el archivo de video de Instagram, se muestra el reproductor embebido.
+restaurantVideoPlayer.addEventListener('error', () => {
+	const embedUrl = instagramFallbackValue ? restaurantVideoEmbedUrl(instagramFallbackValue) : '';
+	instagramFallbackValue = '';
+	if (!embedUrl || !restaurantVideoDialog.open) return;
+	restaurantVideoPlayer.removeAttribute('src');
+	restaurantVideoPlayer.hidden = true;
+	restaurantVideoDialog.style.removeProperty('--video-ratio');
+	restaurantVideoDialog.classList.remove('instagram-reel-video');
+	restaurantVideoFrame.hidden = false;
+	restaurantVideoFrame.src = embedUrl;
+});
+
 async function openRestaurantVideo(value: string) {
 	const instagramMediaRoute = instagramRestaurantVideoRoute(value);
 	if (instagramMediaRoute) {
@@ -1809,6 +1824,7 @@ async function openRestaurantVideo(value: string) {
 		restaurantVideoFrame.removeAttribute('src');
 		restaurantVideoFrame.hidden = true;
 		restaurantVideoPlayer.hidden = false;
+		instagramFallbackValue = value;
 		restaurantVideoPlayer.src = instagramMediaRoute;
 		restaurantVideoPlayer.autoplay = true;
 		restaurantVideoPlayer.defaultMuted = false;
@@ -4947,6 +4963,7 @@ restaurantVideoPlayer.addEventListener('loadedmetadata', () => {
 	if (videoWidth && videoHeight && restaurantVideoDialog.classList.contains('instagram-video')) restaurantVideoDialog.style.setProperty('--video-ratio', String(videoWidth / videoHeight));
 });
 restaurantVideoDialog.addEventListener('close', () => {
+	instagramFallbackValue = '';
 	restaurantVideoDialog.style.removeProperty('--video-ratio');
 	restaurantVideoFrame.removeAttribute('src');
 	restaurantVideoFrame.hidden = false;
