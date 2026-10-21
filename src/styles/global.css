@@ -1243,9 +1243,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .image-carousel-heading button { display: grid; width: 40px; height: 40px; padding: 0; place-items: center; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; color: white; background: rgba(255,255,255,.12); cursor: pointer; backdrop-filter: blur(10px); transition: background .18s, transform .18s; }
 .image-carousel-heading button svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .image-carousel-heading button:hover { background: rgba(255,255,255,.26); transform: scale(1.06); }
-.image-carousel-stage { position: relative; z-index: 1; display: grid; min-height: 0; place-items: center; padding: 64px 76px 12px; touch-action: pan-y; }
+.image-carousel-stage { position: relative; z-index: 1; display: grid; height: 100%; min-height: 0; overflow: hidden; place-items: center; padding: 64px 76px 12px; touch-action: pan-y; }
 .image-carousel-stage > img { display: block; max-width: 100%; max-height: 100%; border: 0; border-radius: 12px; background: transparent; box-shadow: 0 24px 70px rgba(0,0,0,.55); object-fit: contain; user-select: none; }
-.image-carousel-arrow { position: absolute; top: 50%; z-index: 3; display: grid; width: 48px; height: 48px; padding: 0; place-items: center; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; color: white; background: rgba(255,255,255,.12); cursor: pointer; backdrop-filter: blur(10px); transform: translateY(-50%); transition: background .18s, scale .18s; }
+.image-carousel-arrow { position: fixed; top: calc(50% - 17px); z-index: 3; display: grid; width: 48px; height: 48px; padding: 0; place-items: center; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; color: white; background: rgba(255,255,255,.12); cursor: pointer; backdrop-filter: blur(10px); transform: translateY(-50%); transition: background .18s, scale .18s; }
 .image-carousel-arrow[hidden] { display: none; }
 .image-carousel-arrow:hover { background: rgba(255,255,255,.28); scale: 1.08; }
 .image-carousel-arrow.previous { left: 18px; }
