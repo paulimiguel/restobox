@@ -195,7 +195,7 @@ body.mobile-menu-open { overflow: hidden; }
 .show-catalogs-button.active { color: var(--button-ink); background: var(--forest); }
 .map-menu-link { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; color: #454b47; background: transparent; text-decoration: none; font-size: 12px; font-weight: 700; }
 .map-menu-link:hover { color: var(--accent-text); background: var(--sage); }
-.map-menu-link svg { width: 16px; flex: 0 0 auto; }
+.map-menu-link svg { width: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .mobile-catalog-menu-options > div { max-height: 240px; overflow-y: auto; }
 .mobile-catalog-menu-options .show-catalogs-button { padding-left: 12px; }
 .mobile-menu-options .map-menu-link { min-height: 40px; padding: 9px 12px; color: #6f6965; font-size: 13px; font-weight: 500; }
@@ -1641,3 +1641,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.map-canvas { height: 60vh; min-height: 380px; border-radius: 10px; }
 	.map-status { top: 24px; left: 24px; max-width: calc(100% - 48px); }
 }
+
+/* /mapa: sin el botón Nuevo y con los demás botones pegados al margen derecho */
+body[data-map-mode='true'] .directory-actions-grid .new-establishment-menu { display: none; }
+body[data-map-mode='true'] .directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 405px); margin-left: auto; }
+body[data-map-mode='true'] .directory-toolbar-lower-row { justify-content: space-between; }
+@media (max-width: 640px) { body[data-map-mode='true'] .directory-actions-grid { width: 100%; } }
