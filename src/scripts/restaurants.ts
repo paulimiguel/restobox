@@ -1042,6 +1042,13 @@ function renderNeighborhoodMenus(values: string[]) {
 	headerNeighborhoodOptions.innerHTML = buttons;
 	mobileNeighborhoodOptions.innerHTML = buttons;
 	showCatalogButtons.forEach((button) => button.classList.toggle('active', button.dataset.showCatalog === showingCatalog));
+	document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((tab) => {
+		const key = tab.dataset.tabbar;
+		const active = key === 'directory' ? !showingCatalog : key === showingCatalog;
+		tab.classList.toggle('active', active);
+		if (active) tab.setAttribute('aria-current', 'page');
+		else tab.removeAttribute('aria-current');
+	});
 }
 
 function renderAdditionalFilterOptions() {
@@ -5265,22 +5272,34 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 
 const tabbarTargets: Record<string, string> = {
 	directory: '#header-directory',
-	search: '#main-search-button',
-	new: '.add-dropdown',
-	profile: '.user-dropdown',
+	establishment: '.show-catalogs-button[data-show-catalog="establishment"]',
+	cuisine: '.show-catalogs-button[data-show-catalog="cuisine"]',
 };
 document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((button) => button.addEventListener('click', () => {
-	const target = document.querySelector<HTMLElement>(tabbarTargets[button.dataset.tabbar ?? '']);
-	if (!target) return;
-	// "Nuevo lugar" y "Mi perfil" abren (o cierran) los mismos menús de la barra superior.
-	if (target instanceof HTMLDetailsElement) {
-		document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open]').forEach((dropdown) => { if (dropdown !== target) dropdown.removeAttribute('open'); });
-		target.open = !target.open;
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+	if (button.dataset.tabbar === 'profile') {
+		window.location.assign('/perfil');
 		return;
 	}
-	target.click();
+	document.querySelector<HTMLElement>(tabbarTargets[button.dataset.tabbar ?? ''])?.click();
 }));
+document.querySelector('#open-my-places')?.addEventListener('click', () => window.location.assign('/perfil'));
+
+// Accesos directos desde otras páginas: /?vista=establishment|cuisine, /?lugar=<id> y /?editar=perfil.
+function applyUrlIntent() {
+	const params = new URLSearchParams(window.location.search);
+	const catalogView = params.get('vista');
+	const placeId = params.get('lugar');
+	const wantsProfileEditor = params.get('editar') === 'perfil';
+	if (!catalogView && !placeId && !wantsProfileEditor) return;
+	window.history.replaceState(null, '', window.location.pathname);
+	if (catalogView === 'establishment' || catalogView === 'cuisine') {
+		document.querySelector<HTMLElement>(`.show-catalogs-button[data-show-catalog="${catalogView}"]`)?.click();
+	} else if (placeId) {
+		list.querySelector<HTMLElement>(`.restaurant-card-open[data-view="${CSS.escape(placeId)}"]`)?.click();
+	} else if (wantsProfileEditor) {
+		document.querySelector<HTMLElement>('#open-profile-dialog')?.click();
+	}
+}
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
 	showingCatalog = null;
@@ -5688,7 +5707,7 @@ document.addEventListener('click', (event) => {
 	document.querySelectorAll<HTMLDetailsElement>('.restaurant-card-actions-menu[open]').forEach((menu) => {
 		if (menu !== activeCardMenu) menu.removeAttribute('open');
 	});
-	if (target.closest('.top-dropdown, [data-tabbar="new"], [data-tabbar="profile"]')) return;
+	if (target.closest('.top-dropdown, [data-tabbar="profile"]')) return;
 	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown').forEach((dropdown) => dropdown.removeAttribute('open'));
 });
 
@@ -6199,6 +6218,7 @@ async function initializeServerPersistence() {
 		renderNeighborhoodOptions();
 		(['city', 'province', 'country'] as LocationOptionKind[]).forEach(renderLocationOptions);
 		render();
+		applyUrlIntent();
 		await migrateLegacyImages();
 		render();
 	} catch (error) {

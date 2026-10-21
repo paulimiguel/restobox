@@ -1562,11 +1562,40 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 
 /* Barra inferior de navegación */
 .app-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 38; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 96%, transparent); backdrop-filter: blur(10px); }
-.app-tabbar button { display: flex; height: 52px; min-width: 0; align-items: center; justify-content: center; gap: 6px; padding: 0 4px; border: 0; border-top: 2px solid transparent; color: var(--muted); background: transparent; font-size: 10px; font-weight: 700; letter-spacing: .4px; line-height: 1.15; text-transform: uppercase; cursor: pointer; transition: color .18s, border-color .18s, background .18s; }
-.app-tabbar button svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.app-tabbar button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.app-tabbar button:hover { color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, transparent); }
-.app-tabbar button.active { border-top-color: var(--forest); color: var(--accent-text); }
+.app-tabbar :is(button, a) { display: flex; height: 52px; min-width: 0; align-items: center; justify-content: center; gap: 6px; padding: 0 4px; border: 0; border-top: 2px solid transparent; color: var(--muted); background: transparent; font-size: 10px; font-weight: 700; letter-spacing: .4px; line-height: 1.15; text-transform: uppercase; cursor: pointer; transition: color .18s, border-color .18s, background .18s; }
+.app-tabbar :is(button, a) svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.app-tabbar :is(button, a) span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-tabbar :is(button, a):hover { color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, transparent); }
+.app-tabbar :is(button, a).active { border-top-color: var(--forest); color: var(--accent-text); }
 :root[data-color-mode='dark'] .app-tabbar { border-top-color: #202329; background: rgba(38,41,46,.97); }
-@media (max-width: 420px) { .app-tabbar button { flex-direction: column; gap: 2px; font-size: 9px; letter-spacing: .2px; } .app-tabbar button svg { width: 17px; height: 17px; } }
+@media (max-width: 420px) { .app-tabbar :is(button, a) { flex-direction: column; gap: 2px; font-size: 9px; letter-spacing: .2px; } .app-tabbar :is(button, a) svg { width: 17px; height: 17px; } }
 @media print { .app-tabbar { display: none; } body { padding-bottom: 0; } }
+
+/* Página Mi perfil: favoritos, visitados y a visitar */
+.app-tabbar a { text-decoration: none; }
+.profile-page { padding-top: 22px; }
+.profile-page-edit { text-decoration: none; }
+.profile-page-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; margin-bottom: 26px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.profile-page-avatar { display: grid; width: 68px; height: 68px; flex: 0 0 68px; place-items: center; overflow: hidden; border-radius: 50%; color: var(--button-ink); background: var(--forest); font-size: 24px; font-weight: 700; }
+.profile-page-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-page-identity { min-width: 0; flex: 1 1 200px; }
+.profile-page-identity h1 { margin: 0; overflow: hidden; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; text-overflow: ellipsis; }
+.profile-page-identity p { margin: 3px 0 0; overflow: hidden; color: var(--muted); font-size: 13px; text-overflow: ellipsis; }
+.profile-page-jump { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-page-jump a { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--cream); font-size: 12px; font-weight: 700; text-decoration: none; transition: border-color .18s, background .18s; }
+.profile-page-jump a:hover { border-color: var(--forest); background: color-mix(in srgb, var(--sage) 55%, var(--cream)); }
+.profile-page-jump a span { min-width: 22px; padding: 1px 7px; border-radius: 999px; color: var(--button-ink); background: var(--forest); font-size: 11px; text-align: center; }
+.my-places-section { scroll-margin-top: 100px; margin-bottom: 34px; }
+.my-places-section > header h2 { margin: 0 0 14px; color: var(--ink); font-family: var(--font-display); font-size: 24px; font-weight: 400; }
+.my-places-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.my-places-empty { grid-column: 1 / -1; margin: 0; padding: 18px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 13px; text-align: center; }
+.my-place-tile { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--paper); text-decoration: none; transition: border-color .18s, box-shadow .18s, transform .18s; }
+.my-place-tile:hover { border-color: var(--forest); box-shadow: 0 6px 16px rgba(35,45,38,.1); transform: translateY(-2px); }
+.my-place-image { display: grid; width: 62px; height: 62px; flex: 0 0 62px; place-items: center; overflow: hidden; border-radius: 10px; color: var(--forest); background: var(--sage); font-size: 24px; font-weight: 700; }
+.my-place-image img { width: 100%; height: 100%; object-fit: cover; }
+.my-place-text { display: grid; min-width: 0; gap: 2px; }
+.my-place-text strong { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.my-place-text small { overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+:root[data-color-mode='dark'] .profile-page-hero, :root[data-color-mode='dark'] .my-place-tile { background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] .profile-page-jump a { background: #1d242d; border-color: #59606a; }
+@media (max-width: 640px) { .my-places-grid { grid-template-columns: 1fr; } .profile-page-hero { padding: 14px; } .profile-page-identity h1 { font-size: 22px; } }

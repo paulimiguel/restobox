@@ -1,0 +1,86 @@
+---
+import '../styles/global.css';
+import { getUserProfile } from '../lib/server/auth';
+const sessionUser = await Astro.session?.get('user');
+const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
+const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
+const userDisplayEmail = currentUser?.email || (currentUser?.username.includes('@') ? currentUser.username : '');
+const userInitials = userDisplayName
+	.split(/[\s._-]+/)
+	.filter(Boolean)
+	.slice(0, 2)
+	.map((part) => part[0]?.toLocaleUpperCase('es'))
+	.join('') || 'RB';
+const sections = [
+	{ id: 'favorites', title: 'Mis lugares favoritos', empty: 'Todavía no marcaste lugares como favoritos.' },
+	{ id: 'visited', title: 'Mis lugares visitados', empty: 'Todavía no marcaste lugares como visitados.' },
+	{ id: 'to-visit', title: 'Mis lugares a visitar', empty: 'Todavía no marcaste lugares como “A visitar”.' },
+];
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+		<meta name="theme-color" content="#f90344" />
+		<title>RestoBox · Mi perfil</title>
+		<script is:inline>
+			try {
+				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
+				document.documentElement.dataset.colorMode = colorMode;
+				document.documentElement.style.colorScheme = colorMode;
+				document.documentElement.dataset.theme = localStorage.getItem('theme') || 'carrot';
+				document.documentElement.dataset.fontTheme = localStorage.getItem('font-theme') || 'original';
+			} catch {
+				document.documentElement.dataset.colorMode = 'light';
+			}
+		</script>
+	</head>
+	<body>
+		<div class="app-shell">
+			<main>
+				<header class="topbar">
+					<a class="header-brand" href="/" aria-label="RestoBox, inicio"><img id="profile-page-logo" src="/restobox-logo-transparent.png" alt="RestoBox" /></a>
+					<nav class="top-actions" aria-label="Acciones del perfil">
+						<a class="top-nav-button profile-page-edit" href="/?editar=perfil">EDITAR PERFIL</a>
+					</nav>
+				</header>
+				<div class="content profile-page">
+					<section class="profile-page-hero" aria-label="Mi perfil">
+						<div class="profile-page-avatar">
+							{currentUser?.profilePhoto ? <img src={currentUser.profilePhoto} alt="" /> : <span>{userInitials}</span>}
+						</div>
+						<div class="profile-page-identity">
+							<h1>{userDisplayName}</h1>
+							{userDisplayEmail && <p>{userDisplayEmail}</p>}
+						</div>
+						<nav class="profile-page-jump" aria-label="Ir a una sección">
+							{sections.map((section) => <a href={`#${section.id}`}>{section.title.replace('Mis lugares ', '').replace(/^./, (letter) => letter.toLocaleUpperCase('es'))}<span id={`count-${section.id}`}>0</span></a>)}
+						</nav>
+					</section>
+					{sections.map((section) => (
+						<section class="my-places-section" id={section.id} aria-labelledby={`title-${section.id}`}>
+							<header>
+								<h2 id={`title-${section.id}`}>{section.title}</h2>
+							</header>
+							<div class="my-places-grid" id={`list-${section.id}`} data-empty={section.empty}>
+								<p class="my-places-empty">Cargando…</p>
+							</div>
+						</section>
+					))}
+				</div>
+			</main>
+		</div>
+		<nav class="app-tabbar" aria-label="Navegación principal">
+			<a href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Directorio</span></a>
+			<a href="/?vista=establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg><span>Categorías</span></a>
+			<a href="/?vista=cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/></svg><span>Tipo de cocina</span></a>
+			<a class="active" href="/perfil" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></a>
+		</nav>
+		<script src="../scripts/perfil.ts"></script>
+	</body>
+</html>
