@@ -1378,7 +1378,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.hero { align-items: flex-start; flex-direction: column; }
 	.hero .primary-button { width: 100%; }
 	.directory-actions { grid-template-columns: 1fr; gap: 10px; padding: 11px 0; border: 0; border-radius: 0; background: var(--paper); box-shadow: none; }
-	.directory-search-row, .directory-toolbar-lower-row { align-items: stretch; flex-direction: column; }
+	.directory-search-row, .directory-toolbar-lower-row { display: contents; }
+	.directory-search-row .action-search { order: 1; }
+	.search-scope-options { order: 2; }
+	.quick-place-filters { order: 3; }
+	.directory-actions-grid { order: 4; }
 	.quick-place-filters { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.quick-place-filter { width: 100%; padding-inline: 5px; }
 	.search-scope-options { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1527,4 +1531,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 20px; height: 20px; border-radius: 5px; }
 	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 11px; height: 11px; }
 	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
+}
+
+@media (min-width: 641px) {
+	.top-dropdown.add-dropdown > summary { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px rgba(0,0,0,.16); transition: filter .18s, box-shadow .18s; }
+	.top-dropdown.add-dropdown > summary:hover, .top-dropdown.add-dropdown[open] > summary { color: var(--button-ink); background: var(--forest); filter: brightness(.92); box-shadow: 0 4px 12px rgba(0,0,0,.22); }
 }
