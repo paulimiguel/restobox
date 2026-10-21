@@ -61,8 +61,12 @@ try {
 	if ($LASTEXITCODE -ne 0) { throw "No se pudo subir el instalador remoto." }
 
 	$remoteCommand = "bash '$RemoteRoot/.deploy/deploy-remote.sh' '$RemoteRoot' '$RemoteRoot/.deploy/restobox-$stamp.tar.gz'"
+	# Los avisos de Node en stderr no deben cortar el script en PowerShell 5.1; se valida el código de salida.
+	$ErrorActionPreference = "Continue"
 	& ssh -i $IdentityFile -o IdentitiesOnly=yes $destination $remoteCommand
-	if ($LASTEXITCODE -ne 0) { throw "El deploy remoto falló." }
+	$remoteExit = $LASTEXITCODE
+	$ErrorActionPreference = "Stop"
+	if ($remoteExit -ne 0) { throw "El deploy remoto falló." }
 }
 finally {
 	if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
