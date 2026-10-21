@@ -621,7 +621,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-list .restaurant-card { min-height: 78px; grid-template-columns: 78px minmax(520px, 1fr) 232px; border-radius: 8px; }
 .restaurant-list.view-list .restaurant-card:hover { transform: translateY(-1px); }
 .restaurant-list.view-list .restaurant-card-media, .restaurant-list.view-list .restaurant-card-open, .restaurant-list.view-list .restaurant-card-image { width: 78px; height: 78px; min-height: 78px; aspect-ratio: 1; }
-.restaurant-list.view-list .restaurant-card-body { grid-template-columns: 320px minmax(220px, 1fr) 70px; align-content: center; align-items: center; gap: 18px; padding: 8px 16px; }
+.restaurant-list.view-list .restaurant-card-body { grid-template-columns: 320px minmax(220px, 1fr); align-content: center; align-items: center; gap: 18px; padding: 8px 16px; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-identity, .restaurant-list:is(.view-list, .view-detail) .restaurant-card-location { display: grid; min-width: 0; align-content: center; gap: 3px; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-location { min-height: 40px; grid-template-rows: 20px 17px; align-content: center; padding-left: 18px; border-left: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-address, .restaurant-list:is(.view-list, .view-detail) .restaurant-card-neighborhood { display: block; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -639,7 +639,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active { color: #22a95b; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active svg { stroke-width: 2.5; }
 .restaurant-list:is(.view-list, .view-detail, .view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button svg { width: 21px; height: 21px; }
-.restaurant-list.view-detail .restaurant-card-list-status { display: none !important; }
+.restaurant-list:is(.view-detail, .view-list) .restaurant-card-list-status { display: none !important; }
 .restaurant-list.view-list .restaurant-card-top-actions { display: none; }
 .restaurant-list.view-list .restaurant-card-top-actions > button, .restaurant-list.view-list .restaurant-card-actions-menu > summary { width: 15px; height: 15px; border-radius: 3px; }
 .restaurant-list.view-list .restaurant-card-top-actions svg { width: 9px; }
@@ -1447,7 +1447,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.restaurant-list.view-list .restaurant-card { min-height: 118px; grid-template-columns: 92px minmax(0, 1fr); align-items: stretch; }
 	.restaurant-list.view-list .restaurant-card-media, .restaurant-list.view-list .restaurant-card-open, .restaurant-list.view-list .restaurant-card-image { width: 92px; height: 100%; min-height: 118px; aspect-ratio: auto; }
 	.restaurant-list.view-list .restaurant-card-image img { padding: 6px; object-fit: contain; }
-	.restaurant-list.view-list .restaurant-card-body { grid-template-columns: minmax(0, 1fr) 32px; grid-template-rows: auto auto; align-content: center; gap: 6px 10px; padding: 10px 12px; }
+	.restaurant-list.view-list .restaurant-card-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; gap: 6px 10px; padding: 10px 12px; }
 	.restaurant-list.view-list .restaurant-card-identity { grid-row: 1; grid-column: 1; }
 	.restaurant-list.view-list .restaurant-card-name { font-size: 20px; }
 	.restaurant-list.view-list .restaurant-card-establishments { font-size: 13px; }
@@ -1534,6 +1534,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 }
 
 @media (min-width: 641px) {
-	.top-dropdown.add-dropdown > summary { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px rgba(0,0,0,.16); transition: filter .18s, box-shadow .18s; }
-	.top-dropdown.add-dropdown > summary:hover, .top-dropdown.add-dropdown[open] > summary { color: var(--button-ink); background: var(--forest); filter: brightness(.92); box-shadow: 0 4px 12px rgba(0,0,0,.22); }
+	.top-dropdown.add-dropdown > summary { color: var(--forest); background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.14); transition: box-shadow .18s, transform .18s; }
+	.top-dropdown.add-dropdown > summary:hover, .top-dropdown.add-dropdown[open] > summary { color: var(--forest); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.22); }
 }

@@ -138,6 +138,15 @@ const SERVER_MIGRATION_KEY = 'restobox-server-migration-v1';
 const DEFAULT_CUISINES = ['Comida rápida', 'Café', 'Pastas', 'Parrilla', 'Pizzas', 'Sushi'];
 const DEFAULT_ESTABLISHMENTS = ['Restaurante', 'Café', 'Bar', 'Pub'];
 const DEFAULT_SERVICES = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Poscena'];
+// Orden fijo con el que se muestran los servicios; los que no figuran van al final, alfabéticamente.
+const SERVICE_ORDER = ['desayuno', 'brunch', 'almuerzo', 'merienda', 'drunch', 'cena', 'afterdinner', 'tragos', 'tienda'];
+function serviceRank(value: string) {
+	const rank = SERVICE_ORDER.indexOf(value.toLocaleLowerCase('es').replace(/[^a-záéíóúñ]/g, ''));
+	return rank < 0 ? SERVICE_ORDER.length : rank;
+}
+function sortServices(values: string[]) {
+	return values.sort((a, b) => serviceRank(a) - serviceRank(b) || a.localeCompare(b, 'es'));
+}
 const DEFAULT_CITY = 'Mar del Plata';
 const DEFAULT_PROVINCE = 'Buenos Aires';
 const DEFAULT_COUNTRY = 'Argentina';
@@ -791,7 +800,7 @@ function loadServiceTypes(): string[] {
 		const used = restaurants.flatMap((restaurant) => restaurant.mealTypes ?? []);
 		return [...new Set([...DEFAULT_SERVICES, ...stored, ...used])]
 			.filter((item) => item !== 'Desayuno y merienda' && !removed.includes(item.toLocaleLowerCase('es')))
-			.sort((a, b) => a.localeCompare(b, 'es'));
+			.sort((a, b) => serviceRank(a) - serviceRank(b) || a.localeCompare(b, 'es'));
 	} catch {
 		return [...DEFAULT_SERVICES];
 	}
@@ -1373,8 +1382,9 @@ function renderServiceOptions(clearInput = true, refreshFilter = false) {
 }
 
 function renderSelectedServices() {
+	sortServices(selectedServices);
 	selectedServicesContainer.innerHTML = selectedServices.map((service, index) => `
-		<span class="selected-option" draggable="true" data-selected-index="${index}" title="Arrastrá para cambiar el orden">
+		<span class="selected-option" data-selected-index="${index}">
 			${safe(service)}
 			<input type="hidden" name="mealTypes" value="${safe(service)}" />
 			<button type="button" data-remove-service="${safe(service)}" aria-label="Quitar ${safe(service)}" title="Quitar">×</button>
@@ -1399,7 +1409,7 @@ function commitServiceInput() {
 	}
 	const service = entered.slice(0, 50);
 	serviceTypes.push(service);
-	serviceTypes.sort((a, b) => a.localeCompare(b, 'es'));
+	sortServices(serviceTypes);
 	removedServiceTypes = removedServiceTypes.filter((item) => item.toLocaleLowerCase('es') !== service.toLocaleLowerCase('es'));
 	saveServiceSettings();
 	addServiceSelection(service);
@@ -2132,7 +2142,7 @@ function catalogFilterSet(kind: CatalogCardKind) {
 
 function setCatalogList(kind: CatalogCardKind, values: string[]) {
 	if (kind === 'establishment') establishmentTypes = values;
-	else if (kind === 'service') serviceTypes = values;
+	else if (kind === 'service') serviceTypes = sortServices([...values]);
 	else if (kind === 'cuisine') cuisines = values;
 	else neighborhoods = values;
 }
@@ -3730,7 +3740,8 @@ excelImportForm.addEventListener('submit', async (event) => {
 		if (!imported.length && !updated) throw new Error('Los lugares ya existen y no tienen datos nuevos para completar');
 		restaurants.unshift(...imported);
 		if (!await saveRestaurants()) throw new Error('No se pudieron guardar los lugares importados');
-		[cuisines, establishmentTypes, serviceTypes, neighborhoods, cities, provinces, countries].forEach((values) => values.sort((a, b) => a.localeCompare(b, 'es')));
+		[cuisines, establishmentTypes, neighborhoods, cities, provinces, countries].forEach((values) => values.sort((a, b) => a.localeCompare(b, 'es')));
+		sortServices(serviceTypes);
 		persistCatalogSettings();
 		renderEstablishmentFilterOptions();
 		renderCuisineFilterOptions();
@@ -5611,7 +5622,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 		}
 	}
 	establishmentTypes.sort((a, b) => a.localeCompare(b, 'es'));
-	serviceTypes.sort((a, b) => a.localeCompare(b, 'es'));
+	sortServices(serviceTypes);
 	cuisines.sort((a, b) => a.localeCompare(b, 'es'));
 	saveEstablishmentSettings();
 	saveServiceSettings();
@@ -5708,7 +5719,7 @@ form.addEventListener('submit', async (event) => {
 		tags: selectedTags.join(', '),
 		rating: data.rating,
 		score: data.score.trim(),
-		mealTypes: [...selectedServices],
+		mealTypes: sortServices([...selectedServices]),
 		price: data.price,
 		averagePrice: savedAveragePrice,
 		country: savedCountry,
@@ -6081,7 +6092,7 @@ function applyServerCatalogs(value: unknown) {
 	removedAveragePrices = stringArray(catalogs.removedAveragePrices);
 	establishmentTypes = capitalizedCatalogValues(stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]));
 	removedEstablishmentTypes = stringArray(catalogs.removedEstablishmentTypes);
-	serviceTypes = stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]);
+	serviceTypes = sortServices(stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]));
 	removedServiceTypes = stringArray(catalogs.removedServiceTypes);
 	neighborhoods = stringArray(catalogs.neighborhoods);
 	neighborhoodImages = neighborhoodImageMap(catalogs.neighborhoodImages);
@@ -6158,7 +6169,7 @@ async function initializeServerPersistence() {
 		tagCatalog = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).filter((item) => !removedTagNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedEstablishmentNames = new Set(removedEstablishmentTypes.map((item) => item.toLocaleLowerCase('es')));
 		establishmentTypes = [...new Set([...establishmentTypes, ...restaurants.flatMap(getRestaurantEstablishmentTypes)])].filter((item) => !removedEstablishmentNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
-		serviceTypes = [...new Set([...serviceTypes, ...restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])])].sort((a, b) => a.localeCompare(b, 'es'));
+		serviceTypes = sortServices([...new Set([...serviceTypes, ...restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])])]);
 		neighborhoods = [...new Set([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		cities = [...new Set([...cities, ...restaurants.map((restaurant) => restaurant.city).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		provinces = [...new Set([...provinces, ...restaurants.map((restaurant) => restaurant.province).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
