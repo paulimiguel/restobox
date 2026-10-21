@@ -5176,6 +5176,7 @@ mobileMenuLayer.addEventListener('click', (event) => {
 			delete: '#header-delete-places',
 			print: '#header-print-directory',
 			'empty-fields': '#header-empty-fields',
+			'install-app': '#header-install-app',
 		};
 		const targetSelector = actionTargets[actionButton.dataset.mobileMenuAction ?? ''];
 		closeMobileMenu({ restoreFocus: false });
@@ -5314,6 +5315,56 @@ showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	render();
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
+
+type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
+let installPromptEvent: InstallPromptEvent | null = null;
+const installAppDialog = document.querySelector<HTMLDialogElement>('#install-app-dialog')!;
+const isStandaloneApp = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+function setInstallButtonsHidden(hidden: boolean) {
+	document.querySelectorAll<HTMLElement>('#header-install-app, [data-mobile-menu-action="install-app"]').forEach((button) => { button.hidden = hidden; });
+}
+setInstallButtonsHidden(isStandaloneApp());
+window.addEventListener('beforeinstallprompt', (event) => {
+	event.preventDefault();
+	installPromptEvent = event as InstallPromptEvent;
+});
+window.addEventListener('appinstalled', () => {
+	installPromptEvent = null;
+	setInstallButtonsHidden(true);
+	showToast('RestoBox se agregó a la pantalla de inicio');
+});
+if ('serviceWorker' in navigator) void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+function showInstallInstructions() {
+	const userAgent = navigator.userAgent;
+	const isIos = /iPhone|iPad|iPod/i.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+	const intro = document.querySelector<HTMLElement>('#install-app-intro')!;
+	const steps = document.querySelector<HTMLElement>('#install-app-steps')!;
+	if (isIos) {
+		intro.textContent = 'En iPhone y iPad se agrega desde Safari:';
+		steps.innerHTML = '<li>Abrí RestoBox en <strong>Safari</strong>.</li><li>Tocá el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li><li>Elegí <strong>Añadir a pantalla de inicio</strong> y confirmá con <strong>Añadir</strong>.</li>';
+	} else {
+		intro.textContent = 'Tu navegador no mostró el instalador automático. Podés agregarlo a mano:';
+		steps.innerHTML = '<li>Abrí el <strong>menú del navegador</strong> (los tres puntos).</li><li>Elegí <strong>Instalar app</strong> o <strong>Agregar a pantalla de inicio</strong>.</li><li>Confirmá y el ícono de RestoBox aparecerá en tu pantalla de inicio.</li>';
+	}
+	installAppDialog.showModal();
+}
+document.querySelector('#header-install-app')?.addEventListener('click', async () => {
+	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
+	if (isStandaloneApp()) {
+		showToast('RestoBox ya está instalada en este dispositivo');
+		return;
+	}
+	if (installPromptEvent) {
+		const promptEvent = installPromptEvent;
+		installPromptEvent = null;
+		await promptEvent.prompt();
+		const choice = await promptEvent.userChoice.catch(() => null);
+		if (choice?.outcome === 'dismissed') showToast('Podés instalarla cuando quieras desde Acciones');
+		return;
+	}
+	showInstallInstructions();
+});
+document.querySelector('#close-install-app')?.addEventListener('click', () => installAppDialog.close());
 
 const emptyFieldsDialog = document.querySelector<HTMLDialogElement>('#empty-fields-dialog')!;
 const emptyFieldsOptionsList = document.querySelector<HTMLElement>('#empty-fields-options')!;

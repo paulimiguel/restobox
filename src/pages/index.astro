@@ -22,6 +22,12 @@ const userInitials = userDisplayName
 		<meta name="viewport" content="width=device-width" />
 		<meta name="description" content="Directorio privado para centralizar la información de tus restaurantes." />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+		<meta name="theme-color" content="#f90344" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-title" content="RestoBox" />
 		<title>RestoBox · Directorio de restaurantes</title>
 		<script is:inline>
 			try {
@@ -75,6 +81,7 @@ const userInitials = userDisplayName
 								<button type="button" id="header-delete-places"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 								<button type="button" id="header-print-directory"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 								<button type="button" id="header-empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
+								<button type="button" id="header-install-app"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M12 8v6m0 0-2.5-2.5M12 14l2.5-2.5M11 18.5h2"/></svg>Instalar app en el inicio</button>
 							</div>
 						</details>
 
@@ -179,6 +186,7 @@ const userInitials = userDisplayName
 									<button type="button" data-mobile-menu-action="delete"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 									<button type="button" data-mobile-menu-action="print"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 									<button type="button" data-mobile-menu-action="empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
+									<button type="button" data-mobile-menu-action="install-app"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M12 8v6m0 0-2.5-2.5M12 14l2.5-2.5M11 18.5h2"/></svg>Instalar app en el inicio</button>
 								</div>
 							</details>
 							<details class="mobile-menu-section">
@@ -900,6 +908,18 @@ const userInitials = userDisplayName
 				</button>
 			</div>
 			<div id="image-carousel-thumbs" class="image-carousel-thumbs" role="tablist" aria-label="Miniaturas"></div>
+		</dialog>
+
+		<dialog id="install-app-dialog" class="mini-dialog install-app-dialog">
+			<div class="install-app-content">
+				<img src="/icons/icon-192.png" alt="" width="64" height="64" />
+				<h2>Agregar RestoBox al inicio</h2>
+				<p id="install-app-intro" class="bulk-edit-help"></p>
+				<ol id="install-app-steps" class="install-app-steps"></ol>
+				<div class="mini-dialog-actions">
+					<button id="close-install-app" class="primary-button" type="button">Entendido</button>
+				</div>
+			</div>
 		</dialog>
 
 		<dialog id="empty-fields-dialog" class="mini-dialog empty-fields-dialog">
