@@ -4942,7 +4942,12 @@ closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
 restaurantVideoDialog.addEventListener('click', (event) => {
 	if (event.target === restaurantVideoDialog) closeRestaurantVideo();
 });
+restaurantVideoPlayer.addEventListener('loadedmetadata', () => {
+	const { videoWidth, videoHeight } = restaurantVideoPlayer;
+	if (videoWidth && videoHeight && restaurantVideoDialog.classList.contains('instagram-video')) restaurantVideoDialog.style.setProperty('--video-ratio', String(videoWidth / videoHeight));
+});
 restaurantVideoDialog.addEventListener('close', () => {
+	restaurantVideoDialog.style.removeProperty('--video-ratio');
 	restaurantVideoFrame.removeAttribute('src');
 	restaurantVideoFrame.hidden = false;
 	restaurantVideoPlayer.pause();
