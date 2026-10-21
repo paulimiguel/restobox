@@ -452,6 +452,7 @@ let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
 let selectedTagFilters = new Set<string>();
 let selectedCityFilters = new Set<string>();
+let selectedEmptyFields = new Set<string>();
 let favoriteFilterActive = false;
 let visitedFilterActive = false;
 let checkedFilterActive = false;
@@ -942,6 +943,40 @@ async function deleteAveragePriceOption(value: string) {
 	showToast('Precio promedio eliminado definitivamente');
 }
 
+const emptyFieldOptions: Array<{ id: string; label: string; isEmpty: (restaurant: Restaurant) => boolean }> = [
+	{ id: 'description', label: 'Descripción', isEmpty: (r) => !r.description?.trim() },
+	{ id: 'establishmentType', label: 'Categorías', isEmpty: (r) => getRestaurantEstablishmentTypes(r).length === 0 },
+	{ id: 'cuisine', label: 'Tipo de cocina', isEmpty: (r) => getRestaurantCuisines(r).length === 0 },
+	{ id: 'mealTypes', label: 'Servicios', isEmpty: (r) => !(r.mealTypes ?? []).length },
+	{ id: 'tags', label: 'Etiquetas', isEmpty: (r) => restaurantTags(r).length === 0 },
+	{ id: 'rating', label: 'Rate', isEmpty: (r) => !r.rating?.trim() },
+	{ id: 'score', label: 'Puntuación Google', isEmpty: (r) => !r.score?.trim() },
+	{ id: 'price', label: 'Nivel de precio', isEmpty: (r) => !r.price?.trim() },
+	{ id: 'averagePrice', label: 'Precio promedio', isEmpty: (r) => !r.averagePrice?.trim() },
+	{ id: 'country', label: 'País', isEmpty: (r) => !r.country?.trim() },
+	{ id: 'province', label: 'Provincia', isEmpty: (r) => !r.province?.trim() },
+	{ id: 'city', label: 'Ciudad', isEmpty: (r) => !r.city?.trim() },
+	{ id: 'address', label: 'Dirección', isEmpty: (r) => !r.address?.trim() },
+	{ id: 'neighborhood', label: 'Zona', isEmpty: (r) => !r.neighborhood?.trim() },
+	{ id: 'phone', label: 'Teléfono', isEmpty: (r) => !r.phone?.trim() },
+	{ id: 'mobile', label: 'Celular', isEmpty: (r) => !r.mobile?.trim() },
+	{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
+	{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },
+	{ id: 'linktreeUrl', label: 'Linktree', isEmpty: (r) => !r.linktreeUrl?.trim() },
+	{ id: 'menuUrl', label: 'Menú', isEmpty: (r) => !r.menuUrl?.trim() },
+	{ id: 'instagramUrl', label: 'Instagram', isEmpty: (r) => !r.instagramUrl?.trim() },
+	{ id: 'tiktokUrl', label: 'TikTok', isEmpty: (r) => !r.tiktokUrl?.trim() },
+	{ id: 'facebookUrl', label: 'Facebook', isEmpty: (r) => !r.facebookUrl?.trim() },
+	{ id: 'wokiUrl', label: 'Woki', isEmpty: (r) => !r.wokiUrl?.trim() },
+	{ id: 'tripAdvisorUrl', label: 'TripAdvisor', isEmpty: (r) => !r.tripAdvisorUrl?.trim() },
+	{ id: 'pedidosYaUrl', label: 'Pedidos Ya', isEmpty: (r) => !r.pedidosYaUrl?.trim() },
+	{ id: 'videoUrl', label: 'Video', isEmpty: (r) => !r.videoUrl?.trim() },
+	{ id: 'mapUrl', label: 'Mapa', isEmpty: (r) => !r.mapUrl?.trim() },
+	{ id: 'hours', label: 'Horarios', isEmpty: (r) => !r.hours?.trim() },
+	{ id: 'notes', label: 'Notas', isEmpty: (r) => !r.notes?.trim() },
+	{ id: 'images', label: 'Imágenes', isEmpty: (r) => !r.imageCount },
+];
+
 function updateDirectoryFilterLabels() {
 	const summary = (values: Set<string>, emptyText: string) => {
 		if (!values.size) return emptyText;
@@ -959,12 +994,13 @@ function updateDirectoryFilterLabels() {
 	establishmentFilterChips.innerHTML = chips(selectedEstablishmentFilters, 'establishment');
 	mealFilterChips.innerHTML = chips(selectedMealFilters, 'meal');
 	cuisineFilterChips.innerHTML = chips(selectedCuisineFilters, 'cuisine');
-	directoryActiveFilterChips.innerHTML = [
-		...selectedEstablishmentFilters].map((value) => ({ value, group: 'establishment' }))
+	type ActiveChip = { value: string; group: string; label?: string };
+	directoryActiveFilterChips.innerHTML = [...selectedEstablishmentFilters].map((value): ActiveChip => ({ value, group: 'establishment' }))
 		.concat([...selectedMealFilters].map((value) => ({ value, group: 'meal' })))
 		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
 		.concat([...selectedNeighborhoodFilters].map((value) => ({ value, group: 'neighborhood' })))
-		.map(({ value, group }) => `<span class="directory-active-filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`)
+		.concat([...selectedEmptyFields].map((value) => ({ value, group: 'empty', label: `Sin ${(emptyFieldOptions.find((option) => option.id === value)?.label ?? value).toLocaleLowerCase('es')}` })))
+		.map(({ value, group, label }) => `<span class="directory-active-filter-chip">${safe(label ?? value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(label ?? value)}" title="Quitar">×</button></span>`)
 		.join('');
 	const hasVisibleCatalogFilters = directoryActiveFilterChips.childElementCount > 0;
 	directoryActiveFilters.hidden = !hasVisibleCatalogFilters;
@@ -2222,7 +2258,9 @@ function render() {
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
+		const matchesEmptyFields = !selectedEmptyFields.size || emptyFieldOptions.some((option) => selectedEmptyFields.has(option.id) && option.isEmpty(restaurant));
 		return matchesTerm
+			&& matchesEmptyFields
 			&& matchesQuickType
 			&& matchesEstablishment
 			&& matchesMeal
@@ -2253,6 +2291,7 @@ function render() {
 		|| selectedNeighborhoodFilters.size > 0
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
+		|| selectedEmptyFields.size > 0
 		|| favoriteFilterActive
 		|| visitedFilterActive
 		|| checkedFilterActive
@@ -4629,6 +4668,12 @@ directoryFilterPanel.addEventListener('click', (event) => {
 	removeDirectoryFilter(button.dataset.removeFilter, value);
 });
 function removeDirectoryFilter(group: string | undefined, value: string) {
+	if (group === 'empty') {
+		selectedEmptyFields.delete(value);
+		updateDirectoryFilterLabels();
+		render();
+		return;
+	}
 	const targetSet = group === 'establishment'
 		? selectedEstablishmentFilters
 		: group === 'meal'
@@ -4696,6 +4741,7 @@ function clearDirectoryFilterSelections() {
 	selectedNeighborhoodFilters.clear();
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
+	selectedEmptyFields.clear();
 	favoriteFilterActive = false;
 	visitedFilterActive = false;
 	checkedFilterActive = false;
@@ -5086,6 +5132,7 @@ mobileMenuLayer.addEventListener('click', (event) => {
 			edit: '#header-edit-places',
 			delete: '#header-delete-places',
 			print: '#header-print-directory',
+			'empty-fields': '#header-empty-fields',
 		};
 		const targetSelector = actionTargets[actionButton.dataset.mobileMenuAction ?? ''];
 		closeMobileMenu({ restoreFocus: false });
@@ -5224,6 +5271,34 @@ showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	render();
 	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
+
+const emptyFieldsDialog = document.querySelector<HTMLDialogElement>('#empty-fields-dialog')!;
+const emptyFieldsOptionsList = document.querySelector<HTMLElement>('#empty-fields-options')!;
+const applyEmptyFieldsButton = document.querySelector<HTMLButtonElement>('#apply-empty-fields')!;
+function updateEmptyFieldsApplyState() {
+	applyEmptyFieldsButton.disabled = !emptyFieldsOptionsList.querySelector('input:checked');
+}
+document.querySelector('#header-empty-fields')?.addEventListener('click', () => {
+	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
+	emptyFieldsOptionsList.innerHTML = emptyFieldOptions.map((option) => `<label class="empty-field-option"><input type="checkbox" value="${option.id}" /><span>${safe(option.label)}</span></label>`).join('');
+	updateEmptyFieldsApplyState();
+	emptyFieldsDialog.showModal();
+});
+emptyFieldsOptionsList.addEventListener('change', updateEmptyFieldsApplyState);
+document.querySelector('#clear-empty-fields-selection')?.addEventListener('click', () => {
+	emptyFieldsOptionsList.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = false; });
+	updateEmptyFieldsApplyState();
+});
+document.querySelector('#cancel-empty-fields')?.addEventListener('click', () => emptyFieldsDialog.close());
+document.querySelector('#empty-fields-form')?.addEventListener('submit', (event) => {
+	event.preventDefault();
+	selectedEmptyFields = new Set([...emptyFieldsOptionsList.querySelectorAll<HTMLInputElement>('input:checked')].map((input) => input.value));
+	emptyFieldsDialog.close();
+	showingCatalog = null;
+	updateDirectoryFilterLabels();
+	render();
+	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 document.querySelector('#header-print-directory')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
