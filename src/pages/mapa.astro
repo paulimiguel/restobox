@@ -24,7 +24,6 @@ const restaurants: MapRestaurant[] = listRestaurants().map((restaurant) => ({
 	country: text(restaurant.country),
 	mapUrl: text(restaurant.mapUrl),
 }));
-const googleMapsApiKey = process.env.GOOGLE_MAPS_BROWSER_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 const serializedRestaurants = JSON.stringify(restaurants).replace(/</g, '\\u003c');
 ---
 
@@ -47,7 +46,7 @@ const serializedRestaurants = JSON.stringify(restaurants).replace(/</g, '\\u003c
 				document.documentElement.dataset.colorMode = 'light';
 			}
 		</script>
-		<style>
+		<style is:global>
 			.map-page { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; background: var(--cream); }
 			.map-header { min-height: 88px; display: flex; align-items: center; gap: 24px; padding: 7px max(4vw, calc((100% - 1520px) / 2)); border-bottom: 1px solid var(--line); background: var(--paper); box-shadow: 0 3px 14px rgba(30,42,35,.04); }
 			.map-header .header-brand { margin-right: 0; }
@@ -62,6 +61,8 @@ const serializedRestaurants = JSON.stringify(restaurants).replace(/</g, '\\u003c
 			.map-status { position: absolute; z-index: 2; top: 32px; left: calc(max(4vw, (100% - 1520px) / 2) + 14px); max-width: min(390px, calc(100% - 56px)); margin: 0; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: color-mix(in srgb, var(--paper) 94%, transparent); box-shadow: 0 5px 18px rgba(30,42,35,.13); font-size: 12px; font-weight: 600; line-height: 1.4; }
 			.map-status[hidden] { display: none; }
 			.map-error { display: grid; height: 100%; place-items: center; padding: 32px; color: var(--muted); text-align: center; }
+			.map-pin { color: var(--forest); background: transparent; border: 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+			.map-pin svg { display: block; }
 			.map-info { color: #28312d; font-family: Arial, sans-serif; line-height: 1.35; }
 			.map-info strong { display: block; margin-bottom: 4px; font-size: 14px; }
 			.map-info span { display: block; max-width: 260px; font-size: 12px; }
@@ -95,111 +96,6 @@ const serializedRestaurants = JSON.stringify(restaurants).replace(/</g, '\\u003c
 			</main>
 		</div>
 		<script is:inline id="map-restaurants-data" type="application/json" set:html={serializedRestaurants}></script>
-		<script is:inline define:vars={{ googleMapsApiKey }}>
-			const mapElement = document.querySelector('#restaurant-map');
-			const statusElement = document.querySelector('#map-status');
-			const restaurants = JSON.parse(document.querySelector('#map-restaurants-data')?.textContent || '[]');
-			const cacheKey = 'restobox-map-coordinates-v1';
-			const defaultCenter = { lat: -38.0055, lng: -57.5426 };
-			let coordinateCache = {};
-
-			try { coordinateCache = JSON.parse(localStorage.getItem(cacheKey) || '{}'); }
-			catch { coordinateCache = {}; }
-
-			const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({
-				'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
-			})[character]);
-			const locationLabel = (restaurant) => [restaurant.address, restaurant.neighborhood, restaurant.city, restaurant.province, restaurant.country].filter(Boolean).join(', ');
-			const locationFingerprint = (restaurant) => [restaurant.name, restaurant.mapUrl, locationLabel(restaurant)].join('|');
-			const coordinatesFromUrl = (value) => {
-				if (!value) return null;
-				const matches = [
-					value.match(/@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/),
-					value.match(/[?&](?:q|query|destination)=(-?\d{1,2}(?:\.\d+)?)(?:%2C|,)(-?\d{1,3}(?:\.\d+)?)/i),
-				];
-				for (const match of matches) {
-					if (!match) continue;
-					const lat = Number(match[1]);
-					const lng = Number(match[2]);
-					if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-				}
-				return null;
-			};
-			const delay = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-
-			async function initRestaurantMap() {
-				const map = new google.maps.Map(mapElement, {
-					center: defaultCenter,
-					zoom: 12,
-					mapTypeControl: false,
-					streetViewControl: false,
-					fullscreenControl: true,
-				});
-				const geocoder = new google.maps.Geocoder();
-				const bounds = new google.maps.LatLngBounds();
-				const infoWindow = new google.maps.InfoWindow();
-				let locatedCount = 0;
-
-				const addMarker = (restaurant, position) => {
-					const marker = new google.maps.Marker({ map, position, title: restaurant.name });
-					bounds.extend(position);
-					locatedCount += 1;
-					marker.addListener('click', () => {
-						const address = locationLabel(restaurant);
-						const mapsUrl = restaurant.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([restaurant.name, address].filter(Boolean).join(', '))}`;
-						infoWindow.setContent(`<div class="map-info"><strong>${escapeHtml(restaurant.name)}</strong>${address ? `<span>${escapeHtml(address)}</span>` : ''}<a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noreferrer">Abrir en Google Maps</a></div>`);
-						infoWindow.open({ map, anchor: marker });
-					});
-				};
-
-				for (const [index, restaurant] of restaurants.entries()) {
-					statusElement.textContent = `Ubicando restaurantes… ${index + 1} de ${restaurants.length}`;
-					const fingerprint = locationFingerprint(restaurant);
-					const cached = coordinateCache[restaurant.id];
-					let position = cached?.fingerprint === fingerprint ? cached.position : coordinatesFromUrl(restaurant.mapUrl);
-					if (!position) {
-						const query = [restaurant.name, locationLabel(restaurant)].filter(Boolean).join(', ');
-						if (query) {
-							try {
-								const response = await geocoder.geocode({ address: query });
-								const location = response.results[0]?.geometry.location;
-								if (location) position = { lat: location.lat(), lng: location.lng() };
-							} catch { /* El resto de los lugares debe seguir cargando. */ }
-							await delay(90);
-						}
-					}
-					if (!position) continue;
-					coordinateCache[restaurant.id] = { fingerprint, position };
-					addMarker(restaurant, position);
-				}
-
-				try { localStorage.setItem(cacheKey, JSON.stringify(coordinateCache)); } catch { /* El mapa funciona sin caché. */ }
-				if (locatedCount > 1) map.fitBounds(bounds, 54);
-				else if (locatedCount === 1) { map.setCenter(bounds.getCenter()); map.setZoom(15); }
-				statusElement.textContent = locatedCount
-					? `${locatedCount} de ${restaurants.length} restaurantes ubicados`
-					: 'No se encontraron ubicaciones para mostrar.';
-			}
-			Object.assign(window, { initRestaurantMap });
-
-			function restaurantMapLoadError() {
-				statusElement.hidden = true;
-				mapElement.innerHTML = '<div class="map-error">No se pudo cargar Google Maps. Revisá la configuración de la clave de mapas.</div>';
-			}
-
-			if (!restaurants.length) {
-				statusElement.textContent = 'Todavía no hay restaurantes cargados.';
-				mapElement.innerHTML = '<div class="map-error">Agregá lugares al directorio para verlos en el mapa.</div>';
-			} else if (!googleMapsApiKey) {
-				restaurantMapLoadError();
-			} else {
-				const script = document.createElement('script');
-				script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(googleMapsApiKey)}&callback=initRestaurantMap&v=weekly`;
-				script.async = true;
-				script.defer = true;
-				script.onerror = restaurantMapLoadError;
-				document.head.append(script);
-			}
-		</script>
+		<script src="../scripts/mapa.ts"></script>
 	</body>
 </html>
