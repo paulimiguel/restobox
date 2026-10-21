@@ -3,8 +3,10 @@
 When starting the dev server, use background mode:
 
 ```
-astro dev --background
+node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs dev --background
 ```
+
+Do not use plain `astro dev`: it doesn't load `.env` into `process.env`, so Google login, the admin password and other server settings appear unconfigured. (`npm run dev` loads it, but runs in the foreground.)
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 

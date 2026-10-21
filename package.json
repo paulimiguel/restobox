@@ -6,7 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs dev",
     "start": "node --env-file-if-exists=.env ./dist/server/entry.mjs",
     "build": "astro build",
     "backup": "node scripts/backup.mjs",
