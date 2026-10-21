@@ -1,5 +1,4 @@
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 type MapRestaurant = {
 	id: string;
@@ -68,6 +67,8 @@ async function initRestaurantMap() {
 	const map = L.map(mapElement, { center: defaultCenter, zoom: 12, zoomControl: true });
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
+		// El servidor envía Referrer-Policy: same-origin, pero OpenStreetMap exige el Referer para servir los mapas.
+		referrerPolicy: 'strict-origin-when-cross-origin',
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
 	}).addTo(map);
 	const bounds = L.latLngBounds([]);
