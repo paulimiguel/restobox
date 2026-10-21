@@ -303,6 +303,7 @@ const viewRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#vi
 const restaurantVideoDialog = document.querySelector<HTMLDialogElement>('#restaurant-video-dialog')!;
 const restaurantVideoFrame = document.querySelector<HTMLIFrameElement>('#restaurant-video-frame')!;
 const restaurantVideoPlayer = document.querySelector<HTMLVideoElement>('#restaurant-video-player')!;
+const restaurantVideoExternal = document.querySelector<HTMLAnchorElement>('#restaurant-video-external')!;
 const closeRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#close-restaurant-video')!;
 const linktreeInput = document.querySelector<HTMLInputElement>('#linktree-url')!;
 const menuUrlInput = document.querySelector<HTMLInputElement>('#menu-url')!;
@@ -1813,6 +1814,8 @@ restaurantVideoPlayer.addEventListener('error', () => {
 	restaurantVideoDialog.classList.remove('instagram-reel-video');
 	restaurantVideoFrame.hidden = false;
 	restaurantVideoFrame.src = embedUrl;
+	restaurantVideoExternal.href = embedUrl.replace(/embed\/$/, '');
+	restaurantVideoExternal.hidden = false;
 });
 
 async function openRestaurantVideo(value: string) {
@@ -4964,6 +4967,7 @@ restaurantVideoPlayer.addEventListener('loadedmetadata', () => {
 });
 restaurantVideoDialog.addEventListener('close', () => {
 	instagramFallbackValue = '';
+	restaurantVideoExternal.hidden = true;
 	restaurantVideoDialog.style.removeProperty('--video-ratio');
 	restaurantVideoFrame.removeAttribute('src');
 	restaurantVideoFrame.hidden = false;
