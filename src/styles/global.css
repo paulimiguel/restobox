@@ -487,7 +487,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list.view-detail .restaurant-card-top-actions > button, .restaurant-list.view-detail .restaurant-card-actions-menu > summary { width: 29px; height: 29px; border-radius: 6px; }
 .restaurant-list.view-detail .restaurant-card-top-actions svg { width: 16px; height: 16px; }
 .restaurant-list.view-detail .restaurant-card-top-actions .checked-icon { width: 19px; height: 19px; }
-.restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) 70px; align-content: center; align-items: center; gap: 20px; }
+.restaurant-list.view-detail .restaurant-card-body { grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr); align-content: center; align-items: center; gap: 20px; }
 .restaurant-list.view-list .restaurant-card { grid-template-columns: 150px minmax(180px, 1fr) auto; }
 .restaurant-list.view-list .restaurant-card-image { min-height: 112px; }
 .restaurant-list.view-list .restaurant-card-body { padding-block: 12px; }
@@ -639,6 +639,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active { color: #22a95b; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active svg { stroke-width: 2.5; }
 .restaurant-list:is(.view-list, .view-detail, .view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button svg { width: 21px; height: 21px; }
+.restaurant-list.view-detail .restaurant-card-list-status { display: none !important; }
 .restaurant-list.view-list .restaurant-card-top-actions { display: none; }
 .restaurant-list.view-list .restaurant-card-top-actions > button, .restaurant-list.view-list .restaurant-card-actions-menu > summary { width: 15px; height: 15px; border-radius: 3px; }
 .restaurant-list.view-list .restaurant-card-top-actions svg { width: 9px; }
@@ -1353,7 +1354,6 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 	.directory-actions-grid .new-establishment-menu { display: none; }
 	.directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.top-actions { gap: 4px; }
-	.restaurant-list.view-detail .restaurant-card-list-status { display: none !important; }
 }
 
 @media (min-width: 981px) and (max-width: 1250px) {
@@ -1524,7 +1524,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 
 @media (min-width: 641px) and (max-width: 1279px) {
 	.restaurant-list.view-columns-6 .restaurant-card-top-actions { top: 4px; right: 4px; gap: 2px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 18px; height: 18px; border-radius: 4px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 10px; height: 10px; }
-	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 12px; height: 12px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions > button, .restaurant-list.view-columns-6 .restaurant-card-actions-menu > summary { width: 20px; height: 20px; border-radius: 5px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions svg { width: 11px; height: 11px; }
+	.restaurant-list.view-columns-6 .restaurant-card-top-actions .checked-icon { width: 13px; height: 13px; }
 }
