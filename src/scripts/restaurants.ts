@@ -5266,11 +5266,20 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 const tabbarTargets: Record<string, string> = {
 	directory: '#header-directory',
 	search: '#main-search-button',
-	new: '.add-panel [data-open-form]',
-	profile: '#open-profile-dialog',
+	new: '.add-dropdown',
+	profile: '.user-dropdown',
 };
 document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((button) => button.addEventListener('click', () => {
-	document.querySelector<HTMLElement>(tabbarTargets[button.dataset.tabbar ?? ''])?.click();
+	const target = document.querySelector<HTMLElement>(tabbarTargets[button.dataset.tabbar ?? '']);
+	if (!target) return;
+	// "Nuevo lugar" y "Mi perfil" abren (o cierran) los mismos menús de la barra superior.
+	if (target instanceof HTMLDetailsElement) {
+		document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open]').forEach((dropdown) => { if (dropdown !== target) dropdown.removeAttribute('open'); });
+		target.open = !target.open;
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+		return;
+	}
+	target.click();
 }));
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
@@ -5679,7 +5688,7 @@ document.addEventListener('click', (event) => {
 	document.querySelectorAll<HTMLDetailsElement>('.restaurant-card-actions-menu[open]').forEach((menu) => {
 		if (menu !== activeCardMenu) menu.removeAttribute('open');
 	});
-	if (target.closest('.top-dropdown')) return;
+	if (target.closest('.top-dropdown, [data-tabbar="new"], [data-tabbar="profile"]')) return;
 	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown').forEach((dropdown) => dropdown.removeAttribute('open'));
 });
 
