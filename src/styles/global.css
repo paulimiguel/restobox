@@ -1695,3 +1695,17 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > :not(.rate-field):not(label:has(input[name="score"])) { grid-column: 1 / -1; }
 }
+
+/* Celular, al editar: ciudad y provincia después de Teléfono */
+@media (max-width: 640px) {
+	#restaurant-form:not(.view-mode) .lead-contacts > .whatsapp-general-field { order: 0; }
+	#restaurant-form:not(.view-mode) .lead-contacts > label { order: 1; }
+	#restaurant-form:not(.view-mode) .lead-contacts > .location-fields { order: 2; }
+	#restaurant-form:not(.view-mode) .lead-contacts > .place-kind-options { order: 3; }
+	#restaurant-form:not(.view-mode) .lead-contacts > .view-personal-statuses { order: 4; }
+}
+
+/* Celular: con letra de 16 px el navegador no agranda la pantalla al tocar un campo */
+@media (max-width: 640px) {
+	input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]), select, textarea { font-size: 16px !important; }
+}
