@@ -60,7 +60,7 @@ type StoredImage = {
 };
 
 type RestaurantImage = StoredImage & { isNew: boolean };
-type CatalogCardKind = 'neighborhood' | 'establishment' | 'service' | 'cuisine';
+type CatalogCardKind = 'neighborhood' | 'establishment' | 'service' | 'cuisine' | 'storeType';
 
 type ServerMedia = {
 	id: string;
@@ -288,6 +288,8 @@ const headerEstablishmentOptions = document.querySelector<HTMLDivElement>('#head
 const headerServiceOptions = document.querySelector<HTMLDivElement>('#header-service-options')!;
 const headerCuisineOptions = document.querySelector<HTMLDivElement>('#header-cuisine-options')!;
 const headerNeighborhoodOptions = document.querySelector<HTMLDivElement>('#header-neighborhood-options')!;
+const headerStoreTypeOptions = document.querySelector<HTMLDivElement>('#header-store-type-options')!;
+const mobileStoreTypeOptions = document.querySelector<HTMLDivElement>('#mobile-store-type-options')!;
 const mobileEstablishmentOptions = document.querySelector<HTMLDivElement>('#mobile-establishment-options')!;
 const mobileServiceOptions = document.querySelector<HTMLDivElement>('#mobile-service-options')!;
 const mobileCuisineOptions = document.querySelector<HTMLDivElement>('#mobile-cuisine-options')!;
@@ -496,6 +498,7 @@ let neighborhoodImages: Record<string, string> = {};
 let establishmentImages: Record<string, string> = {};
 let serviceImages: Record<string, string> = {};
 let cuisineImages: Record<string, string> = {};
+let storeTypeImages: Record<string, string> = {};
 let removedNeighborhoods: string[] = loadRemovedNeighborhoods();
 let cities: string[] = loadLocationOptions(CITIES_KEY, REMOVED_CITIES_KEY, 'city');
 let removedCities: string[] = loadRemovedLocationOptions(REMOVED_CITIES_KEY);
@@ -632,7 +635,7 @@ function persistCatalogSettings() {
 		storeTypes, removedStoreTypes,
 		serviceTypes, removedServiceTypes,
 		neighborhoods, neighborhoodImages, removedNeighborhoods,
-		establishmentImages, serviceImages, cuisineImages,
+		establishmentImages, serviceImages, cuisineImages, storeTypeImages,
 		cities, removedCities,
 		provinces, removedProvinces,
 		countries, removedCountries,
@@ -759,6 +762,7 @@ function catalogImageStore(kind: CatalogCardKind) {
 	if (kind === 'establishment') return establishmentImages;
 	if (kind === 'service') return serviceImages;
 	if (kind === 'cuisine') return cuisineImages;
+	if (kind === 'storeType') return storeTypeImages;
 	return neighborhoodImages;
 }
 
@@ -1163,6 +1167,8 @@ function renderAdditionalFilterOptions() {
 	headerEstablishmentOptions.innerHTML = establishmentTypes.map((value) => `<button type="button" data-header-filter="establishment" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerServiceOptions.innerHTML = serviceTypes.map((value) => `<button type="button" data-header-filter="meal" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
 	headerCuisineOptions.innerHTML = cuisines.map((value) => `<button type="button" data-header-filter="cuisine" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
+	headerStoreTypeOptions.innerHTML = storeTypes.map((value) => `<button type="button" data-header-filter="storeType" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('') || '<p class="neighborhood-menu-empty">No hay tipos de tienda.</p>';
+	mobileStoreTypeOptions.innerHTML = headerStoreTypeOptions.innerHTML;
 	mobileEstablishmentOptions.innerHTML = headerEstablishmentOptions.innerHTML;
 	mobileServiceOptions.innerHTML = headerServiceOptions.innerHTML;
 	mobileCuisineOptions.innerHTML = headerCuisineOptions.innerHTML;
@@ -2289,17 +2295,20 @@ const catalogCardMeta: Record<CatalogCardKind, { singular: string; plural: strin
 	establishment: { singular: 'categoría', plural: 'categorías', empty: 'Las categorías aparecerán cuando las agregues a un lugar.' },
 	service: { singular: 'servicio', plural: 'servicios', empty: 'Los servicios aparecerán cuando los agregues a un lugar.' },
 	cuisine: { singular: 'tipo de cocina', plural: 'tipos de cocina', empty: 'Los tipos de cocina aparecerán cuando los agregues a un lugar.' },
+	storeType: { singular: 'tipo de tienda', plural: 'tipos de tienda', empty: 'Los tipos de tienda aparecerán cuando los agregues a una tienda.' },
 };
 
 function catalogValues(kind: CatalogCardKind) {
 	if (kind === 'neighborhood') return availableNeighborhoods();
-	const configured = kind === 'establishment' ? establishmentTypes : kind === 'service' ? serviceTypes : cuisines;
+	const configured = kind === 'establishment' ? establishmentTypes : kind === 'service' ? serviceTypes : kind === 'storeType' ? storeTypes : cuisines;
 	const associated = kind === 'establishment'
 		? restaurants.flatMap(getRestaurantEstablishmentTypes)
 		: kind === 'service'
 			? restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])
-			: restaurants.flatMap(getRestaurantCuisines);
-	const removedValues = kind === 'establishment' ? removedEstablishmentTypes : kind === 'service' ? removedServiceTypes : removedCuisines;
+			: kind === 'storeType'
+				? restaurants.flatMap((restaurant) => restaurant.storeTypes ?? [])
+				: restaurants.flatMap(getRestaurantCuisines);
+	const removedValues = kind === 'establishment' ? removedEstablishmentTypes : kind === 'service' ? removedServiceTypes : kind === 'storeType' ? removedStoreTypes : removedCuisines;
 	const removed = new Set(removedValues.map(neighborhoodImageKey));
 	return capitalizedCatalogValues([...configured, ...associated])
 		.filter((value) => !removed.has(neighborhoodImageKey(value)))
@@ -2312,7 +2321,9 @@ function restaurantHasCatalogValue(restaurant: Restaurant, kind: CatalogCardKind
 		? getRestaurantEstablishmentTypes(restaurant)
 		: kind === 'service'
 			? restaurant.mealTypes ?? []
-			: getRestaurantCuisines(restaurant);
+			: kind === 'storeType'
+				? restaurant.storeTypes ?? []
+				: getRestaurantCuisines(restaurant);
 	return values.some((value) => neighborhoodImageKey(value) === key);
 }
 
@@ -2320,10 +2331,11 @@ function catalogPlaceholderIcon(kind: CatalogCardKind) {
 	if (kind === 'neighborhood') return '<path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/>';
 	if (kind === 'establishment') return '<path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/>';
 	if (kind === 'service') return '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+	if (kind === 'storeType') return '<path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/>';
 	return '<path d="M4 5h10l6 6-9 9-7-7Z"/><circle cx="9" cy="10" r="1"/>';
 }
 
-const catalogTitles: Record<CatalogCardKind, string> = { neighborhood: 'Zonas', establishment: 'Categorías', service: 'Servicios', cuisine: 'Tipos de cocina' };
+const catalogTitles: Record<CatalogCardKind, string> = { neighborhood: 'Zonas', establishment: 'Categorías', service: 'Servicios', cuisine: 'Tipos de cocina', storeType: 'Tipos de tienda' };
 let catalogSortAscending = true;
 
 // En las vistas de categorías, cocinas, servicios y zonas, Ver elige el tamaño de las tarjetas y Ordenar el sentido del nombre.
@@ -2436,6 +2448,7 @@ function catalogFilterSet(kind: CatalogCardKind) {
 	if (kind === 'establishment') return selectedEstablishmentFilters;
 	if (kind === 'service') return selectedMealFilters;
 	if (kind === 'cuisine') return selectedCuisineFilters;
+	if (kind === 'storeType') return selectedStoreTypeFilters;
 	return selectedNeighborhoodFilters;
 }
 
@@ -2443,6 +2456,7 @@ function setCatalogList(kind: CatalogCardKind, values: string[]) {
 	if (kind === 'establishment') establishmentTypes = values;
 	else if (kind === 'service') serviceTypes = sortServices([...values]);
 	else if (kind === 'cuisine') cuisines = values;
+	else if (kind === 'storeType') storeTypes = values;
 	else neighborhoods = values;
 }
 
@@ -2450,6 +2464,7 @@ function removedCatalogList(kind: CatalogCardKind) {
 	if (kind === 'establishment') return removedEstablishmentTypes;
 	if (kind === 'service') return removedServiceTypes;
 	if (kind === 'cuisine') return removedCuisines;
+	if (kind === 'storeType') return removedStoreTypes;
 	return removedNeighborhoods;
 }
 
@@ -2457,6 +2472,7 @@ function setRemovedCatalogList(kind: CatalogCardKind, values: string[]) {
 	if (kind === 'establishment') removedEstablishmentTypes = values;
 	else if (kind === 'service') removedServiceTypes = values;
 	else if (kind === 'cuisine') removedCuisines = values;
+	else if (kind === 'storeType') removedStoreTypes = values;
 	else removedNeighborhoods = values;
 }
 
@@ -2469,7 +2485,9 @@ function replaceRestaurantCatalogValue(restaurant: Restaurant, kind: CatalogCard
 		? getRestaurantEstablishmentTypes(restaurant)
 		: kind === 'service'
 			? restaurant.mealTypes ?? []
-			: getRestaurantCuisines(restaurant);
+			: kind === 'storeType'
+				? restaurant.storeTypes ?? []
+				: getRestaurantCuisines(restaurant);
 	const nextValues = currentValues
 		.map((item) => neighborhoodImageKey(item) === currentKey ? nextName : item)
 		.filter(Boolean);
@@ -2478,6 +2496,7 @@ function replaceRestaurantCatalogValue(restaurant: Restaurant, kind: CatalogCard
 		restaurant.establishmentTypes = uniqueValues;
 		restaurant.establishmentType = uniqueValues[0] ?? '';
 	} else if (kind === 'service') restaurant.mealTypes = uniqueValues;
+	else if (kind === 'storeType') restaurant.storeTypes = uniqueValues;
 	else {
 		restaurant.cuisines = uniqueValues;
 		restaurant.cuisine = uniqueValues[0] ?? '';
@@ -2494,6 +2513,10 @@ function refreshCatalogInterfaces(kind: CatalogCardKind) {
 		selectedServices = selectedServices.filter((value) => serviceTypes.includes(value));
 		renderSelectedServices();
 		renderServiceOptions(false, true);
+	} else if (kind === 'storeType') {
+		selectedStoreTypes = selectedStoreTypes.filter((value) => storeTypes.includes(value));
+		renderSelectedStoreTypes();
+		renderStoreTypeOptions(false);
 	} else {
 		selectedCuisines = selectedCuisines.filter((value) => cuisines.includes(value));
 		renderSelectedCuisines();
@@ -2551,7 +2574,7 @@ function render() {
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
 		const searchValues = (searchScope === 'category'
-			? restaurantEstablishments
+			? (storesMode ? restaurant.storeTypes ?? [] : restaurantEstablishments)
 			: searchScope === 'zone'
 				? [restaurant.neighborhood ?? '']
 				: [restaurant.name]
@@ -4439,6 +4462,7 @@ neighborhoodEditorForm.addEventListener('submit', async (event) => {
 	if (kind === 'establishment') selectedEstablishments = selectedEstablishments.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
 	else if (kind === 'service') selectedServices = selectedServices.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
 	else if (kind === 'cuisine') selectedCuisines = selectedCuisines.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
+	else if (kind === 'storeType') selectedStoreTypes = selectedStoreTypes.map((value) => neighborhoodImageKey(value) === currentKey ? nextName : value);
 	else if (neighborhoodImageKey(neighborhoodInput.value) === currentKey) neighborhoodInput.value = nextName;
 	const images = catalogImageStore(kind);
 	if (currentKey !== nextKey) {
@@ -5785,9 +5809,14 @@ function applyUrlIntent() {
 	const catalogView = params.get('vista');
 	const placeId = params.get('lugar');
 	const wantsProfileEditor = params.get('editar') === 'perfil';
-	if (!catalogView && !placeId && !wantsProfileEditor) return;
+	const storeTypeFilter = params.get('tipoTienda');
+	if (!catalogView && !placeId && !wantsProfileEditor && !storeTypeFilter) return;
 	window.history.replaceState(null, '', window.location.pathname);
-	if (catalogView === 'establishment' || catalogView === 'cuisine') {
+	if (storeTypeFilter && storesMode) {
+		selectedStoreTypeFilters.add(storeTypeFilter);
+		updateDirectoryFilterLabels();
+		render();
+	} else if (catalogView && ['establishment', 'service', 'cuisine', 'storeType', 'neighborhood'].includes(catalogView)) {
 		document.querySelector<HTMLElement>(`.show-catalogs-button[data-show-catalog="${catalogView}"]`)?.click();
 	} else if (placeId) {
 		list.querySelector<HTMLElement>(`.restaurant-card-open[data-view="${CSS.escape(placeId)}"]`)?.click();
@@ -5814,6 +5843,11 @@ document.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-header-filter]');
 	const value = button?.dataset.headerFilterValue;
 	if (!button || !value) return;
+	// Las tiendas viven en su propia página: desde otra pantalla se abre Tiendas ya filtrada.
+	if (button.dataset.headerFilter === 'storeType' && !storesMode) {
+		window.location.assign(`/tiendas?tipoTienda=${encodeURIComponent(value)}`);
+		return;
+	}
 	showingCatalog = null;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
@@ -5821,8 +5855,11 @@ document.addEventListener('click', (event) => {
 		? selectedEstablishmentFilters
 		: button.dataset.headerFilter === 'meal'
 			? selectedMealFilters
-			: selectedCuisineFilters;
+			: button.dataset.headerFilter === 'storeType'
+				? selectedStoreTypeFilters
+				: selectedCuisineFilters;
 	targetSet.add(value);
+	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open]').forEach((dropdown) => dropdown.removeAttribute('open'));
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	closeMobileMenu({ restoreFocus: false });
 	render();
@@ -5837,6 +5874,7 @@ document.addEventListener('click', (event) => {
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
 	selectedNeighborhoodFilters.add(value);
+	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open]').forEach((dropdown) => dropdown.removeAttribute('open'));
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	closeMobileMenu({ restoreFocus: false });
 	render();
@@ -5853,6 +5891,7 @@ showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	showingCatalog = kind;
 	clearSearchTerms();
 	clearDirectoryFilterSelections();
+	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open]').forEach((dropdown) => dropdown.removeAttribute('open'));
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	closeMobileMenu({ restoreFocus: false });
 	render();
@@ -6487,6 +6526,10 @@ list.addEventListener('click', async (event) => {
 	if (catalogSelectButton?.dataset.catalogCardSelect && catalogSelectButton.dataset.catalogCardValue) {
 		const kind = catalogSelectButton.dataset.catalogCardSelect as CatalogCardKind;
 		const value = decodeURIComponent(catalogSelectButton.dataset.catalogCardValue);
+		if (kind === 'storeType' && !storesMode) {
+			window.location.assign(`/tiendas?tipoTienda=${encodeURIComponent(value)}`);
+			return;
+		}
 		showingCatalog = null;
 		clearDirectoryFilterSelections();
 		catalogFilterSet(kind).add(value);
@@ -6665,6 +6708,7 @@ function applyServerCatalogs(value: unknown) {
 	establishmentImages = neighborhoodImageMap(catalogs.establishmentImages);
 	serviceImages = neighborhoodImageMap(catalogs.serviceImages);
 	cuisineImages = neighborhoodImageMap(catalogs.cuisineImages);
+	storeTypeImages = neighborhoodImageMap(catalogs.storeTypeImages);
 	removedNeighborhoods = stringArray(catalogs.removedNeighborhoods);
 	cities = stringArray(catalogs.cities);
 	removedCities = stringArray(catalogs.removedCities);

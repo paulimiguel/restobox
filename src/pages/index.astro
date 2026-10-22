@@ -57,25 +57,51 @@ const userInitials = userDisplayName
 
 						<button class="top-nav-button header-nav-link" id="header-directory" type="button">DIRECTORIO</button>
 						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
-						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>CATEGORÍA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-establishment-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categorías</button></div>
-						</details>
-						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>SERVICIO</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-service-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button></div>
-						</details>
-						<details class="top-dropdown category-dropdown">
-							<summary class="top-nav-button"><span>COCINA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-cuisine-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button></div>
-						</details>
-						<details class="top-dropdown category-dropdown neighborhood-menu-dropdown">
-							<summary class="top-nav-button"><span>ZONA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-							<div class="dropdown-panel category-panel catalog-menu-panel neighborhood-menu-panel">
-								<a class="map-menu-link" href="/mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>Mostrar mapa</a>
+						<details class="top-dropdown show-dropdown">
+							<summary class="top-nav-button"><span>MOSTRAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div class="dropdown-panel show-panel">
+								<details class="show-submenu">
+									<summary><span>Categorías</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categorías</button>
+										<div class="dropdown-separator"></div>
+										<div id="header-establishment-options" class="catalog-menu-options"></div>
+									</div>
+								</details>
+								<details class="show-submenu">
+									<summary><span>Servicios</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button>
+										<div class="dropdown-separator"></div>
+										<div id="header-service-options" class="catalog-menu-options"></div>
+									</div>
+								</details>
+								<details class="show-submenu">
+									<summary><span>Tipos de cocina</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button>
+										<div class="dropdown-separator"></div>
+										<div id="header-cuisine-options" class="catalog-menu-options"></div>
+									</div>
+								</details>
+								<details class="show-submenu">
+									<summary><span>Tipos de tienda</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button class="show-catalogs-button" type="button" data-show-catalog="storeType"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de tienda</button>
+										<div class="dropdown-separator"></div>
+										<div id="header-store-type-options" class="catalog-menu-options"></div>
+									</div>
+								</details>
+								<details class="show-submenu">
+									<summary><span>Zonas</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+										<div class="dropdown-separator"></div>
+										<div id="header-neighborhood-options" class="neighborhood-menu-options"></div>
+									</div>
+								</details>
 								<div class="dropdown-separator"></div>
-								<div id="header-neighborhood-options" class="neighborhood-menu-options"></div>
-								<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar todas las zonas</button>
+								<a class="map-menu-link" href="/mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>Mapa</a>
 							</div>
 						</details>
 
@@ -169,24 +195,50 @@ const userInitials = userDisplayName
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="directory">DIRECTORIO</button>
 							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 							<details class="mobile-menu-section">
-								<summary><span>CATEGOR&Iacute;A</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-establishment-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categor&iacute;as</button></div>
-							</details>
-							<details class="mobile-menu-section">
-								<summary><span>SERVICIO</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-service-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button></div>
-							</details>
-							<details class="mobile-menu-section">
-								<summary><span>COCINA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-cuisine-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button></div>
-							</details>
-							<details class="mobile-menu-section">
-								<summary><span>ZONA</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
-								<div class="mobile-menu-options mobile-catalog-menu-options mobile-neighborhood-menu-options">
-									<a class="map-menu-link" href="/mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>Mostrar mapa</a>
+								<summary><span>MOSTRAR</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options mobile-show-options">
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Categorías</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options mobile-catalog-menu-options">
+											<button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categorías</button>
+											<div class="dropdown-separator"></div>
+											<div id="mobile-establishment-options"></div>
+										</div>
+									</details>
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Servicios</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options mobile-catalog-menu-options">
+											<button class="show-catalogs-button" type="button" data-show-catalog="service"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar servicios</button>
+											<div class="dropdown-separator"></div>
+											<div id="mobile-service-options"></div>
+										</div>
+									</details>
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Tipos de cocina</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options mobile-catalog-menu-options">
+											<button class="show-catalogs-button" type="button" data-show-catalog="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de cocina</button>
+											<div class="dropdown-separator"></div>
+											<div id="mobile-cuisine-options"></div>
+										</div>
+									</details>
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Tipos de tienda</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options mobile-catalog-menu-options">
+											<button class="show-catalogs-button" type="button" data-show-catalog="storeType"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar tipos de tienda</button>
+											<div class="dropdown-separator"></div>
+											<div id="mobile-store-type-options"></div>
+										</div>
+									</details>
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Zonas</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options mobile-catalog-menu-options">
+											<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar zonas</button>
+											<div class="dropdown-separator"></div>
+											<div id="mobile-neighborhood-options"></div>
+										</div>
+									</details>
 									<div class="dropdown-separator"></div>
-									<div id="mobile-neighborhood-options"></div>
-									<button class="show-catalogs-button" type="button" data-show-catalog="neighborhood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar todas las zonas</button>
+									<a class="map-menu-link" href="/mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>Mapa</a>
 								</div>
 							</details>
 							<details class="mobile-menu-section">
@@ -238,7 +290,7 @@ const userInitials = userDisplayName
 								<div class="directory-toolbar-lower-row">
 									<div class="search-scope-options" role="radiogroup" aria-label="Campo de búsqueda">
 										<button class="search-scope-option active" type="button" role="radio" aria-checked="true" data-search-scope="name">Nombre</button>
-										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="category">Categoria</button>
+										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="category">{storesMode ? 'Tipo de tienda' : 'Categoria'}</button>
 										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="zone">Zona</button>
 									</div>
 									<div class="directory-actions-grid">
@@ -417,7 +469,8 @@ const userInitials = userDisplayName
 										</div>
 									</div>
 									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
-									<div class="place-kind-options" aria-label="Tipo de lugar">
+									<div class="place-kind-options" role="group" aria-label="Tipo de lugar">
+										<span class="place-kind-title">Tipo de lugar</span>
 										<label class="boolean-check-control"><input name="placeRestaurant" type="checkbox" /><span>Restaurante</span></label>
 										<label class="boolean-check-control"><input name="placeCafe" type="checkbox" /><span>Café</span></label>
 										<label class="boolean-check-control"><input name="placeStore" type="checkbox" /><span>Tienda</span></label>

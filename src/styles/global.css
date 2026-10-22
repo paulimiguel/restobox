@@ -1809,3 +1809,26 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 	.restaurant-list.view-catalogs.catalog-size-small { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 	.restaurant-list.view-catalogs.catalog-size-small .neighborhood-card-copy strong { font-size: 14px; }
 }
+
+/* Tipo de lugar: recuadro con título al editar y "Tipo de lugar: Restaurante, Café…" al abrir el lugar */
+.place-kind-options { padding: 8px 10px 10px; border: 1px solid var(--line); border-radius: 9px; background: color-mix(in srgb, var(--sage) 35%, white); }
+.place-kind-title { grid-column: 1 / -1; color: #505852; font-size: 11px; font-weight: 700; }
+.view-mode #panel-general .place-kind-options { padding: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); border-radius: 0; background: transparent; gap: 14px; }
+.view-mode #panel-general .place-kind-title { flex: 0 0 135px; color: #414a44; font-size: 13px; font-weight: 600; }
+:root[data-color-mode='dark'] .place-kind-options { background: #1d242d; border-color: #59606a; }
+:root[data-color-mode='dark'] .place-kind-title { color: #dce3ec; }
+
+/* Menú MOSTRAR: categorías, servicios, tipos de cocina, tipos de tienda y zonas, cada uno con su submenú */
+.show-panel { width: 270px; max-height: min(560px, 78vh); overflow-y: auto; }
+.show-submenu > summary { display: flex; min-height: 38px; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 6px; color: #454b47; font-size: 12px; font-weight: 700; list-style: none; cursor: pointer; }
+.show-submenu > summary::-webkit-details-marker { display: none; }
+.show-submenu > summary:hover, .show-submenu[open] > summary { color: var(--accent-text); background: var(--sage); }
+.show-submenu > summary svg { width: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform .18s; }
+.show-submenu[open] > summary svg { transform: rotate(180deg); }
+.show-submenu-panel { margin: 3px 0 6px 10px; padding-left: 6px; border-left: 1px solid var(--line); }
+.show-submenu-panel .show-catalogs-button, .mobile-submenu .show-catalogs-button { margin-top: 0; border-top: 0 !important; border-radius: 6px !important; }
+.show-submenu-panel .catalog-menu-options, .show-submenu-panel .neighborhood-menu-options { max-height: 220px; overflow-y: auto; }
+.mobile-submenu { margin-left: 8px; }
+.mobile-show-options { padding-left: 0; }
+:root[data-color-mode='dark'] .show-submenu > summary { color: #d8dee7; }
+:root[data-color-mode='dark'] .show-submenu > summary:hover, :root[data-color-mode='dark'] .show-submenu[open] > summary { color: #fff; background: #262a2f; }
