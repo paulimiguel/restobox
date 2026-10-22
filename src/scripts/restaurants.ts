@@ -138,7 +138,7 @@ const COUNTRIES_KEY = 'restobox-countries-v1';
 const REMOVED_COUNTRIES_KEY = 'restobox-removed-countries-v1';
 const SERVER_MIGRATION_KEY = 'restobox-server-migration-v1';
 const DEFAULT_CUISINES = ['Comida rápida', 'Café', 'Pastas', 'Parrilla', 'Pizzas', 'Sushi'];
-const DEFAULT_ESTABLISHMENTS = ['Restaurante', 'Café', 'Bar', 'Pub'];
+const DEFAULT_ESTABLISHMENTS = ['Restaurante', 'Café', 'Tienda', 'Bar', 'Pub'];
 const DEFAULT_SERVICES = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Poscena'];
 // Orden fijo con el que se muestran los servicios; los que no figuran van al final, alfabéticamente.
 const SERVICE_ORDER = ['desayuno', 'brunch', 'almuerzo', 'merienda', 'drunch', 'cena', 'afterdinner', 'tragos', 'tienda'];
@@ -369,6 +369,7 @@ const openWhatsAppWebGeneral = document.querySelector<HTMLAnchorElement>('#open-
 const openPedidosYa = document.querySelector<HTMLAnchorElement>('#open-pedidosya')!;
 const placeRestaurantInput = form.elements.namedItem('placeRestaurant') as HTMLInputElement;
 const placeCafeInput = form.elements.namedItem('placeCafe') as HTMLInputElement;
+const placeStoreInput = form.elements.namedItem('placeStore') as HTMLInputElement;
 const viewFavoriteStatus = document.querySelector<HTMLElement>('#view-favorite-status')!;
 const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-status')!;
 const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
@@ -513,7 +514,7 @@ let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
 let searchTerms: string[] = [];
 let searchScope: 'name' | 'category' | 'zone' = 'name';
-let quickPlaceType: 'all' | 'restaurant' | 'cafe' = 'all';
+let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -1299,11 +1300,12 @@ function renderSelectedEstablishments() {
 		</span>`).join('');
 	placeRestaurantInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'restaurante');
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
+	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
 }
 
-function setPlaceKindSelection(kind: 'restaurant' | 'cafe', selected: boolean) {
-	const key = kind === 'restaurant' ? 'restaurante' : 'cafe';
-	const fallback = kind === 'restaurant' ? 'Restaurante' : 'Café';
+function setPlaceKindSelection(kind: 'restaurant' | 'cafe' | 'store', selected: boolean) {
+	const key = kind === 'restaurant' ? 'restaurante' : kind === 'cafe' ? 'cafe' : 'tienda';
+	const fallback = kind === 'restaurant' ? 'Restaurante' : kind === 'cafe' ? 'Café' : 'Tienda';
 	selectedEstablishments = selectedEstablishments.filter((type) => neighborhoodImageKey(type) !== key);
 	if (selected) {
 		const canonical = establishmentTypes.find((type) => neighborhoodImageKey(type) === key) ?? fallback;
@@ -2327,7 +2329,7 @@ function render() {
 		const matchesTerm = normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
 		const normalizedEstablishments = restaurantEstablishments.map(neighborhoodImageKey);
 		const matchesQuickType = quickPlaceType === 'all'
-			|| normalizedEstablishments.some((value) => quickPlaceType === 'restaurant' ? value.startsWith('restaur') : value.startsWith('cafe'));
+			|| normalizedEstablishments.some((value) => value.startsWith(quickPlaceType === 'restaurant' ? 'restaur' : quickPlaceType === 'cafe' ? 'cafe' : 'tienda'));
 		const restaurantTagValues = restaurantTags(restaurant).map((tag) => tag.toLocaleLowerCase('es'));
 		const matchesEstablishment = !selectedEstablishmentFilters.size || [...selectedEstablishmentFilters].some((value) => restaurantEstablishments.includes(value));
 		const matchesMeal = !selectedMealFilters.size || [...selectedMealFilters].some((value) => restaurantMeals.includes(value));
@@ -4507,6 +4509,7 @@ setupSelectedOptionReordering(selectedEstablishmentsContainer, () => selectedEst
 setupSelectedOptionReordering(selectedServicesContainer, () => selectedServices, (items) => { selectedServices = items; }, renderSelectedServices, renderServiceOptions);
 placeRestaurantInput.addEventListener('change', () => setPlaceKindSelection('restaurant', placeRestaurantInput.checked));
 placeCafeInput.addEventListener('change', () => setPlaceKindSelection('cafe', placeCafeInput.checked));
+placeStoreInput.addEventListener('change', () => setPlaceKindSelection('store', placeStoreInput.checked));
 establishmentSelect.addEventListener('focus', openEstablishmentDropdown);
 establishmentSelect.addEventListener('click', openEstablishmentDropdown);
 establishmentSelect.addEventListener('input', () => {
@@ -4778,7 +4781,7 @@ searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
 quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextType = button.dataset.placeType;
 	if (nextType === 'all') quickPlaceType = 'all';
-	else if (nextType === 'restaurant' || nextType === 'cafe') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
+	else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
 	showingCatalog = null;
 	updateQuickPlaceFilterButtons();
 	render();
