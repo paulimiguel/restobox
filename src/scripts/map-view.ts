@@ -72,7 +72,8 @@ async function geocode(query: string): Promise<Position | null> {
 function popupHtml(place: MapPlace) {
 	const address = locationLabel(place);
 	const mapsUrl = place.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([place.name, address].filter(Boolean).join(', '))}`;
-	return `<div class="map-info"><strong>${escapeHtml(place.name)}</strong>${address ? `<span>${escapeHtml(address)}</span>` : ''}<a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noreferrer">Abrir en Google Maps</a></div>`;
+	const openIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+	return `<div class="map-info"><div class="map-info-title"><strong>${escapeHtml(place.name)}</strong><button type="button" class="map-info-open" data-open-place="${escapeHtml(place.id)}" aria-label="Abrir la ficha de ${escapeHtml(place.name)}" title="Abrir la ficha del lugar">${openIcon}</button></div>${address ? `<span>${escapeHtml(address)}</span>` : ''}<a href="${escapeHtml(mapsUrl)}" target="_blank" rel="noreferrer">Abrir en Google Maps</a></div>`;
 }
 
 function renderMarkers(fit: boolean) {
@@ -135,9 +136,16 @@ async function resolveLocations() {
 	renderMarkers(true);
 }
 
-export function initRestaurantMap(container: HTMLElement, status: HTMLElement) {
+export function initRestaurantMap(container: HTMLElement, status: HTMLElement, onOpenPlace?: (id: string) => void) {
 	statusElement = status;
 	map = L.map(container, { center: defaultCenter, zoom: 12, zoomControl: true });
+	// El ícono de la ventanita abre la ficha del lugar en el directorio.
+	map.on('popupopen', (event) => {
+		event.popup.getElement()?.querySelector<HTMLButtonElement>('[data-open-place]')?.addEventListener('click', (click) => {
+			const id = (click.currentTarget as HTMLElement).dataset.openPlace;
+			if (id) onOpenPlace?.(id);
+		});
+	});
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
 		// El servidor envía Referrer-Policy: same-origin, pero OpenStreetMap exige el Referer para servir los mapas.

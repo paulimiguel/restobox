@@ -184,7 +184,10 @@ document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => {
 const mapPanel = document.querySelector<HTMLElement>('#map-panel');
 if (mapMode && mapPanel) {
 	mapPanel.hidden = false;
-	initRestaurantMap(document.querySelector<HTMLElement>('#restaurant-map')!, document.querySelector<HTMLElement>('#map-status')!);
+	initRestaurantMap(document.querySelector<HTMLElement>('#restaurant-map')!, document.querySelector<HTMLElement>('#map-status')!, (id) => {
+		const restaurant = restaurants.find((item) => item.id === id);
+		if (restaurant) void openForm(restaurant, true);
+	});
 }
 const emptyState = document.querySelector<HTMLDivElement>('#empty-state')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
@@ -5400,6 +5403,19 @@ document.querySelectorAll<HTMLButtonElement>('[data-my-places]').forEach((button
 	window.location.assign(`/perfil#${button.dataset.myPlaces}`);
 }));
 
+// En Mi perfil, baja hasta el título de la sección dejando libre la barra de búsqueda fija.
+function scrollToProfileSection(id: string) {
+	const section = document.getElementById(id);
+	if (!section) return;
+	const toolbar = document.querySelector<HTMLElement>('.directory-actions');
+	const stuckBottom = toolbar ? (Number.parseFloat(getComputedStyle(toolbar).top) || 0) + toolbar.offsetHeight : 0;
+	window.scrollTo({ top: Math.max(0, section.getBoundingClientRect().top + window.scrollY - stuckBottom - 10), behavior: 'smooth' });
+}
+document.querySelectorAll<HTMLAnchorElement>('.profile-section-filters a').forEach((link) => link.addEventListener('click', (event) => {
+	event.preventDefault();
+	scrollToProfileSection(link.getAttribute('href')?.slice(1) ?? '');
+}));
+
 // Accesos directos desde otras páginas: /?vista=establishment|cuisine, /?lugar=<id> y /?editar=perfil.
 function applyUrlIntent() {
 	const params = new URLSearchParams(window.location.search);
@@ -6362,7 +6378,7 @@ async function initializeServerPersistence() {
 		(['city', 'province', 'country'] as LocationOptionKind[]).forEach(renderLocationOptions);
 		render();
 		applyUrlIntent();
-		if (profileMode && window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView({ block: 'start' });
+		if (profileMode && window.location.hash) scrollToProfileSection(window.location.hash.slice(1));
 		await migrateLegacyImages();
 		render();
 	} catch (error) {

@@ -1634,6 +1634,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .map-pin svg { display: block; }
 .map-info { color: #28312d; font-family: Arial, sans-serif; line-height: 1.35; }
 .map-info strong { display: block; margin-bottom: 4px; font-size: 14px; }
+.map-info-title { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.map-info-title strong { margin: 0; flex: 1 1 auto; }
+.map-info-open { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; padding: 0; border: 1px solid #d3d9d6; border-radius: 6px; color: #28312d; background: #f4f6f5; cursor: pointer; transition: background .18s, color .18s, border-color .18s; }
+.map-info-open:hover { color: #fff; border-color: var(--forest); background: var(--forest); }
+.map-info-open svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .map-info span { display: block; max-width: 260px; font-size: 12px; }
 .map-info a { display: inline-block; margin-top: 7px; color: #1769aa; font-size: 12px; font-weight: 700; }
 @media (max-width: 640px) {
