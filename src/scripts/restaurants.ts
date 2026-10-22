@@ -21,6 +21,8 @@ type Restaurant = {
 	neighborhood: string;
 	hasBranches?: boolean;
 	branchAddresses?: string[];
+	products?: string[];
+	branches?: string;
 	phone: string;
 	mobile: string;
 	website: string;
@@ -301,6 +303,10 @@ const serviceSelect = document.querySelector<HTMLInputElement>('#service-type')!
 const serviceCombobox = document.querySelector<HTMLDivElement>('#service-combobox')!;
 const serviceOptions = document.querySelector<HTMLDivElement>('#service-options')!;
 const selectedServicesContainer = document.querySelector<HTMLDivElement>('#selected-services')!;
+const panelDetails = document.querySelector<HTMLElement>('#panel-details')!;
+const productInput = document.querySelector<HTMLInputElement>('#product-input')!;
+const productSuggestions = document.querySelector<HTMLDataListElement>('#product-suggestions')!;
+const selectedProductsContainer = document.querySelector<HTMLDivElement>('#selected-products')!;
 const averagePriceOptions = document.querySelector<HTMLDataListElement>('#average-price-options')!;
 const averagePriceInput = document.querySelector<HTMLInputElement>('#average-price')!;
 const averagePriceCombobox = document.querySelector<HTMLDivElement>('#average-price-combobox')!;
@@ -512,6 +518,7 @@ let selectedCuisines: string[] = [];
 let selectedTags: string[] = [];
 let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
+let selectedProducts: string[] = [];
 let searchTerms: string[] = [];
 let searchScope: 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
@@ -1301,6 +1308,7 @@ function renderSelectedEstablishments() {
 	placeRestaurantInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'restaurante');
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
 	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
+	panelDetails.classList.toggle('store-mode', placeStoreInput.checked);
 }
 
 function setPlaceKindSelection(kind: 'restaurant' | 'cafe' | 'store', selected: boolean) {
@@ -1411,6 +1419,34 @@ function renderSelectedServices() {
 			<input type="hidden" name="mealTypes" value="${safe(service)}" />
 			<button type="button" data-remove-service="${safe(service)}" aria-label="Quitar ${safe(service)}" title="Quitar">×</button>
 		</span>`).join('');
+}
+
+// Productos de las tiendas (pan, facturas, granola…): lista libre con sugerencias de lo ya cargado.
+function renderSelectedProducts() {
+	selectedProductsContainer.innerHTML = selectedProducts.map((product) => `
+		<span class="selected-option">
+			${safe(product)}
+			<input type="hidden" name="products" value="${safe(product)}" />
+			<button type="button" data-remove-product="${safe(product)}" aria-label="Quitar ${safe(product)}" title="Quitar">×</button>
+		</span>`).join('');
+}
+
+function renderProductSuggestions() {
+	const values = [...new Set(restaurants.flatMap((restaurant) => restaurant.products ?? []))]
+		.filter((value) => !selectedProducts.some((product) => product.toLocaleLowerCase('es') === value.toLocaleLowerCase('es')))
+		.sort((a, b) => a.localeCompare(b, 'es'));
+	productSuggestions.innerHTML = values.map((value) => `<option value="${safe(value)}"></option>`).join('');
+}
+
+function addProduct(value: string) {
+	const product = value.trim().replace(/\s+/g, ' ').slice(0, 50);
+	if (!product || selectedProducts.length >= 60) return;
+	const normalized = product.charAt(0).toLocaleUpperCase('es') + product.slice(1);
+	if (selectedProducts.some((item) => item.toLocaleLowerCase('es') === normalized.toLocaleLowerCase('es'))) return;
+	selectedProducts.push(normalized);
+	renderSelectedProducts();
+	renderProductSuggestions();
+	updateDirtyState();
 }
 
 function addServiceSelection(service: string) {
@@ -2047,12 +2083,13 @@ function updateViewEmptyFields(readOnly: boolean) {
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
 		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
-		'description', 'notes',
+		'description', 'notes', 'branches',
 	].forEach(markNamedField);
 
 	if (!selectedEstablishments.length) document.querySelector('.establishment-type-field')?.classList.add('view-empty-field');
 	if (!selectedCuisines.length) selectedCuisinesContainer.closest('.form-field')?.classList.add('view-empty-field');
 	if (!selectedServices.length) document.querySelector('.meal-type-field')?.classList.add('view-empty-field');
+	if (!selectedProducts.length) document.querySelector('.products-field')?.classList.add('view-empty-field');
 	if (!hoursValue.value.trim()) document.querySelector('.schedule-field')?.classList.add('view-empty-field');
 	if (!restaurantLogo) {
 		document.querySelector('.primary-image-column')?.classList.add('view-empty-field');
@@ -2931,6 +2968,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	selectedEstablishments = restaurant ? [...getRestaurantEstablishmentTypes(restaurant)] : [];
 	renderSelectedEstablishments();
 	renderEstablishmentOptions();
+	selectedProducts = restaurant ? [...(restaurant.products ?? [])] : [];
+	productInput.value = '';
+	renderSelectedProducts();
+	renderProductSuggestions();
 	selectedServices = restaurant ? [...(restaurant.mealTypes ?? [])] : [];
 	if (selectedServices.includes('Desayuno y merienda')) {
 		selectedServices = [...new Set([...selectedServices.filter((service) => service !== 'Desayuno y merienda'), 'Desayuno', 'Merienda'])];
@@ -4604,6 +4645,25 @@ serviceOptions.addEventListener('click', (event) => {
 		openServiceDropdown();
 	}
 });
+productInput.addEventListener('keydown', (event) => {
+	if (event.key !== 'Enter' && event.key !== ',') return;
+	event.preventDefault();
+	addProduct(productInput.value);
+	productInput.value = '';
+});
+productInput.addEventListener('change', () => {
+	if (!productInput.value.trim()) return;
+	addProduct(productInput.value);
+	productInput.value = '';
+});
+selectedProductsContainer.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-product]');
+	if (!button) return;
+	selectedProducts = selectedProducts.filter((product) => product !== button.dataset.removeProduct);
+	renderSelectedProducts();
+	renderProductSuggestions();
+	updateDirtyState();
+});
 selectedServicesContainer.addEventListener('click', (event) => {
 	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-service]');
 	if (!button) return;
@@ -5908,6 +5968,8 @@ form.addEventListener('submit', async (event) => {
 		rating: data.rating,
 		score: data.score.trim(),
 		mealTypes: sortServices([...selectedServices]),
+		products: [...selectedProducts],
+		branches: (data.branches ?? '').trim(),
 		price: data.price,
 		averagePrice: savedAveragePrice,
 		country: savedCountry,

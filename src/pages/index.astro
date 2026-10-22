@@ -467,6 +467,14 @@ const userInitials = userDisplayName
 							</div>
 							<div id="selected-establishments" class="selected-options" aria-live="polite"></div>
 						</div>
+						<div class="form-field products-field store-only wide">
+							<label for="product-input">Productos</label>
+							<div class="cuisine-combobox">
+								<input id="product-input" type="text" maxlength="50" autocomplete="off" list="product-suggestions" placeholder="Escribí un producto y pulsá Enter (ej. Pan, Facturas, Granola)" />
+							</div>
+							<datalist id="product-suggestions"></datalist>
+							<div id="selected-products" class="selected-options" aria-live="polite"></div>
+						</div>
 						<div class="form-field meal-type-field wide">
 							<label for="service-type">Servicios</label>
 							<div id="service-combobox" class="cuisine-combobox service-combobox">
@@ -517,6 +525,10 @@ const userInitials = userDisplayName
 							<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
 							<label class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Sin gluten</span></label>
 							<label class="boolean-check-control"><input name="healthy" type="checkbox" /><span>Saludable</span></label>
+						</div>
+						<div class="form-field branches-field store-only wide">
+							<label for="restaurant-branches">Sucursales</label>
+							<textarea id="restaurant-branches" name="branches" rows="4" maxlength="2000" placeholder="Escribí las direcciones de todas las sucursales, una por línea"></textarea>
 						</div>
 					</div>
 				</section>

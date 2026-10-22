@@ -1750,3 +1750,14 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 	.quick-place-filter svg { width: 12px; height: 12px; flex-basis: 12px; }
 	.place-kind-options .boolean-check-control { gap: 5px; padding: 5px 6px; font-size: 10px; }
 }
+
+/* Tiendas: la solapa Características muestra categorías, productos, puntuación, rate, opciones y sucursales */
+#panel-details:not(.store-mode) .store-only { display: none !important; }
+#panel-details.store-mode :is(.meal-type-field, .cuisine-type-field, .price-level-field, .average-price-field) { display: none !important; }
+.branches-field textarea { min-height: 96px; resize: vertical; }
+.view-mode #panel-details .branches-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-details .branches-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; }
+.view-mode #panel-details .branches-field textarea::placeholder { color: transparent; }
+.view-mode #panel-details .products-field #product-input { display: none; }
+@media (max-width: 640px) { .view-mode #panel-details .branches-field { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+.view-mode #panel-details .products-field, .view-mode #panel-details .branches-field { grid-column: 1 / -1; }
