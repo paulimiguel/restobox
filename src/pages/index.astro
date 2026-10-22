@@ -258,6 +258,13 @@ const userInitials = userDisplayName
 								</div>
 							</details>
 									</div>
+									{profileMode && (
+										<nav class="quick-place-filters profile-section-filters" aria-label="Ir a una sección">
+											<a class="quick-place-filter" href="#favorites"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favoritos<span class="filter-count" data-profile-count="favorites">0</span></a>
+											<a class="quick-place-filter" href="#visited"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>Visitados<span class="filter-count" data-profile-count="visited">0</span></a>
+											<a class="quick-place-filter" href="#to-visit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4h11a1 1 0 0 1 1 1v15.5L12 16.8l-6.5 3.7V5a1 1 0 0 1 1-1Z"/></svg>A visitar<span class="filter-count" data-profile-count="to-visit">0</span></a>
+										</nav>
+									)}
 								</div>
 								<div id="search-terms-row" class="search-terms-row" hidden>
 									<div id="search-terms" class="search-terms-list" aria-label="Términos de búsqueda"></div>

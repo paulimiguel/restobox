@@ -2490,8 +2490,11 @@ function renderProfileSections(filtered: Restaurant[], renderCard: (restaurant: 
 		{ id: 'visited', title: 'Mis lugares visitados', empty: 'Todavía no marcaste lugares como visitados.', test: (restaurant: Restaurant) => Boolean(restaurant.visited) },
 		{ id: 'to-visit', title: 'Mis lugares a visitar', empty: 'Todavía no marcaste lugares como “A visitar”.', test: (restaurant: Restaurant) => Boolean(restaurant.checked) },
 	].map((section) => ({ ...section, items: filtered.filter(section.test), total: restaurants.filter(section.test).length }));
-	const jump = `<nav class="profile-page-jump" aria-label="Ir a una sección">${sections.map((section) => `<a href="#${section.id}">${safe(section.title.replace('Mis lugares ', '').replace(/^./, (letter) => letter.toLocaleUpperCase('es')))}<span>${section.items.length}</span></a>`).join('')}</nav>`;
-	return jump + sections.map((section) => `
+	sections.forEach((section) => {
+		const counter = document.querySelector<HTMLElement>(`[data-profile-count="${section.id}"]`);
+		if (counter) counter.textContent = String(section.items.length);
+	});
+	return sections.map((section) => `
 		<section class="my-places-section" id="${section.id}" aria-label="${safe(section.title)}">
 			<header><h2>${safe(section.title)}</h2></header>
 			<div class="restaurant-list view-${directoryView}">${section.items.length

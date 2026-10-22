@@ -1709,3 +1709,13 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 @media (max-width: 640px) {
 	input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]), select, textarea { font-size: 16px !important; }
 }
+
+/* Mi perfil: accesos a las secciones con el formato de Restaurantes y Cafes, y Ver/Ordenar/Filtrar en el medio */
+.profile-section-filters .quick-place-filter { text-decoration: none; }
+.profile-section-filters .filter-count { min-width: 20px; padding: 1px 6px; border-radius: 999px; color: var(--button-ink); background: var(--forest); font-size: 10px; line-height: 1.5; text-align: center; }
+body[data-profile-mode='true'] .directory-toolbar-lower-row { align-items: center; justify-content: space-between; }
+body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions-grid { margin-inline: auto; }
+@media (max-width: 640px) {
+	body[data-profile-mode='true'] .profile-section-filters { order: 3; width: 100%; }
+	body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions-grid { margin-inline: 0; }
+}
