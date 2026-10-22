@@ -1647,3 +1647,14 @@ body.hide-new-button .directory-actions-grid .new-establishment-menu { display: 
 body.hide-new-button .directory-actions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 405px); margin-left: auto; }
 body.hide-new-button .directory-toolbar-lower-row { justify-content: space-between; }
 @media (max-width: 640px) { body.hide-new-button .directory-actions-grid { width: 100%; } }
+
+/* Ficha del lugar en el celular: pestañas en dos filas, logo centrado y ciudad con provincia en una fila */
+@media (max-width: 640px) {
+	.form-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.form-tab { display: grid; min-height: 44px; place-items: center; padding-inline: 3px; font-size: 10px; line-height: 1.15; text-align: center; white-space: normal; }
+	.form-tab.active::after { right: 4px; left: 4px; }
+	.primary-image-column { justify-items: center; }
+	.primary-image-column .map-status-field { margin-inline: auto; }
+	.location-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.location-fields > label:nth-of-type(3) { display: none; }
+}
