@@ -467,6 +467,14 @@ const userInitials = userDisplayName
 							</div>
 							<div id="selected-establishments" class="selected-options" aria-live="polite"></div>
 						</div>
+						<div class="form-field establishment-type-field store-type-field store-only wide">
+							<label for="store-type">Tipo de tienda</label>
+							<div id="store-type-combobox" class="cuisine-combobox establishment-combobox">
+								<input id="store-type" type="text" maxlength="50" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="store-type-options" placeholder="Escribí un tipo de tienda y pulsá Enter (ej. Panadería, Dietética)" />
+								<div id="store-type-options" class="cuisine-dropdown tag-dropdown establishment-dropdown store-type-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
+							</div>
+							<div id="selected-store-types" class="selected-options" aria-live="polite"></div>
+						</div>
 						<div class="form-field products-field store-only wide">
 							<label for="product-input">Productos</label>
 							<div class="cuisine-combobox">

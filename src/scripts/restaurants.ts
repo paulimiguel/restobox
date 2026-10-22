@@ -23,6 +23,7 @@ type Restaurant = {
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
+	storeTypes?: string[];
 	phone: string;
 	mobile: string;
 	website: string;
@@ -127,6 +128,9 @@ const REMOVED_CUISINES_KEY = 'restobox-removed-cuisines-v1';
 const TAGS_KEY = 'restobox-tags-v1';
 const REMOVED_TAGS_KEY = 'restobox-removed-tags-v1';
 const ESTABLISHMENTS_KEY = 'restobox-establishments-v1';
+const STORE_TYPES_KEY = 'restobox-store-types-v1';
+const REMOVED_STORE_TYPES_KEY = 'restobox-removed-store-types-v1';
+const DEFAULT_STORE_TYPES = ['Panadería', 'Bakery', 'Dietética', 'Supermercado'];
 const REMOVED_ESTABLISHMENTS_KEY = 'restobox-removed-establishments-v1';
 const SERVICES_KEY = 'restobox-services-v1';
 const REMOVED_SERVICES_KEY = 'restobox-removed-services-v1';
@@ -304,6 +308,10 @@ const serviceCombobox = document.querySelector<HTMLDivElement>('#service-combobo
 const serviceOptions = document.querySelector<HTMLDivElement>('#service-options')!;
 const selectedServicesContainer = document.querySelector<HTMLDivElement>('#selected-services')!;
 const panelDetails = document.querySelector<HTMLElement>('#panel-details')!;
+const storeTypeInput = document.querySelector<HTMLInputElement>('#store-type')!;
+const storeTypeCombobox = document.querySelector<HTMLDivElement>('#store-type-combobox')!;
+const storeTypeOptions = document.querySelector<HTMLDivElement>('#store-type-options')!;
+const selectedStoreTypesContainer = document.querySelector<HTMLDivElement>('#selected-store-types')!;
 const productInput = document.querySelector<HTMLInputElement>('#product-input')!;
 const productSuggestions = document.querySelector<HTMLDataListElement>('#product-suggestions')!;
 const selectedProductsContainer = document.querySelector<HTMLDivElement>('#selected-products')!;
@@ -460,6 +468,9 @@ let removedTags: string[] = loadRemovedTags();
 let removedAveragePrices: string[] = [];
 let establishmentTypes: string[] = loadEstablishmentTypes();
 let removedEstablishmentTypes: string[] = loadRemovedEstablishmentTypes();
+let removedStoreTypes: string[] = loadRemovedStoreTypes();
+let storeTypes: string[] = loadStoreTypes();
+let selectedStoreTypes: string[] = [];
 let serviceTypes: string[] = loadServiceTypes();
 let removedServiceTypes: string[] = loadRemovedServiceTypes();
 let neighborhoods: string[] = loadNeighborhoods();
@@ -595,6 +606,7 @@ function persistCatalogSettings() {
 		tags: tagCatalog, removedTags,
 		removedAveragePrices,
 		establishmentTypes, removedEstablishmentTypes,
+		storeTypes, removedStoreTypes,
 		serviceTypes, removedServiceTypes,
 		neighborhoods, neighborhoodImages, removedNeighborhoods,
 		establishmentImages, serviceImages, cuisineImages,
@@ -808,6 +820,24 @@ function loadEstablishmentTypes(): string[] {
 
 function loadRemovedEstablishmentTypes(): string[] {
 	try { return JSON.parse(localStorage.getItem(REMOVED_ESTABLISHMENTS_KEY) ?? '[]') as string[]; }
+	catch { return []; }
+}
+
+function loadStoreTypes(): string[] {
+	try {
+		const stored = JSON.parse(localStorage.getItem(STORE_TYPES_KEY) ?? '[]') as string[];
+		const removed = loadRemovedStoreTypes().map((item) => item.toLocaleLowerCase('es'));
+		const used = restaurants.flatMap((restaurant) => restaurant.storeTypes ?? []);
+		return capitalizedCatalogValues([...DEFAULT_STORE_TYPES, ...stored, ...used])
+			.filter((item) => !removed.includes(item.toLocaleLowerCase('es')))
+			.sort((a, b) => a.localeCompare(b, 'es'));
+	} catch {
+		return [...DEFAULT_STORE_TYPES];
+	}
+}
+
+function loadRemovedStoreTypes(): string[] {
+	try { return JSON.parse(localStorage.getItem(REMOVED_STORE_TYPES_KEY) ?? '[]') as string[]; }
 	catch { return []; }
 }
 
@@ -1419,6 +1449,90 @@ function renderSelectedServices() {
 			<input type="hidden" name="mealTypes" value="${safe(service)}" />
 			<button type="button" data-remove-service="${safe(service)}" aria-label="Quitar ${safe(service)}" title="Quitar">×</button>
 		</span>`).join('');
+}
+
+// Tipo de tienda (panadería, dietética, supermercado…): lista propia que crece al escribir un valor nuevo y pulsar Enter.
+function renderStoreTypeOptions(clearInput = true) {
+	if (clearInput) storeTypeInput.value = '';
+	const query = storeTypeInput.value.trim().toLocaleLowerCase('es');
+	const filtered = storeTypes.filter((type) => type.toLocaleLowerCase('es').includes(query));
+	const hasExactMatch = storeTypes.some((type) => type.toLocaleLowerCase('es') === query);
+	storeTypeOptions.innerHTML = [
+		...filtered.map((type) => {
+			const selected = selectedStoreTypes.includes(type);
+			return `
+				<div class="tag-dropdown-option${selected ? ' selected' : ''}" role="option" aria-selected="${selected}">
+					<label><input type="checkbox" data-store-type-option value="${safe(type)}"${selected ? ' checked' : ''} /><span>${safe(type)}</span></label>
+					<button type="button" class="delete-tag-option" data-delete-store-type="${safe(type)}" aria-label="Eliminar ${safe(type)} de la lista" title="Eliminar de la lista">×</button>
+				</div>`;
+		}),
+		...(query && !hasExactMatch ? [`<button type="button" class="create-cuisine-option" data-create-store-type><span>＋</span> Agregar “${safe(storeTypeInput.value.trim())}”</button>`] : []),
+	].join('') || '<p class="cuisine-empty">Sin resultados. Escribí un tipo de tienda y pulsá Enter.</p>';
+}
+
+function renderSelectedStoreTypes() {
+	selectedStoreTypesContainer.innerHTML = selectedStoreTypes.map((type) => `
+		<span class="selected-option">
+			${safe(type)}
+			<input type="hidden" name="storeTypes" value="${safe(type)}" />
+			<button type="button" data-remove-store-type="${safe(type)}" aria-label="Quitar ${safe(type)}" title="Quitar">×</button>
+		</span>`).join('');
+}
+
+function addStoreTypeSelection(type: string) {
+	const normalizedType = capitalizeFirstLetter(type);
+	if (!normalizedType || selectedStoreTypes.some((item) => item.toLocaleLowerCase('es') === normalizedType.toLocaleLowerCase('es'))) return;
+	selectedStoreTypes.push(normalizedType);
+	renderSelectedStoreTypes();
+	renderStoreTypeOptions();
+	updateDirtyState();
+}
+
+function commitStoreTypeInput() {
+	const entered = storeTypeInput.value.trim();
+	if (!entered) return;
+	const existing = storeTypes.find((type) => type.toLocaleLowerCase('es') === entered.toLocaleLowerCase('es'));
+	if (existing) {
+		addStoreTypeSelection(existing);
+		return;
+	}
+	const type = capitalizeFirstLetter(entered.slice(0, 50));
+	storeTypes.push(type);
+	storeTypes.sort((a, b) => a.localeCompare(b, 'es'));
+	removedStoreTypes = removedStoreTypes.filter((item) => item.toLocaleLowerCase('es') !== type.toLocaleLowerCase('es'));
+	persistCatalogSettings();
+	addStoreTypeSelection(type);
+	showToast('Tipo de tienda agregado');
+}
+
+function openStoreTypeDropdown() {
+	if (storeTypeInput.disabled) return;
+	renderStoreTypeOptions(false);
+	storeTypeOptions.hidden = false;
+	storeTypeInput.setAttribute('aria-expanded', 'true');
+}
+
+function closeStoreTypeDropdown() {
+	storeTypeOptions.hidden = true;
+	storeTypeInput.setAttribute('aria-expanded', 'false');
+}
+
+function deleteStoreTypeOption(type: string) {
+	if (!confirmAssociatedPlacesDeletion('el tipo de tienda', type, (restaurant) => (restaurant.storeTypes ?? []).includes(type))) return;
+	backupRestaurants();
+	storeTypes = storeTypes.filter((item) => item !== type);
+	removedStoreTypes = [...new Set([...removedStoreTypes, type])];
+	selectedStoreTypes = selectedStoreTypes.filter((item) => item !== type);
+	restaurants.forEach((restaurant) => {
+		restaurant.storeTypes = (restaurant.storeTypes ?? []).filter((item) => item !== type);
+	});
+	saveRestaurants();
+	persistCatalogSettings();
+	renderSelectedStoreTypes();
+	renderStoreTypeOptions(false);
+	render();
+	updateDirtyState();
+	showToast('Tipo de tienda eliminado');
 }
 
 // Productos de las tiendas (pan, facturas, granola…): lista libre con sugerencias de lo ya cargado.
@@ -2090,6 +2204,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	if (!selectedCuisines.length) selectedCuisinesContainer.closest('.form-field')?.classList.add('view-empty-field');
 	if (!selectedServices.length) document.querySelector('.meal-type-field')?.classList.add('view-empty-field');
 	if (!selectedProducts.length) document.querySelector('.products-field')?.classList.add('view-empty-field');
+	if (!selectedStoreTypes.length) document.querySelector('.store-type-field')?.classList.add('view-empty-field');
 	if (!hoursValue.value.trim()) document.querySelector('.schedule-field')?.classList.add('view-empty-field');
 	if (!restaurantLogo) {
 		document.querySelector('.primary-image-column')?.classList.add('view-empty-field');
@@ -2968,6 +3083,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	selectedEstablishments = restaurant ? [...getRestaurantEstablishmentTypes(restaurant)] : [];
 	renderSelectedEstablishments();
 	renderEstablishmentOptions();
+	closeStoreTypeDropdown();
+	selectedStoreTypes = restaurant ? [...(restaurant.storeTypes ?? [])] : [];
+	renderSelectedStoreTypes();
+	renderStoreTypeOptions();
 	selectedProducts = restaurant ? [...(restaurant.products ?? [])] : [];
 	productInput.value = '';
 	renderSelectedProducts();
@@ -4423,6 +4542,7 @@ document.addEventListener('pointerdown', (event) => {
 		if (!getLocationOptionState(kind).combobox.contains(event.target as Node)) closeLocationDropdown(kind);
 	});
 	if (!establishmentCombobox.contains(event.target as Node)) closeEstablishmentDropdown();
+	if (!storeTypeCombobox.contains(event.target as Node)) closeStoreTypeDropdown();
 	if (!serviceCombobox.contains(event.target as Node)) closeServiceDropdown();
 });
 selectedCuisinesContainer.addEventListener('click', (event) => {
@@ -4644,6 +4764,57 @@ serviceOptions.addEventListener('click', (event) => {
 		serviceSelect.focus();
 		openServiceDropdown();
 	}
+});
+storeTypeInput.addEventListener('focus', openStoreTypeDropdown);
+storeTypeInput.addEventListener('click', openStoreTypeDropdown);
+storeTypeInput.addEventListener('input', () => {
+	openStoreTypeDropdown();
+	renderStoreTypeOptions(false);
+});
+storeTypeInput.addEventListener('keydown', (event) => {
+	if (event.key === 'Escape') {
+		closeStoreTypeDropdown();
+		return;
+	}
+	if (event.key === 'Enter') {
+		event.preventDefault();
+		commitStoreTypeInput();
+		openStoreTypeDropdown();
+	}
+});
+storeTypeOptions.addEventListener('change', (event) => {
+	const checkbox = (event.target as HTMLElement).closest<HTMLInputElement>('[data-store-type-option]');
+	if (!checkbox) return;
+	if (checkbox.checked) addStoreTypeSelection(checkbox.value);
+	else {
+		selectedStoreTypes = selectedStoreTypes.filter((type) => type !== checkbox.value);
+		renderSelectedStoreTypes();
+		renderStoreTypeOptions();
+		updateDirtyState();
+	}
+});
+storeTypeOptions.addEventListener('click', (event) => {
+	const target = event.target as HTMLElement;
+	const deleteButton = target.closest<HTMLButtonElement>('[data-delete-store-type]');
+	if (deleteButton?.dataset.deleteStoreType) {
+		deleteStoreTypeOption(deleteButton.dataset.deleteStoreType);
+		storeTypeInput.focus();
+		openStoreTypeDropdown();
+		return;
+	}
+	if (target.closest('[data-create-store-type]')) {
+		commitStoreTypeInput();
+		storeTypeInput.focus();
+		openStoreTypeDropdown();
+	}
+});
+selectedStoreTypesContainer.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-store-type]');
+	if (!button) return;
+	selectedStoreTypes = selectedStoreTypes.filter((type) => type !== button.dataset.removeStoreType);
+	renderSelectedStoreTypes();
+	renderStoreTypeOptions();
+	updateDirtyState();
 });
 productInput.addEventListener('keydown', (event) => {
 	if (event.key !== 'Enter' && event.key !== ',') return;
@@ -5969,6 +6140,7 @@ form.addEventListener('submit', async (event) => {
 		score: data.score.trim(),
 		mealTypes: sortServices([...selectedServices]),
 		products: [...selectedProducts],
+		storeTypes: [...selectedStoreTypes],
 		branches: (data.branches ?? '').trim(),
 		price: data.price,
 		averagePrice: savedAveragePrice,
@@ -6361,6 +6533,8 @@ function applyServerCatalogs(value: unknown) {
 	removedAveragePrices = stringArray(catalogs.removedAveragePrices);
 	establishmentTypes = capitalizedCatalogValues(stringArray(catalogs.establishmentTypes, [...DEFAULT_ESTABLISHMENTS]));
 	removedEstablishmentTypes = stringArray(catalogs.removedEstablishmentTypes);
+	storeTypes = capitalizedCatalogValues(stringArray(catalogs.storeTypes, [...DEFAULT_STORE_TYPES]));
+	removedStoreTypes = stringArray(catalogs.removedStoreTypes);
 	serviceTypes = sortServices(stringArray(catalogs.serviceTypes, [...DEFAULT_SERVICES]));
 	removedServiceTypes = stringArray(catalogs.removedServiceTypes);
 	neighborhoods = stringArray(catalogs.neighborhoods);
@@ -6439,6 +6613,9 @@ async function initializeServerPersistence() {
 		const removedEstablishmentNames = new Set(removedEstablishmentTypes.map((item) => item.toLocaleLowerCase('es')));
 		establishmentTypes = [...new Set([...establishmentTypes, ...restaurants.flatMap(getRestaurantEstablishmentTypes)])].filter((item) => !removedEstablishmentNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		serviceTypes = sortServices([...new Set([...serviceTypes, ...restaurants.flatMap((restaurant) => restaurant.mealTypes ?? [])])]);
+		const removedStoreTypeNames = new Set(removedStoreTypes.map((item) => item.toLocaleLowerCase('es')));
+		storeTypes = capitalizedCatalogValues([...storeTypes, ...restaurants.flatMap((restaurant) => restaurant.storeTypes ?? [])]).filter((item) => !removedStoreTypeNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
+		renderStoreTypeOptions();
 		neighborhoods = [...new Set([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		cities = [...new Set([...cities, ...restaurants.map((restaurant) => restaurant.city).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 		provinces = [...new Set([...provinces, ...restaurants.map((restaurant) => restaurant.province).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));

@@ -1761,3 +1761,5 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 .view-mode #panel-details .products-field #product-input { display: none; }
 @media (max-width: 640px) { .view-mode #panel-details .branches-field { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
 .view-mode #panel-details .products-field, .view-mode #panel-details .branches-field { grid-column: 1 / -1; }
+#panel-details.store-mode .establishment-type-field:not(.store-type-field) { display: none !important; }
+.store-type-dropdown { right: 0; }
