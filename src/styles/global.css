@@ -1668,3 +1668,9 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 @media (max-width: 640px) {
 	.lead-contacts > .location-fields { order: 2; }
 }
+
+/* Horarios en el celular: la tabla debajo del título "Días y horarios", pegada al margen izquierdo */
+@media (max-width: 640px) {
+	.view-mode #panel-information .schedule-field { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+	.view-mode #panel-information .schedule-table { width: 100%; margin-top: 0; }
+}
