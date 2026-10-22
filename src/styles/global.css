@@ -929,7 +929,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .editing-record input::placeholder, .editing-record textarea::placeholder { color: transparent; opacity: 0; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }
-#panel-description textarea { height: 180px; min-height: 180px; overflow-y: auto; }
+#panel-description textarea { height: 130px; min-height: 130px; overflow-y: auto; }
+#panel-description .notes-field textarea { height: 90px; min-height: 90px; }
+#panel-description .discounts-field textarea { height: 64px; min-height: 64px; }
 .notes-field { gap: 7px; }
 .long-text-field { gap: 7px; }
 .long-text-field-heading { display: flex; min-height: 27px; align-items: center; justify-content: space-between; gap: 12px; }
@@ -1203,7 +1205,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .view-mode #panel-description .long-text-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-description .long-text-field-heading { display: block; min-height: 0; }
 .view-mode #panel-description .long-text-editor-button { display: none; }
-.view-mode #panel-description .notes-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
+.view-mode #panel-description :is(.notes-field, .discounts-field) textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; field-sizing: content; }
 .view-mode #panel-description textarea::placeholder { color: transparent; }
 .view-mode #panel-images .image-drop-copy, .view-mode #panel-images .image-gallery-actions { display: none; }
 .view-mode #panel-images .image-gallery-column { gap: 0; }
@@ -1773,3 +1775,6 @@ a.mobile-menu-item { text-decoration: none; }
 .quick-place-filter[data-map-only][hidden] { display: none; }
 body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(4, auto); }
 @media (max-width: 640px) { body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(4, auto); } }
+
+/* Tienda sola (sin restaurante ni café): se ocultan los links propios de la gastronomía */
+#panel-links.store-only-links .restaurant-link-field { display: none !important; }

@@ -23,6 +23,7 @@ type Restaurant = {
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
+	discounts?: string;
 	storeTypes?: string[];
 	phone: string;
 	mobile: string;
@@ -374,6 +375,7 @@ const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp
 const pedidosYaInput = document.querySelector<HTMLInputElement>('#pedidosya-url')!;
 const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
 const notesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
+const discountsInput = document.querySelector<HTMLTextAreaElement>('#restaurant-discounts')!;
 const countryInput = form.elements.namedItem('country') as HTMLInputElement;
 const personalRateInput = form.elements.namedItem('rating') as HTMLInputElement;
 const personalRateButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-rate-value]')];
@@ -1350,6 +1352,8 @@ function renderSelectedEstablishments() {
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
 	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
 	panelDetails.classList.toggle('store-mode', placeStoreInput.checked);
+	// Si es solo una tienda (ni restaurante ni café), no se piden Woki, TripAdvisor, menú ni Pedidos Ya.
+	document.querySelector<HTMLElement>('#panel-links')?.classList.toggle('store-only-links', placeStoreInput.checked && !placeRestaurantInput.checked && !placeCafeInput.checked);
 }
 
 function setPlaceKindSelection(kind: 'restaurant' | 'cafe' | 'store', selected: boolean) {
@@ -1848,8 +1852,8 @@ function openLongTextEditor(target: HTMLTextAreaElement, title: string) {
 
 function updateLongTextEditorLabels(editing: boolean) {
 	openLongTextEditorButtons.forEach((button) => {
-		const opensNotes = button.dataset.openLongTextEditor === 'notes';
-		const fieldLabel = opensNotes ? (editing ? 'notas' : 'nota') : 'descripción';
+		const target = button.dataset.openLongTextEditor;
+		const fieldLabel = target === 'notes' ? (editing ? 'notas' : 'nota') : target === 'discounts' ? 'descuentos' : 'descripción';
 		button.textContent = `${editing ? 'Editar' : 'Agregar'} ${fieldLabel}`;
 	});
 }
@@ -2208,7 +2212,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
 		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
-		'description', 'notes', 'branches',
+		'description', 'notes', 'discounts', 'branches',
 	].forEach(markNamedField);
 
 	if (!selectedEstablishments.length) document.querySelector('.establishment-type-field')?.classList.add('view-empty-field');
@@ -4268,8 +4272,9 @@ tabPanels.forEach((panel) => {
 	Array.from(panel.children).forEach((child) => formPanelResizeObserver.observe(child));
 });
 openLongTextEditorButtons.forEach((button) => button.addEventListener('click', () => {
-	const opensNotes = button.dataset.openLongTextEditor === 'notes';
-	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
+	const target = button.dataset.openLongTextEditor;
+	const field = target === 'notes' ? notesInput : target === 'discounts' ? discountsInput : descriptionInput;
+	openLongTextEditor(field, button.textContent?.trim() || (target === 'notes' ? 'Agregar nota' : target === 'discounts' ? 'Agregar descuentos' : 'Agregar descripción'));
 }));
 cancelLongTextEditor.addEventListener('click', () => longTextEditorDialog.close());
 document.querySelector('#close-long-text-editor')?.addEventListener('click', () => longTextEditorDialog.close());
@@ -6168,6 +6173,7 @@ form.addEventListener('submit', async (event) => {
 		products: [...selectedProducts],
 		storeTypes: [...selectedStoreTypes],
 		branches: (data.branches ?? '').trim(),
+		discounts: (data.discounts ?? '').trim(),
 		price: data.price,
 		averagePrice: savedAveragePrice,
 		country: savedCountry,
