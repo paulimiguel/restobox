@@ -704,7 +704,10 @@ const userInitials = userDisplayName
 
 		<dialog id="long-text-editor-dialog" class="mini-dialog long-text-editor-dialog">
 			<form id="long-text-editor-form">
-				<h2 id="long-text-editor-title">Agregar descripción</h2>
+				<div class="profile-dialog-heading">
+					<h2 id="long-text-editor-title">Agregar descripción</h2>
+					<button id="close-long-text-editor" class="profile-close-button" type="button" aria-label="Cerrar" title="Cerrar">×</button>
+				</div>
 				<label for="long-text-editor-value">Texto</label>
 				<textarea id="long-text-editor-value" rows="16"></textarea>
 				<div class="long-text-editor-tools">

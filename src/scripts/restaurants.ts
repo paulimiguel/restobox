@@ -4088,6 +4088,7 @@ openLongTextEditorButtons.forEach((button) => button.addEventListener('click', (
 	openLongTextEditor(opensNotes ? notesInput : descriptionInput, button.textContent?.trim() || (opensNotes ? 'Agregar nota' : 'Agregar descripción'));
 }));
 cancelLongTextEditor.addEventListener('click', () => longTextEditorDialog.close());
+document.querySelector('#close-long-text-editor')?.addEventListener('click', () => longTextEditorDialog.close());
 pasteLongTextButton.addEventListener('click', async () => {
 	try {
 		const clipboardText = await navigator.clipboard.readText();

@@ -1683,3 +1683,15 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	#panel-images .video-field { order: 2; }
 	#panel-images .logo-field { order: 3; }
 }
+
+/* Celular, al editar: estados en una fila, características en dos filas y puntuación con rate juntos */
+@media (max-width: 640px) {
+	.primary-image-column .map-status-field { width: min(100%, 340px); }
+	.primary-image-column .restaurant-status-options { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+	.primary-image-column .restaurant-status-option:has(input[name="favorite"]) { grid-column: auto; }
+	.primary-image-column .restaurant-status-option { min-width: 0; gap: 4px !important; padding: 6px 4px; font-size: 11px; white-space: nowrap; }
+	.primary-image-column .restaurant-status-option svg, .primary-image-column .restaurant-status-option .checked-icon { width: 15px; height: 15px; flex: 0 0 auto; }
+	.characteristics-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > :not(.rate-field):not(label:has(input[name="score"])) { grid-column: 1 / -1; }
+}
