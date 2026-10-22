@@ -1832,3 +1832,6 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 .mobile-show-options { padding-left: 0; }
 :root[data-color-mode='dark'] .show-submenu > summary { color: #d8dee7; }
 :root[data-color-mode='dark'] .show-submenu > summary:hover, :root[data-color-mode='dark'] .show-submenu[open] > summary { color: #fff; background: #262a2f; }
+
+/* Abrir ficha (mapa): misma letra que los botones de tipo de lugar, como TIENDAS */
+.map-info .map-info-open { font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: normal; text-transform: uppercase; }
