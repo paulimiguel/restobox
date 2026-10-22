@@ -1778,3 +1778,7 @@ body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(
 
 /* Tienda sola (sin restaurante ni café): se ocultan los links propios de la gastronomía */
 #panel-links.store-only-links .restaurant-link-field { display: none !important; }
+
+/* Filtros de la página Tiendas: tipo de tienda, productos y zona; en el resto, los filtros de siempre */
+body:not([data-stores-mode='true']) .store-only-filter { display: none; }
+body[data-stores-mode='true'] .restaurant-only-filter { display: none; }

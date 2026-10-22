@@ -224,6 +224,13 @@ const establishmentFilterOptions = document.querySelector<HTMLDivElement>('#esta
 const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-options')!;
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
 const neighborhoodFilterOptions = document.querySelector<HTMLDivElement>('#neighborhood-filter-options')!;
+const storeTypeFilterOptions = document.querySelector<HTMLDivElement>('#store-type-filter-options')!;
+const productFilterOptions = document.querySelector<HTMLDivElement>('#product-filter-options')!;
+const storeTypeFilterLabel = document.querySelector<HTMLElement>('#store-type-filter-label')!;
+const productFilterLabel = document.querySelector<HTMLElement>('#product-filter-label')!;
+const storeTypeFilterChips = document.querySelector<HTMLDivElement>('#store-type-filter-chips')!;
+const productFilterChips = document.querySelector<HTMLDivElement>('#product-filter-chips')!;
+const healthyFilterButton = document.querySelector<HTMLButtonElement>('#healthy-filter')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
 const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options');
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
@@ -503,6 +510,9 @@ let selectedEstablishmentFilters = new Set<string>();
 let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
+let selectedStoreTypeFilters = new Set<string>();
+let selectedProductFilters = new Set<string>();
+let healthyFilterActive = false;
 let selectedTagFilters = new Set<string>();
 let selectedCityFilters = new Set<string>();
 let selectedEmptyFields = new Set<string>();
@@ -1062,6 +1072,8 @@ function updateDirectoryFilterLabels() {
 	mealFilterLabel.textContent = summary(selectedMealFilters, 'Todos los servicios');
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
 	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todas las zonas');
+	storeTypeFilterLabel.textContent = summary(selectedStoreTypeFilters, 'Todos los tipos de tienda');
+	productFilterLabel.textContent = summary(selectedProductFilters, 'Todos los productos');
 	if (tagFilterLabel) tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
 	if (cityFilterLabel) cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
 	const chips = (values: Set<string>, group: string) => [...values].map((value) => `
@@ -1074,6 +1086,8 @@ function updateDirectoryFilterLabels() {
 		.concat([...selectedMealFilters].map((value) => ({ value, group: 'meal' })))
 		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
 		.concat([...selectedNeighborhoodFilters].map((value) => ({ value, group: 'neighborhood' })))
+		.concat([...selectedStoreTypeFilters].map((value) => ({ value, group: 'storeType' })))
+		.concat([...selectedProductFilters].map((value) => ({ value, group: 'product' })))
 		.concat([...selectedEmptyFields].map((value) => ({ value, group: 'empty', label: `Sin ${(emptyFieldOptions.find((option) => option.id === value)?.label ?? value).toLocaleLowerCase('es')}` })))
 		.map(({ value, group, label }) => `<span class="directory-active-filter-chip">${safe(label ?? value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(label ?? value)}" title="Quitar">×</button></span>`)
 		.join('');
@@ -1081,18 +1095,23 @@ function updateDirectoryFilterLabels() {
 	directoryActiveFilters.hidden = !hasVisibleCatalogFilters;
 	clearActiveDirectoryFiltersButton.hidden = !hasVisibleCatalogFilters;
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
+	storeTypeFilterChips.innerHTML = chips(selectedStoreTypeFilters, 'storeType');
+	productFilterChips.innerHTML = chips(selectedProductFilters, 'product');
 	if (tagFilterChips) tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
 	if (cityFilterChips) cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-establishment-filter]').forEach((input) => { input.checked = selectedEstablishmentFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-meal-filter]').forEach((input) => { input.checked = selectedMealFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-cuisine-filter]').forEach((input) => { input.checked = selectedCuisineFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-neighborhood-filter]').forEach((input) => { input.checked = selectedNeighborhoodFilters.has(input.value); });
+	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-store-type-filter]').forEach((input) => { input.checked = selectedStoreTypeFilters.has(input.value); });
+	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-product-filter]').forEach((input) => { input.checked = selectedProductFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-tag-filter]').forEach((input) => { input.checked = selectedTagFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-city-filter]').forEach((input) => { input.checked = selectedCityFilters.has(input.value); });
 	favoriteFilterButton.setAttribute('aria-pressed', String(favoriteFilterActive));
 	visitedFilterButton.setAttribute('aria-pressed', String(visitedFilterActive));
 	checkedFilterButton.setAttribute('aria-pressed', String(checkedFilterActive));
 	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
+	healthyFilterButton.setAttribute('aria-pressed', String(healthyFilterActive));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
@@ -1115,7 +1134,19 @@ function renderNeighborhoodMenus(values: string[]) {
 	});
 }
 
+function renderStoreFilterOptions() {
+	const storeValues = [...new Set([...storeTypes, ...restaurants.flatMap((restaurant) => restaurant.storeTypes ?? [])])].sort((a, b) => a.localeCompare(b, 'es'));
+	const productValues = [...new Set(restaurants.flatMap((restaurant) => restaurant.products ?? []))].sort((a, b) => a.localeCompare(b, 'es'));
+	selectedStoreTypeFilters = new Set([...selectedStoreTypeFilters].filter((value) => storeValues.includes(value)));
+	selectedProductFilters = new Set([...selectedProductFilters].filter((value) => productValues.includes(value)));
+	const options = (values: string[], selected: Set<string>, attribute: string) => values.map((value) => `
+		<label><input type="checkbox" value="${safe(value)}" ${attribute}${selected.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('') || '<p class="neighborhood-menu-empty">Sin opciones</p>';
+	storeTypeFilterOptions.innerHTML = options(storeValues, selectedStoreTypeFilters, 'data-store-type-filter');
+	productFilterOptions.innerHTML = options(productValues, selectedProductFilters, 'data-product-filter');
+}
+
 function renderAdditionalFilterOptions() {
+	renderStoreFilterOptions();
 	const availableNeighborhoods = [...new Set([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 	selectedNeighborhoodFilters = new Set([...selectedNeighborhoodFilters].filter((value) => availableNeighborhoods.includes(value)));
 	neighborhoodFilterOptions.innerHTML = availableNeighborhoods.map((value) => `
@@ -2510,6 +2541,9 @@ function render() {
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
 		const matchesVisited = !visitedFilterActive || Boolean(restaurant.visited);
 		const matchesChecked = !checkedFilterActive || Boolean(restaurant.checked);
+		const matchesStoreType = !selectedStoreTypeFilters.size || (restaurant.storeTypes ?? []).some((type) => selectedStoreTypeFilters.has(type));
+		const matchesProduct = !selectedProductFilters.size || (restaurant.products ?? []).some((product) => selectedProductFilters.has(product));
+		const matchesHealthy = !healthyFilterActive || Boolean(restaurant.healthy);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -2526,6 +2560,9 @@ function render() {
 			&& matchesFavorite
 			&& matchesVisited
 			&& matchesChecked
+			&& matchesStoreType
+			&& matchesProduct
+			&& matchesHealthy
 			&& matchesGlutenFree
 			&& matchesDelivery
 			&& matchesTakeAway;
@@ -2545,6 +2582,9 @@ function render() {
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
 		|| selectedNeighborhoodFilters.size > 0
+		|| selectedStoreTypeFilters.size > 0
+		|| selectedProductFilters.size > 0
+		|| healthyFilterActive
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
 		|| selectedEmptyFields.size > 0
@@ -5058,6 +5098,10 @@ directoryFilterPanel.addEventListener('change', (event) => {
 				? selectedCuisineFilters
 				: input.hasAttribute('data-neighborhood-filter')
 					? selectedNeighborhoodFilters
+					: input.hasAttribute('data-store-type-filter')
+					? selectedStoreTypeFilters
+					: input.hasAttribute('data-product-filter')
+					? selectedProductFilters
 					: input.hasAttribute('data-tag-filter')
 						? selectedTagFilters
 						: selectedCityFilters;
@@ -5089,6 +5133,10 @@ function removeDirectoryFilter(group: string | undefined, value: string) {
 				? selectedCuisineFilters
 				: group === 'neighborhood'
 					? selectedNeighborhoodFilters
+					: group === 'storeType'
+					? selectedStoreTypeFilters
+					: group === 'product'
+					? selectedProductFilters
 					: group === 'tag'
 						? selectedTagFilters
 						: selectedCityFilters;
@@ -5117,6 +5165,11 @@ checkedFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
+healthyFilterButton.addEventListener('click', () => {
+	healthyFilterActive = !healthyFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
 glutenFreeFilterButton.addEventListener('click', () => {
 	glutenFreeFilterActive = !glutenFreeFilterActive;
 	updateDirectoryFilterLabels();
@@ -5140,6 +5193,9 @@ function clearDirectoryFilterSelections() {
 	selectedMealFilters.clear();
 	selectedCuisineFilters.clear();
 	selectedNeighborhoodFilters.clear();
+	selectedStoreTypeFilters.clear();
+	selectedProductFilters.clear();
+	healthyFilterActive = false;
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
 	selectedEmptyFields.clear();
