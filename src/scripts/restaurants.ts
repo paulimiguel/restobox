@@ -2507,6 +2507,12 @@ function render() {
 	cardPreviewUrls = [];
 	// El botón Nuevo solo se muestra en el directorio (no en Mi perfil, el mapa ni las vistas de categorías o cocinas).
 	document.body.classList.toggle('hide-new-button', profileMode || mapMode || Boolean(showingCatalog));
+	// En las vistas de categorías, cocinas, servicios y zonas no hay filtros que aplicar.
+	document.body.classList.toggle('catalog-view', Boolean(showingCatalog));
+	if (showingCatalog) {
+		filterActionMenu.removeAttribute('open');
+		directoryFilterPanel.hidden = true;
+	}
 	if (showingCatalog) {
 		renderCatalogCards(showingCatalog);
 		return;

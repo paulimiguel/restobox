@@ -1782,3 +1782,8 @@ body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(
 /* Filtros de la página Tiendas: tipo de tienda, productos y zona; en el resto, los filtros de siempre */
 body:not([data-stores-mode='true']) .store-only-filter { display: none; }
 body[data-stores-mode='true'] .restaurant-only-filter { display: none; }
+
+/* Vistas de categorías, cocinas, servicios y zonas: sin el botón Filtrar */
+body.catalog-view .directory-actions-grid .filter-action-menu, body.catalog-view #directory-filter-panel { display: none !important; }
+body.catalog-view .directory-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 270px); }
+@media (max-width: 640px) { body.catalog-view .directory-actions-grid { width: 100%; } }
