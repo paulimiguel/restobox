@@ -1787,3 +1787,25 @@ body[data-stores-mode='true'] .restaurant-only-filter { display: none; }
 body.catalog-view .directory-actions-grid .filter-action-menu, body.catalog-view #directory-filter-panel { display: none !important; }
 body.catalog-view .directory-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 270px); }
 @media (max-width: 640px) { body.catalog-view .directory-actions-grid { width: 100%; } }
+
+/* Vistas de categorías, cocinas, servicios y zonas: sin búsqueda ni tipo de lugar, con título propio, tamaños de tarjeta y orden por nombre */
+.directory-owner-summary .catalog-title { display: none; }
+body.catalog-view .directory-owner-summary .catalog-title { display: block; }
+body.catalog-view .directory-owner-summary h1:not(.catalog-title) { display: none; }
+body.catalog-view .directory-search-row, body.catalog-view .search-scope-options, body.catalog-view .search-terms-row { display: none !important; }
+body.catalog-view .view-options [data-directory-view='detail'], body.catalog-view .view-options [data-directory-view='list'] { display: none; }
+.sort-options [data-catalog-sort] { display: none; }
+body.catalog-view .sort-options [data-catalog-sort] { display: block; }
+body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
+.sort-options [data-catalog-sort].active { color: var(--accent-text); background: var(--sage); }
+.restaurant-list.view-catalogs.catalog-size-large { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.restaurant-list.view-catalogs.catalog-size-medium { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.restaurant-list.view-catalogs.catalog-size-small { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.restaurant-list.view-catalogs.catalog-size-small .neighborhood-card-copy { padding: 9px 11px 11px; }
+.restaurant-list.view-catalogs.catalog-size-small .neighborhood-card-copy strong { font-size: 17px; }
+@media (max-width: 640px) {
+	.restaurant-list.view-catalogs.catalog-size-large { grid-template-columns: 1fr; }
+	.restaurant-list.view-catalogs.catalog-size-medium { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.restaurant-list.view-catalogs.catalog-size-small { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+	.restaurant-list.view-catalogs.catalog-size-small .neighborhood-card-copy strong { font-size: 14px; }
+}

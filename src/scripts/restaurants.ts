@@ -2323,12 +2323,37 @@ function catalogPlaceholderIcon(kind: CatalogCardKind) {
 	return '<path d="M4 5h10l6 6-9 9-7-7Z"/><circle cx="9" cy="10" r="1"/>';
 }
 
+const catalogTitles: Record<CatalogCardKind, string> = { neighborhood: 'Zonas', establishment: 'Categorías', service: 'Servicios', cuisine: 'Tipos de cocina' };
+let catalogSortAscending = true;
+
+// En las vistas de categorías, cocinas, servicios y zonas, Ver elige el tamaño de las tarjetas y Ordenar el sentido del nombre.
+function updateCatalogMenus(size: 'large' | 'medium' | 'small') {
+	const sizeView = size === 'large' ? 'columns-5' : size === 'medium' ? 'columns-6' : 'small-icons';
+	document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => {
+		const active = button.dataset.directoryView === sizeView;
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-pressed', String(active));
+		if (active) {
+			const selectedIcon = button.querySelector('svg');
+			if (selectedIcon) directoryViewIcon.innerHTML = selectedIcon.innerHTML;
+		}
+	});
+	document.querySelectorAll<HTMLButtonElement>('[data-catalog-sort]').forEach((button) => {
+		const active = (button.dataset.catalogSort === 'asc') === catalogSortAscending;
+		button.classList.toggle('active', active);
+		button.setAttribute('aria-pressed', String(active));
+	});
+}
+
 function renderCatalogCards(kind: CatalogCardKind) {
-	const values = catalogValues(kind);
+	const values = catalogValues(kind).sort((a, b) => (catalogSortAscending ? 1 : -1) * a.localeCompare(b, 'es', { sensitivity: 'base' }));
 	const meta = catalogCardMeta[kind];
+	const size = directoryView === 'columns-5' ? 'large' : directoryView === 'small-icons' ? 'small' : 'medium';
 	cardRenderVersion += 1;
 	visibleRestaurantIds = [];
-	list.className = 'restaurant-list view-neighborhoods view-catalogs';
+	list.className = `restaurant-list view-neighborhoods view-catalogs catalog-size-${size}`;
+	document.querySelector<HTMLElement>('#catalog-title')!.textContent = catalogTitles[kind];
+	updateCatalogMenus(size);
 	list.innerHTML = values.map((value) => {
 		const encodedValue = encodeURIComponent(value);
 		const image = catalogImage(kind, value);
@@ -5229,8 +5254,7 @@ closeDirectoryFilterPanelButton.addEventListener('click', () => {
 	directoryFilterPanel.hidden = true;
 });
 document.querySelectorAll<HTMLButtonElement>('[data-directory-view]').forEach((button) => button.addEventListener('click', () => {
-	showingCatalog = null;
-	mapShowList = true;
+	if (!showingCatalog) mapShowList = true;
 	directoryView = button.dataset.directoryView || 'normal';
 	localStorage.setItem('restobox-directory-view', directoryView);
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
@@ -5247,6 +5271,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-directory-sort-key]').forEac
 	else if (directorySort.startsWith(`${key}-`)) directorySort = directorySort.endsWith('-asc') ? `${key}-desc` : `${key}-asc`;
 	else directorySort = `${key}-asc`;
 	localStorage.setItem('restobox-directory-sort', directorySort);
+	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
+	render();
+}));
+document.querySelectorAll<HTMLButtonElement>('[data-catalog-sort]').forEach((button) => button.addEventListener('click', () => {
+	catalogSortAscending = button.dataset.catalogSort !== 'desc';
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	render();
 }));
