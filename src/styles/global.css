@@ -1664,3 +1664,7 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	#panel-general .establishment-lead { row-gap: 6px; }
 	.view-mode #panel-general .establishment-lead { row-gap: 6px; }
 }
+
+@media (max-width: 640px) {
+	.lead-contacts > .location-fields { order: 2; }
+}

@@ -5367,6 +5367,19 @@ document.querySelector('#main-search-button')!.addEventListener('click', () => {
 	search.focus({ preventScroll: true });
 });
 
+// En el celular, ciudad y provincia van dentro del cuadro de datos, debajo de WhatsApp.
+const locationFieldsBlock = document.querySelector<HTMLElement>('#panel-general .location-fields');
+const whatsappGeneralField = document.querySelector<HTMLElement>('.whatsapp-general-field');
+const locationFieldsAnchor = document.querySelector<HTMLElement>('#map-field-general-anchor');
+const phoneLayoutQuery = window.matchMedia('(max-width: 640px)');
+function placeLocationFields() {
+	if (!locationFieldsBlock || !whatsappGeneralField || !locationFieldsAnchor) return;
+	if (phoneLayoutQuery.matches) whatsappGeneralField.after(locationFieldsBlock);
+	else locationFieldsAnchor.before(locationFieldsBlock);
+}
+placeLocationFields();
+phoneLayoutQuery.addEventListener('change', placeLocationFields);
+
 const tabbarTargets: Record<string, string> = {
 	directory: '#header-directory',
 	establishment: '.show-catalogs-button[data-show-catalog="establishment"]',
