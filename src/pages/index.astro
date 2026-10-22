@@ -87,6 +87,7 @@ const userInitials = userDisplayName
 								<button type="button" id="header-print-directory"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 								<button type="button" id="header-empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
 								<button type="button" id="header-install-app"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M12 8v6m0 0-2.5-2.5M12 14l2.5-2.5M11 18.5h2"/></svg>Instalar app en el inicio</button>
+								<button type="button" id="open-extension-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.8 8h14.4M8 4.8l4 7.2m4-7.2L12 12m0 0v8"/></svg>Instalar Extensión Chrome</button>
 							</div>
 						</details>
 
@@ -145,7 +146,6 @@ const userInitials = userDisplayName
 										<button type="button" data-font-theme-value="clasica"><span class="font-preview font-preview-clasica">Aa</span><span>Clásica</span></button>
 									</div>
 								</details>
-								<button type="button" id="open-extension-dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.8 8h14.4M8 4.8l4 7.2m4-7.2L12 12m0 0v8"/></svg>Instalar Extensión Chrome</button>
 								<div class="dropdown-separator"></div>
 								<button type="button" id="logout-button"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></svg>Cerrar sesión</button>
 							</div>
@@ -196,6 +196,7 @@ const userInitials = userDisplayName
 									<button type="button" data-mobile-menu-action="print"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 									<button type="button" data-mobile-menu-action="empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
 									<button type="button" data-mobile-menu-action="install-app"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M12 8v6m0 0-2.5-2.5M12 14l2.5-2.5M11 18.5h2"/></svg>Instalar app en el inicio</button>
+									<button type="button" data-mobile-menu-action="extension"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.8 8h14.4M8 4.8l4 7.2m4-7.2L12 12m0 0v8"/></svg>Instalar Extensión Chrome</button>
 								</div>
 							</details>
 						</nav>
@@ -321,8 +322,6 @@ const userInitials = userDisplayName
 							<div class="filter-control"><span>Categorías</span><details class="filter-multiselect"><summary><span id="establishment-filter-label">Todas las categorías</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="establishment-filter-options" class="filter-checkbox-list"></div></details><div id="establishment-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Servicios</span><details class="filter-multiselect"><summary><span id="meal-filter-label">Todos los servicios</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="meal-filter-options" class="filter-checkbox-list"></div></details><div id="meal-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Tipo de cocina</span><details class="filter-multiselect"><summary><span id="cuisine-filter-label">Todos los tipos de cocina</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="cuisine-filter-options" class="filter-checkbox-list"></div></details><div id="cuisine-filter-chips" class="filter-chips"></div></div>
-							<div class="filter-control"><span>Etiquetas</span><details class="filter-multiselect"><summary><span id="tag-filter-label">Todas las etiquetas</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="tag-filter-options" class="filter-checkbox-list"></div></details><div id="tag-filter-chips" class="filter-chips"></div></div>
-							<div class="filter-control"><span>Ciudad</span><details class="filter-multiselect"><summary><span id="city-filter-label">Todas las ciudades</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="city-filter-options" class="filter-checkbox-list"></div></details><div id="city-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control"><span>Zona</span><details class="filter-multiselect"><summary><span id="neighborhood-filter-label">Todas las zonas</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="neighborhood-filter-options" class="filter-checkbox-list"></div></details><div id="neighborhood-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-status-buttons" aria-label="Filtros rápidos">
 								<button id="favorite-filter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favoritos</button>

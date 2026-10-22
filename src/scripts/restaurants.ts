@@ -208,20 +208,20 @@ const establishmentFilterOptions = document.querySelector<HTMLDivElement>('#esta
 const mealFilterOptions = document.querySelector<HTMLDivElement>('#meal-filter-options')!;
 const cuisineFilterOptions = document.querySelector<HTMLDivElement>('#cuisine-filter-options')!;
 const neighborhoodFilterOptions = document.querySelector<HTMLDivElement>('#neighborhood-filter-options')!;
-const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options')!;
-const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options')!;
+const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
+const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options');
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
 const mealFilterLabel = document.querySelector<HTMLElement>('#meal-filter-label')!;
 const cuisineFilterLabel = document.querySelector<HTMLElement>('#cuisine-filter-label')!;
 const neighborhoodFilterLabel = document.querySelector<HTMLElement>('#neighborhood-filter-label')!;
-const tagFilterLabel = document.querySelector<HTMLElement>('#tag-filter-label')!;
-const cityFilterLabel = document.querySelector<HTMLElement>('#city-filter-label')!;
+const tagFilterLabel = document.querySelector<HTMLElement>('#tag-filter-label');
+const cityFilterLabel = document.querySelector<HTMLElement>('#city-filter-label');
 const establishmentFilterChips = document.querySelector<HTMLDivElement>('#establishment-filter-chips')!;
 const mealFilterChips = document.querySelector<HTMLDivElement>('#meal-filter-chips')!;
 const cuisineFilterChips = document.querySelector<HTMLDivElement>('#cuisine-filter-chips')!;
 const neighborhoodFilterChips = document.querySelector<HTMLDivElement>('#neighborhood-filter-chips')!;
-const tagFilterChips = document.querySelector<HTMLDivElement>('#tag-filter-chips')!;
-const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chips')!;
+const tagFilterChips = document.querySelector<HTMLDivElement>('#tag-filter-chips');
+const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chips');
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
 const visitedFilterButton = document.querySelector<HTMLButtonElement>('#visited-filter')!;
 const checkedFilterButton = document.querySelector<HTMLButtonElement>('#checked-filter')!;
@@ -1011,8 +1011,8 @@ function updateDirectoryFilterLabels() {
 	mealFilterLabel.textContent = summary(selectedMealFilters, 'Todos los servicios');
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
 	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todas las zonas');
-	tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
-	cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
+	if (tagFilterLabel) tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
+	if (cityFilterLabel) cityFilterLabel.textContent = summary(selectedCityFilters, 'Todas las ciudades');
 	const chips = (values: Set<string>, group: string) => [...values].map((value) => `
 		<span class="filter-chip">${safe(value)}<button type="button" data-remove-filter="${group}" data-filter-value="${safe(value)}" aria-label="Quitar filtro ${safe(value)}" title="Quitar">×</button></span>`).join('');
 	establishmentFilterChips.innerHTML = chips(selectedEstablishmentFilters, 'establishment');
@@ -1030,8 +1030,8 @@ function updateDirectoryFilterLabels() {
 	directoryActiveFilters.hidden = !hasVisibleCatalogFilters;
 	clearActiveDirectoryFiltersButton.hidden = !hasVisibleCatalogFilters;
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
-	tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
-	cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
+	if (tagFilterChips) tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
+	if (cityFilterChips) cityFilterChips.innerHTML = chips(selectedCityFilters, 'city');
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-establishment-filter]').forEach((input) => { input.checked = selectedEstablishmentFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-meal-filter]').forEach((input) => { input.checked = selectedMealFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-cuisine-filter]').forEach((input) => { input.checked = selectedCuisineFilters.has(input.value); });
@@ -1071,11 +1071,11 @@ function renderAdditionalFilterOptions() {
 		<label><input type="checkbox" value="${safe(value)}" data-neighborhood-filter${selectedNeighborhoodFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
 	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).sort((a, b) => a.localeCompare(b, 'es'));
 	selectedTagFilters = new Set([...selectedTagFilters].filter((value) => availableTags.includes(value)));
-	tagFilterOptions.innerHTML = availableTags.map((value) => `
+	if (tagFilterOptions) tagFilterOptions.innerHTML = availableTags.map((value) => `
 		<label><input type="checkbox" value="${safe(value)}" data-tag-filter${selectedTagFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
 	const availableCities = [...new Set([...cities, ...restaurants.map((restaurant) => restaurant.city).filter(Boolean)])].sort((a, b) => a.localeCompare(b, 'es'));
 	selectedCityFilters = new Set([...selectedCityFilters].filter((value) => availableCities.includes(value)));
-	cityFilterOptions.innerHTML = availableCities.map((value) => `
+	if (cityFilterOptions) cityFilterOptions.innerHTML = availableCities.map((value) => `
 		<label><input type="checkbox" value="${safe(value)}" data-city-filter${selectedCityFilters.has(value) ? ' checked' : ''} />${safe(value)}</label>`).join('');
 	updateDirectoryFilterLabels();
 	headerEstablishmentOptions.innerHTML = establishmentTypes.map((value) => `<button type="button" data-header-filter="establishment" data-header-filter-value="${safe(value)}">${safe(value)}</button>`).join('');
@@ -5290,6 +5290,7 @@ mobileMenuLayer.addEventListener('click', (event) => {
 			print: '#header-print-directory',
 			'empty-fields': '#header-empty-fields',
 			'install-app': '#header-install-app',
+			extension: '#open-extension-dialog',
 		};
 		const targetSelector = actionTargets[actionButton.dataset.mobileMenuAction ?? ''];
 		closeMobileMenu({ restoreFocus: false });
