@@ -542,6 +542,8 @@ let selectedProducts: string[] = [];
 let searchTerms: string[] = [];
 let searchScope: 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
+// En el mapa se pueden combinar restaurantes, cafés y tiendas a la vez.
+const mapPlaceTypes = new Set<'restaurant' | 'cafe' | 'store'>();
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -2490,8 +2492,10 @@ function render() {
 		).map(neighborhoodImageKey);
 		const matchesTerm = normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
 		const normalizedEstablishments = restaurantEstablishments.map(neighborhoodImageKey);
-		const matchesQuickType = quickPlaceType === 'all'
-			|| normalizedEstablishments.some((value) => value.startsWith(quickPlaceType === 'restaurant' ? 'restaur' : quickPlaceType === 'cafe' ? 'cafe' : 'tienda'));
+		const quickPrefix = (type: string) => type === 'restaurant' ? 'restaur' : type === 'cafe' ? 'cafe' : 'tienda';
+		const matchesQuickType = mapMode
+			? mapPlaceTypes.size === 0 || [...mapPlaceTypes].some((type) => normalizedEstablishments.some((value) => value.startsWith(quickPrefix(type))))
+			: quickPlaceType === 'all' || normalizedEstablishments.some((value) => value.startsWith(quickPrefix(quickPlaceType)));
 		const restaurantTagValues = restaurantTags(restaurant).map((tag) => tag.toLocaleLowerCase('es'));
 		const matchesEstablishment = !selectedEstablishmentFilters.size || [...selectedEstablishmentFilters].some((value) => restaurantEstablishments.includes(value));
 		const matchesMeal = !selectedMealFilters.size || [...selectedMealFilters].some((value) => restaurantMeals.includes(value));
@@ -2532,6 +2536,7 @@ function render() {
 	});
 	const isFiltered = normalizedSearchTerms.length > 0
 		|| quickPlaceType !== 'all'
+		|| mapPlaceTypes.size > 0
 		|| selectedEstablishmentFilters.size > 0
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
@@ -4936,7 +4941,10 @@ function updateSearchInlineActions() {
 
 function updateQuickPlaceFilterButtons() {
 	quickPlaceFilterButtons.forEach((button) => {
-		const active = button.dataset.placeType === quickPlaceType;
+		const type = button.dataset.placeType;
+		const active = mapMode
+			? (type === 'all' ? mapPlaceTypes.size === 0 : mapPlaceTypes.has(type as 'restaurant' | 'cafe' | 'store'))
+			: type === quickPlaceType;
 		button.classList.toggle('active', active);
 		button.setAttribute('aria-checked', String(active));
 	});
@@ -5022,7 +5030,13 @@ searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
 }));
 quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextType = button.dataset.placeType;
-	if (nextType === 'all') quickPlaceType = 'all';
+	if (mapMode) {
+		if (nextType === 'all') mapPlaceTypes.clear();
+		else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') {
+			if (mapPlaceTypes.has(nextType)) mapPlaceTypes.delete(nextType);
+			else mapPlaceTypes.add(nextType);
+		}
+	} else if (nextType === 'all') quickPlaceType = 'all';
 	else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
 	showingCatalog = null;
 	updateQuickPlaceFilterButtons();
@@ -5115,6 +5129,7 @@ takeAwayFilterButton.addEventListener('click', () => {
 });
 function clearDirectoryFilterSelections() {
 	quickPlaceType = 'all';
+	mapPlaceTypes.clear();
 	updateQuickPlaceFilterButtons();
 	selectedEstablishmentFilters.clear();
 	selectedMealFilters.clear();
