@@ -5,6 +5,7 @@ import { getUserProfile } from '../lib/server/auth';
 import pedidosYaLogoUrl from '../../imagenes/logos/logo pedidos ya negro.png?url';
 const profileMode = Astro.props.profile === true;
 const mapMode = Astro.props.map === true;
+const storesMode = Astro.props.stores === true;
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
 const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
@@ -32,7 +33,7 @@ const userInitials = userDisplayName
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-title" content="FoodieBox" />
-		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : 'FoodieBox · Directorio de restaurantes'}</title>
+		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : storesMode ? 'FoodieBox · Tiendas' : 'FoodieBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -43,7 +44,7 @@ const userInitials = userDisplayName
 			}
 		</script>
 	</head>
-	<body data-profile-mode={profileMode ? 'true' : 'false'} data-map-mode={mapMode ? 'true' : 'false'}>
+	<body data-profile-mode={profileMode ? 'true' : 'false'} data-map-mode={mapMode ? 'true' : 'false'} data-stores-mode={storesMode ? 'true' : 'false'}>
 		<div class="app-shell">
 			<main>
 				<header class="topbar">
@@ -55,6 +56,7 @@ const userInitials = userDisplayName
 						</button>
 
 						<button class="top-nav-button header-nav-link" id="header-directory" type="button">DIRECTORIO</button>
+						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 						<details class="top-dropdown category-dropdown">
 							<summary class="top-nav-button"><span>CATEGORÍA</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel category-panel catalog-menu-panel"><div id="header-establishment-options" class="catalog-menu-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categorías</button></div>
@@ -165,6 +167,7 @@ const userInitials = userDisplayName
 						<nav class="mobile-menu-nav" aria-label="Men&uacute; principal m&oacute;vil">
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>BUSCAR</button>
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="directory">DIRECTORIO</button>
+							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 							<details class="mobile-menu-section">
 								<summary><span>CATEGOR&Iacute;A</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options mobile-catalog-menu-options"><div id="mobile-establishment-options"></div><button class="show-catalogs-button" type="button" data-show-catalog="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>Mostrar categor&iacute;as</button></div>
@@ -206,7 +209,7 @@ const userInitials = userDisplayName
 				<div class="content">
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
-							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>
@@ -228,7 +231,6 @@ const userInitials = userDisplayName
 										<button class="quick-place-filter active" type="button" role="radio" aria-checked="true" data-place-type="all"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Todos</button>
 										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="restaurant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg>Restaurantes</button>
 										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="cafe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/></svg>Cafes</button>
-										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>Tiendas</button>
 									</div>
 								</div>
 								<div class="directory-toolbar-lower-row">

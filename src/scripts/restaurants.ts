@@ -185,6 +185,15 @@ const list = document.querySelector<HTMLDivElement>('#restaurant-list')!;
 const profileMode = document.body.dataset.profileMode === 'true';
 // En /mapa el directorio muestra un mapa con los lugares filtrados en lugar de las tarjetas.
 const mapMode = document.body.dataset.mapMode === 'true';
+// En /tiendas se muestran solo las tiendas; el directorio principal las deja afuera.
+const storesMode = document.body.dataset.storesMode === 'true';
+function isStorePlace(restaurant: Restaurant) {
+	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === 'tienda');
+}
+function isInCurrentScope(restaurant: Restaurant) {
+	if (profileMode || mapMode) return true;
+	return storesMode ? isStorePlace(restaurant) : !isStorePlace(restaurant);
+}
 let mapShowList = false;
 document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode; });
 const mapPanel = document.querySelector<HTMLElement>('#map-panel');
@@ -1095,7 +1104,7 @@ function renderNeighborhoodMenus(values: string[]) {
 	showCatalogButtons.forEach((button) => button.classList.toggle('active', button.dataset.showCatalog === showingCatalog));
 	document.querySelectorAll<HTMLButtonElement>('[data-tabbar]').forEach((tab) => {
 		const key = tab.dataset.tabbar;
-		const active = profileMode ? key === 'profile' : mapMode ? false : key === 'directory' ? !showingCatalog : key === showingCatalog;
+		const active = profileMode ? key === 'profile' : mapMode || storesMode ? false : key === 'directory' ? !showingCatalog : key === showingCatalog;
 		tab.classList.toggle('active', active);
 		if (active) tab.setAttribute('aria-current', 'page');
 		else tab.removeAttribute('aria-current');
@@ -2469,6 +2478,7 @@ function render() {
 		.map(neighborhoodImageKey)
 		.filter(Boolean);
 	const filtered = restaurants.filter((restaurant) => {
+		if (!isInCurrentScope(restaurant)) return false;
 		const restaurantEstablishments = getRestaurantEstablishmentTypes(restaurant);
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
@@ -2564,7 +2574,7 @@ function render() {
 		button.classList.toggle('descending', active && (directorySort === 'recent' || directorySort.endsWith('-desc')));
 		button.setAttribute('aria-pressed', String(active));
 	});
-	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.length} lugares`;
+	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.filter(isInCurrentScope).length} ${storesMode ? 'tiendas' : 'lugares'}`;
 
 	const renderCard = (restaurant: Restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
@@ -3083,6 +3093,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	selectedEstablishments = restaurant ? [...getRestaurantEstablishmentTypes(restaurant)] : [];
 	renderSelectedEstablishments();
 	renderEstablishmentOptions();
+	if (!restaurant && storesMode) setPlaceKindSelection('store', true);
 	closeStoreTypeDropdown();
 	selectedStoreTypes = restaurant ? [...(restaurant.storeTypes ?? [])] : [];
 	renderSelectedStoreTypes();
@@ -5675,7 +5686,7 @@ function applyUrlIntent() {
 }
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
-	if (profileMode || mapMode) {
+	if (profileMode || mapMode || storesMode) {
 		window.location.assign('/');
 		return;
 	}
@@ -5724,7 +5735,7 @@ document.addEventListener('click', (event) => {
 showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	const kind = button.dataset.showCatalog as CatalogCardKind | undefined;
 	if (!kind || !catalogCardMeta[kind]) return;
-	if (profileMode || mapMode) {
+	if (profileMode || mapMode || storesMode) {
 		window.location.assign(`/?vista=${kind}`);
 		return;
 	}

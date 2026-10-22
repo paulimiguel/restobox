@@ -1743,9 +1743,9 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 /* Tienda: tercera opción de tipo de lugar y cuarto botón rápido */
 .place-kind-options { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .view-mode #panel-general .place-kind-options { display: flex; width: auto; min-width: 231px; }
-.quick-place-filters { grid-template-columns: repeat(4, auto); }
+.quick-place-filters { grid-template-columns: repeat(3, auto); }
 @media (max-width: 640px) {
-	.quick-place-filters { grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 5px; }
+	.quick-place-filters { grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 5px; }
 	.quick-place-filter { padding-inline: 6px; gap: 4px; font-size: 9px; }
 	.quick-place-filter svg { width: 12px; height: 12px; flex-basis: 12px; }
 	.place-kind-options .boolean-check-control { gap: 5px; padding: 5px 6px; font-size: 10px; }
@@ -1763,3 +1763,8 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 .view-mode #panel-details .products-field, .view-mode #panel-details .branches-field { grid-column: 1 / -1; }
 #panel-details.store-mode .establishment-type-field:not(.store-type-field) { display: none !important; }
 .store-type-dropdown { right: 0; }
+
+/* Página Tiendas */
+body[data-stores-mode='true'] .quick-place-filters { display: none; }
+.top-nav-button[aria-current='page'], .mobile-menu-item[aria-current='page'] { color: var(--accent-text); background: var(--sage); }
+a.mobile-menu-item { text-decoration: none; }
