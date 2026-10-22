@@ -1674,3 +1674,12 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	.view-mode #panel-information .schedule-field { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 	.view-mode #panel-information .schedule-table { width: 100%; margin-top: 0; }
 }
+
+/* Celular: descripción y notas con el título arriba, y en imágenes el video antes del logo */
+@media (max-width: 640px) {
+	.view-mode #panel-description .long-text-field { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+	#panel-images .image-sidebar { display: contents; }
+	#panel-images .image-gallery-column { order: 1; }
+	#panel-images .video-field { order: 2; }
+	#panel-images .logo-field { order: 3; }
+}
