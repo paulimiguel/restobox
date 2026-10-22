@@ -1,6 +1,6 @@
 {
-	"name": "RestoBox",
-	"short_name": "RestoBox",
+	"name": "FoodieBox",
+	"short_name": "FoodieBox",
 	"description": "Directorio privado de lugares gastronómicos.",
 	"lang": "es",
 	"start_url": "/",

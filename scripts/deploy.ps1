@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
 	[Parameter(Position = 0)]
-	[string]$Message = "Actualización de RestoBox",
+	[string]$Message = "Actualización de FoodieBox",
 	[string]$Server = "vps1.beweb.com.ar",
 	[string]$RemoteUser = "restobox",
 	[string]$RemoteRoot = "/home/restobox/htdocs/restobox.beweb.com.ar",
@@ -72,4 +72,4 @@ finally {
 	if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
 }
 
-Write-Host "RestoBox fue publicado correctamente en https://restobox.beweb.com.ar" -ForegroundColor Green
+Write-Host "FoodieBox fue publicado correctamente en https://restobox.beweb.com.ar" -ForegroundColor Green

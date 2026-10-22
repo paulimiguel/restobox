@@ -5310,19 +5310,24 @@ const fontThemeButtons = document.querySelectorAll<HTMLButtonElement>('[data-fon
 const colorModeButtons = document.querySelectorAll<HTMLButtonElement>('[data-color-mode-value]');
 const headerThemeLogo = document.querySelector<HTMLImageElement>('#header-theme-logo')!;
 const themeLogos: Record<string, string> = {
-	aguamarina: '/restobox-theme-aguamarina-transparent.png',
-	carrot: '/restobox-theme-carrot-transparent.png',
-	frutilla: '/restobox-theme-frutilla-transparent.png',
-	grises: '/restobox-theme-grises-transparent.png',
-	pasteles: '/restobox-theme-pasteles-transparent.png',
-	salmon: '/restobox-theme-salmon-transparent.png',
-	tierra: '/restobox-theme-tierra-transparent.png',
-	violetas: '/restobox-theme-violetas-transparent.png',
+	aguamarina: '/foodiebox-theme-aguamarina-transparent.png',
+	carrot: '/foodiebox-theme-carrot-transparent.png',
+	frutilla: '/foodiebox-theme-frutilla-transparent.png',
+	grises: '/foodiebox-theme-grises-transparent.png',
+	pasteles: '/foodiebox-theme-pasteles-transparent.png',
+	salmon: '/foodiebox-theme-salmon-transparent.png',
+	tierra: '/foodiebox-theme-tierra-transparent.png',
+	violetas: '/foodiebox-theme-violetas-transparent.png',
 };
+// El logo cambia con el tema y, en modo oscuro, usa la versión con el texto claro.
+function updateHeaderLogo() {
+	const base = themeLogos[document.documentElement.dataset.theme ?? ''] ?? '/foodiebox-logo-transparent.png';
+	headerThemeLogo.src = document.documentElement.dataset.colorMode === 'dark' ? base.replace('-transparent.png', '-dark-transparent.png') : base;
+}
 function applyTheme(theme: string) {
 	document.documentElement.dataset.theme = theme;
 	localStorage.setItem('theme', theme);
-	headerThemeLogo.src = themeLogos[theme] ?? '/restobox-logo-transparent.png';
+	updateHeaderLogo();
 	themeButtons.forEach((button) => button.classList.toggle('active', button.dataset.themeValue === theme));
 }
 
@@ -5335,6 +5340,7 @@ function applyColorMode(mode: string) {
 	const selectedMode = mode === 'dark' ? 'dark' : 'light';
 	document.documentElement.dataset.colorMode = selectedMode;
 	document.documentElement.style.colorScheme = selectedMode;
+	updateHeaderLogo();
 	try {
 		localStorage.setItem('restobox-color-mode', selectedMode);
 	} catch {
@@ -5511,7 +5517,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => {
 	installPromptEvent = null;
 	setInstallButtonsHidden(true);
-	showToast('RestoBox se agregó a la pantalla de inicio');
+	showToast('FoodieBox se agregó a la pantalla de inicio');
 });
 if ('serviceWorker' in navigator) void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
 function showInstallInstructions() {
@@ -5521,7 +5527,7 @@ function showInstallInstructions() {
 	const steps = document.querySelector<HTMLElement>('#install-app-steps')!;
 	if (isIos) {
 		intro.textContent = 'En iPhone y iPad se agrega desde Safari:';
-		steps.innerHTML = '<li>Abrí RestoBox en <strong>Safari</strong>.</li><li>Tocá el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li><li>Elegí <strong>Añadir a pantalla de inicio</strong> y confirmá con <strong>Añadir</strong>.</li>';
+		steps.innerHTML = '<li>Abrí FoodieBox en <strong>Safari</strong>.</li><li>Tocá el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li><li>Elegí <strong>Añadir a pantalla de inicio</strong> y confirmá con <strong>Añadir</strong>.</li>';
 	} else {
 		intro.textContent = 'Tu navegador no mostró el instalador automático. Podés agregarlo a mano:';
 		steps.innerHTML = '<li>Abrí el <strong>menú del navegador</strong> (los tres puntos).</li><li>Elegí <strong>Instalar app</strong> o <strong>Agregar a pantalla de inicio</strong>.</li><li>Confirmá y el ícono de RestoBox aparecerá en tu pantalla de inicio.</li>';
@@ -5531,7 +5537,7 @@ function showInstallInstructions() {
 document.querySelector('#header-install-app')?.addEventListener('click', async () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
 	if (isStandaloneApp()) {
-		showToast('RestoBox ya está instalada en este dispositivo');
+		showToast('FoodieBox ya está instalada en este dispositivo');
 		return;
 	}
 	if (installPromptEvent) {

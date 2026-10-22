@@ -24,14 +24,15 @@ const userInitials = userDisplayName
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="description" content="Directorio privado para centralizar la información de tus restaurantes." />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+		<link rel="icon" type="image/png" href="/favicon.png?v=4" />
+		<link rel="shortcut icon" href="/favicon.ico?v=4" />
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 		<meta name="theme-color" content="#f90344" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-title" content="RestoBox" />
-		<title>{profileMode ? 'RestoBox · Mi perfil' : mapMode ? 'RestoBox · Mapa de lugares' : 'RestoBox · Directorio de restaurantes'}</title>
+		<meta name="apple-mobile-web-app-title" content="FoodieBox" />
+		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : 'FoodieBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -46,7 +47,7 @@ const userInitials = userDisplayName
 		<div class="app-shell">
 			<main>
 				<header class="topbar">
-					<a class="header-brand" href="/" aria-label="RestoBox, inicio"><img id="header-theme-logo" src="/restobox-logo-transparent.png" alt="RestoBox" /></a>
+					<a class="header-brand" href="/" aria-label="FoodieBox, inicio"><img id="header-theme-logo" src="/foodiebox-logo-transparent.png" alt="FoodieBox" /></a>
 					<nav class="top-actions" aria-label="Menú principal">
 						<button class="top-nav-button" id="main-search-button" type="button">
 							<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
@@ -936,7 +937,7 @@ const userInitials = userDisplayName
 		<dialog id="install-app-dialog" class="mini-dialog install-app-dialog">
 			<div class="install-app-content">
 				<img src="/icons/icon-192.png" alt="" width="64" height="64" />
-				<h2>Agregar RestoBox al inicio</h2>
+				<h2>Agregar FoodieBox al inicio</h2>
 				<p id="install-app-intro" class="bulk-edit-help"></p>
 				<ol id="install-app-steps" class="install-app-steps"></ol>
 				<div class="mini-dialog-actions">
@@ -1005,10 +1006,10 @@ const userInitials = userDisplayName
 		<dialog id="extension-dialog" class="mini-dialog extension-dialog">
 			<div class="extension-dialog-content">
 				<div class="profile-dialog-heading">
-					<h2>Extensión Chrome de RestoBox</h2>
+					<h2>Extensión Chrome de FoodieBox</h2>
 					<button id="close-extension-dialog" class="profile-close-button" type="button" aria-label="Cerrar">×</button>
 				</div>
-				<p class="extension-intro">Importá el lugar de la página que estás visitando directamente en RestoBox.</p>
+				<p class="extension-intro">Importá el lugar de la página que estás visitando directamente en FoodieBox.</p>
 				<ol class="extension-steps">
 					<li><span>1</span><div><strong>Descargá la extensión</strong><small>Guardá y descomprimí el archivo ZIP.</small></div></li>
 					<li><span>2</span><div><strong>Abrí las extensiones de Chrome</strong><small>Ingresá <code>chrome://extensions/</code> en la barra del navegador.</small></div></li>

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "RestoBox - Importar lugares",
-  "version": "1.0.1",
-  "description": "Importa lugares y restaurantes desde la página que estás visitando a RestoBox.",
+  "name": "FoodieBox - Importar lugares",
+  "version": "1.0.2",
+  "description": "Importa lugares y restaurantes desde la página que estás visitando a FoodieBox.",
   "permissions": ["activeTab", "tabs"],
   "background": {
     "service_worker": "js/background.js"
@@ -37,7 +37,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/mark.svg"],
+      "resources": ["icons/icon48.png"],
       "matches": ["<all_urls>"]
     }
   ]

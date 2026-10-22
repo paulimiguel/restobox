@@ -22,12 +22,12 @@ function addImportButton() {
   const button = document.createElement('button');
   button.id = 'restobox-import-button';
   button.type = 'button';
-  button.title = 'Importar este lugar a RestoBox';
+  button.title = 'Importar este lugar a FoodieBox';
   const icon = document.createElement('img');
-  icon.src = chrome.runtime.getURL('icons/mark.svg');
+  icon.src = chrome.runtime.getURL('icons/icon48.png');
   icon.alt = '';
   const tooltip = document.createElement('span');
-  tooltip.textContent = 'Importar a RestoBox';
+  tooltip.textContent = 'Importar a FoodieBox';
   button.append(icon, tooltip);
   button.addEventListener('click', openImporter);
   document.body.append(button);

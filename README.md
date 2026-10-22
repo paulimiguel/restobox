@@ -1,4 +1,4 @@
-# RestoBox
+# FoodieBox
 
 Base privada de lugares gastronómicos. La interfaz sigue hecha con Astro, pero los datos ya no dependen del navegador: el servidor guarda los registros en SQLite y las imágenes en disco.
 

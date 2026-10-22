@@ -11,8 +11,9 @@ const googleLoginUrl = `/api/auth/google/start?next=${encodeURIComponent(next)}`
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
-		<title>Ingresar | RestoBox</title>
+		<link rel="icon" type="image/png" href="/favicon.png?v=4" />
+		<link rel="shortcut icon" href="/favicon.ico?v=4" />
+		<title>Ingresar | FoodieBox</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -51,7 +52,10 @@ const googleLoginUrl = `/api/auth/google/start?next=${encodeURIComponent(next)}`
 	</head>
 	<body>
 		<main>
-			<img src="/restobox-logo-transparent.png" alt="RestoBox" />
+			<img id="login-logo" src="/foodiebox-logo-transparent.png" alt="FoodieBox" />
+			<script is:inline>
+				if (document.documentElement.dataset.colorMode === 'dark') document.querySelector('#login-logo').src = '/foodiebox-logo-dark-transparent.png';
+			</script>
 			<h1>Ingresar</h1>
 			{passwordConfigured || googleConfigured ? <p>Accedé a tu base de lugares.</p> : <p class="setup">Configurá un método de ingreso en el servidor para continuar.</p>}
 			<p id="error" role="alert"></p>
