@@ -1869,3 +1869,4 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .branch-action[aria-disabled="true"] { opacity: .35; pointer-events: none; }
 @media (max-width: 640px) { .branches-list-header, .branches-list-row { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.4fr) minmax(0, 1fr); } .branches-list-header > span, .branches-list-row > span { padding-inline: 8px; } }
 #panel-details.store-mode :is(label:has(input[name="score"]), .rate-field, label:has(input[name="delivery"]), label:has(input[name="takeAway"])) { display: none !important; }
+.view-mode .edit-branches-button, .edit-branches-button[hidden] { display: none !important; }
