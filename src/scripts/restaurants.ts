@@ -20,6 +20,7 @@ type Restaurant = {
 	address: string;
 	neighborhood: string;
 	hasBranches?: boolean;
+	branchList?: Array<{ address: string; zone: string }>;
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
@@ -383,6 +384,15 @@ const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number
 const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp-number-general')!;
 const pedidosYaInput = document.querySelector<HTMLInputElement>('#pedidosya-url')!;
 const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
+const hasBranchesInput = document.querySelector<HTMLInputElement>('input[name="hasBranches"]')!;
+const branchListInput = document.querySelector<HTMLInputElement>('#branch-list-value')!;
+const editBranchesButton = document.querySelector<HTMLButtonElement>('#edit-branches')!;
+const branchesDialog = document.querySelector<HTMLDialogElement>('#branches-dialog')!;
+const branchesForm = document.querySelector<HTMLFormElement>('#branches-form')!;
+const branchesRows = document.querySelector<HTMLTableSectionElement>('#branches-rows')!;
+const addBranchButton = document.querySelector<HTMLButtonElement>('#add-branch')!;
+const closeBranchesButton = document.querySelector<HTMLButtonElement>('#close-branches')!;
+const cancelBranchesButton = document.querySelector<HTMLButtonElement>('#cancel-branches')!;
 const notesInput = document.querySelector<HTMLTextAreaElement>('#restaurant-notes')!;
 const discountsInput = document.querySelector<HTMLTextAreaElement>('#restaurant-discounts')!;
 const countryInput = form.elements.namedItem('country') as HTMLInputElement;
@@ -2428,6 +2438,79 @@ async function optimizedNeighborhoodImage(file: File) {
 	}
 }
 
+function parseBranchList(value: string) {
+	try {
+		const parsed = JSON.parse(value);
+		if (!Array.isArray(parsed)) return [];
+		return parsed
+			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim() }))
+			.filter((item) => item.address || item.zone);
+	} catch {
+		return [];
+	}
+}
+
+function updateBranchesButton() {
+	editBranchesButton.hidden = !hasBranchesInput.checked;
+	editBranchesButton.textContent = `Sucursales (${parseBranchList(branchListInput.value).length})`;
+}
+
+function addBranchRow(address = '', zone = '') {
+	const row = document.createElement('tr');
+	const readOnly = form.classList.contains('view-mode');
+	[['address', address, 'Calle y número'], ['zone', zone, 'Zona o barrio']].forEach(([field, value, placeholder]) => {
+		const cell = document.createElement('td');
+		const input = document.createElement('input');
+		input.dataset.branchField = field;
+		input.value = value;
+		input.placeholder = placeholder;
+		input.maxLength = 120;
+		input.readOnly = readOnly;
+		cell.append(input);
+		row.append(cell);
+	});
+	const removeCell = document.createElement('td');
+	const remove = document.createElement('button');
+	remove.type = 'button';
+	remove.className = 'remove-branch';
+	remove.textContent = '×';
+	remove.setAttribute('aria-label', 'Quitar sucursal');
+	remove.addEventListener('click', () => row.remove());
+	removeCell.append(remove);
+	row.append(removeCell);
+	branchesRows.append(row);
+	return row;
+}
+
+function openBranchesDialog() {
+	const readOnly = form.classList.contains('view-mode');
+	branchesDialog.classList.toggle('read-only', readOnly);
+	branchesRows.replaceChildren();
+	const branches = parseBranchList(branchListInput.value);
+	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '' }]).forEach((branch) => addBranchRow(branch.address, branch.zone));
+	branchesDialog.showModal();
+}
+
+hasBranchesInput.addEventListener('change', () => {
+	updateBranchesButton();
+	if (hasBranchesInput.checked && !parseBranchList(branchListInput.value).length) openBranchesDialog();
+});
+editBranchesButton.addEventListener('click', openBranchesDialog);
+addBranchButton.addEventListener('click', () => addBranchRow().querySelector('input')?.focus());
+closeBranchesButton.addEventListener('click', () => branchesDialog.close());
+cancelBranchesButton.addEventListener('click', () => branchesDialog.close());
+branchesForm.addEventListener('submit', (event) => {
+	event.preventDefault();
+	const branches = [...branchesRows.querySelectorAll('tr')].map((row) => ({
+		address: row.querySelector<HTMLInputElement>('[data-branch-field="address"]')!.value.trim(),
+		zone: row.querySelector<HTMLInputElement>('[data-branch-field="zone"]')!.value.trim(),
+	})).filter((branch) => branch.address || branch.zone);
+	branchListInput.value = JSON.stringify(branches);
+	updateBranchesButton();
+	updateDirtyState();
+	branchesDialog.close();
+});
+
 function openCatalogEditor(kind: CatalogCardKind, value: string) {
 	const meta = catalogCardMeta[kind];
 	editingCatalogKind = kind;
@@ -3254,11 +3337,16 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
+		hasBranchesInput.checked = Boolean(restaurant.hasBranches);
+		branchListInput.value = JSON.stringify(restaurant.branchList ?? []);
 	} else {
+		hasBranchesInput.checked = false;
+		branchListInput.value = '[]';
 		cityInput.value = ensureLocationOption('city', DEFAULT_CITY);
 		provinceInput.value = ensureLocationOption('province', DEFAULT_PROVINCE);
 		countryInput.value = ensureLocationOption('country', DEFAULT_COUNTRY);
 	}
+	updateBranchesButton();
 	normalizeNotesBullets();
 	updatePersonalRate();
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
@@ -6329,7 +6417,8 @@ form.addEventListener('submit', async (event) => {
 		city: savedCity,
 		address: data.address.trim(),
 		neighborhood: savedNeighborhood,
-		hasBranches: existingRestaurant?.hasBranches ?? false,
+		hasBranches: formData.has('hasBranches'),
+		branchList: formData.has('hasBranches') ? parseBranchList(branchListInput.value) : [],
 		branchAddresses: existingRestaurant?.branchAddresses ?? [],
 		phone: data.phone.trim(),
 		mobile: data.mobile.trim(),

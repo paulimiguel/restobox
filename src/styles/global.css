@@ -1839,3 +1839,12 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 /* Mapa con solo Tiendas activo: los mismos filtros que en la página Tiendas */
 body.map-stores-filters .filter-control.store-only-filter { display: grid; }
 body.map-stores-filters .restaurant-only-filter { display: none; }
+
+.edit-branches-button { width: 100%; margin-top: 8px; }
+.branches-dialog { width: min(640px, calc(100% - 30px)); }
+.branches-table { width: 100%; border-collapse: collapse; }
+.branches-table th { padding: 0 6px 6px 0; color: #505852; font-size: 11px; font-weight: 600; text-align: left; }
+.branches-table td { padding: 0 6px 6px 0; }
+.branches-table td:last-child { width: 34px; padding-right: 0; }
+.branches-table .remove-branch { width: 34px; height: 42px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--muted); font-size: 18px; cursor: pointer; }
+.branches-dialog.read-only .remove-branch, .branches-dialog.read-only #add-branch, .branches-dialog.read-only #apply-branches { display: none; }
