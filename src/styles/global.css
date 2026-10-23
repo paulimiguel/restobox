@@ -1840,9 +1840,11 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 body.map-stores-filters .filter-control.store-only-filter { display: grid; }
 body.map-stores-filters .restaurant-only-filter { display: none; }
 
-.branches-field { display: grid; gap: 10px; }
-.branches-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.branches-controls .boolean-check-control { gap: 12px !important; padding-inline: 14px; }
+#panel-details .branches-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 14px; }
+.branches-controls { display: grid; gap: 8px; }
+.branches-controls .boolean-check-control { display: flex !important; flex-direction: row !important; justify-content: flex-start; gap: 12px !important; padding-inline: 14px; }
+.branches-controls .edit-branches-button:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 640px) { #panel-details .branches-field { grid-template-columns: minmax(0, 1fr); } }
 .branches-controls .boolean-check-control input[type="checkbox"] { margin: 0 !important; }
 .branches-dialog { width: min(760px, calc(100% - 30px)); }
 .branches-table { width: 100%; border-collapse: collapse; }

@@ -2511,7 +2511,8 @@ function renderBranchesList() {
 function updateBranchesButton() {
 	const count = parseBranchList(branchListInput.value).length;
 	const readOnly = form.classList.contains('view-mode');
-	editBranchesButton.hidden = !hasBranchesInput.checked || readOnly;
+	editBranchesButton.hidden = readOnly;
+	editBranchesButton.disabled = !hasBranchesInput.checked;
 	editBranchesButton.textContent = count ? `Editar sucursales (${count})` : 'Ingresar sucursales';
 	renderBranchesList();
 }
