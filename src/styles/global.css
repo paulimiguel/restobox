@@ -1855,16 +1855,17 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .branches-table .remove-branch { width: 34px; height: 42px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--muted); font-size: 18px; cursor: pointer; }
 .branches-dialog.read-only .remove-branch, .branches-dialog.read-only #add-branch, .branches-dialog.read-only #apply-branches { display: none; }
 .branches-list { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: white; }
-.branches-list-header, .branches-list-row { display: grid; grid-template-columns: minmax(90px, .8fr) minmax(0, 1.6fr) minmax(0, 1.2fr) 76px; align-items: center; }
+.branches-list-header, .branches-list-row { display: grid; grid-template-columns: minmax(90px, .8fr) minmax(0, 1.6fr) minmax(0, 1.2fr); align-items: center; }
 .branches-list-header { min-height: 29px; color: #4d5650; background: color-mix(in srgb, var(--sage) 60%, white); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
 .branches-list-row { min-height: 38px; color: var(--ink); font-size: 11px; }
 .branches-list-row + .branches-list-row { border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
 .branches-list-header > span, .branches-list-row > span { padding: 6px 12px; overflow-wrap: anywhere; }
 .branches-list-header > span + span, .branches-list-row > span + span { border-left: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
 .branches-list-row > .branch-zone { font-weight: 600; }
-.branches-list-row > .branch-actions { display: flex; justify-content: center; gap: 6px; padding-inline: 6px; }
-.branch-whatsapp { display: flex; align-items: center; gap: 8px; }
+.branches-list-row > .branch-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.branch-whatsapp .branch-action { color: #22a95b; }
 .branch-action { display: inline-grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 7px; color: var(--forest); background: white; }
 .branch-action svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .branch-action[aria-disabled="true"] { opacity: .35; pointer-events: none; }
-@media (max-width: 640px) { .branches-list-header, .branches-list-row { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.4fr) minmax(0, 1fr) 70px; } .branches-list-header > span, .branches-list-row > span { padding-inline: 8px; } }
+@media (max-width: 640px) { .branches-list-header, .branches-list-row { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.4fr) minmax(0, 1fr); } .branches-list-header > span, .branches-list-row > span { padding-inline: 8px; } }
+#panel-details.store-mode :is(label:has(input[name="score"]), .rate-field, label:has(input[name="delivery"]), label:has(input[name="takeAway"])) { display: none !important; }

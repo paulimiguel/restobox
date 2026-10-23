@@ -2478,7 +2478,7 @@ function renderBranchesList() {
 	if (!branches.length) return;
 	const header = document.createElement('div');
 	header.className = 'branches-list-header';
-	['Sucursal', 'Dirección', 'WhatsApp', ''].forEach((title) => {
+	['Sucursal', 'Dirección', 'WhatsApp'].forEach((title) => {
 		const cell = document.createElement('span');
 		cell.textContent = title;
 		header.append(cell);
@@ -2491,19 +2491,20 @@ function renderBranchesList() {
 		const zone = document.createElement('span');
 		zone.className = 'branch-zone';
 		zone.textContent = branch.zone || '—';
-		const address = document.createElement('span');
-		address.textContent = branch.address || '—';
-		const whatsapp = document.createElement('span');
-		whatsapp.className = 'branch-whatsapp';
-		whatsapp.textContent = branch.whatsapp || '—';
-		const actions = document.createElement('span');
-		actions.className = 'branch-actions';
 		const query = [placeName, branch.address, branch.zone, cityInput.value.trim()].filter(Boolean).join(', ');
-		actions.append(
-			branchActionLink(branch.whatsapp ? getWhatsAppUrl(branch.whatsapp, countryInput.value) : '', 'Abrir WhatsApp', BRANCH_WHATSAPP_ICON),
-			branchActionLink(branch.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : '', 'Ver ubicación en Google Maps', BRANCH_LOCATION_ICON),
-		);
-		row.append(zone, address, whatsapp, actions);
+		const address = document.createElement('span');
+		address.className = 'branch-cell';
+		const addressText = document.createElement('span');
+		addressText.textContent = branch.address || '—';
+		address.append(addressText);
+		if (branch.address) address.append(branchActionLink(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, 'Ver ubicación en Google Maps', BRANCH_LOCATION_ICON));
+		const whatsapp = document.createElement('span');
+		whatsapp.className = 'branch-cell branch-whatsapp';
+		const whatsappText = document.createElement('span');
+		whatsappText.textContent = branch.whatsapp || '—';
+		whatsapp.append(whatsappText);
+		if (branch.whatsapp) whatsapp.append(branchActionLink(getWhatsAppUrl(branch.whatsapp, countryInput.value), 'Abrir WhatsApp', BRANCH_WHATSAPP_ICON));
+		row.append(zone, address, whatsapp);
 		branchesList.append(row);
 	});
 }
