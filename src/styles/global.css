@@ -1835,3 +1835,7 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 
 /* Abrir ficha (mapa): misma letra que los botones de tipo de lugar, como TIENDAS */
 .map-info .map-info-open { font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: normal; text-transform: uppercase; }
+
+/* Mapa con solo Tiendas activo: los mismos filtros que en la página Tiendas */
+body.map-stores-filters .filter-control.store-only-filter { display: grid; }
+body.map-stores-filters .restaurant-only-filter { display: none; }

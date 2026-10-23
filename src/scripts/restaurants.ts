@@ -559,6 +559,7 @@ let searchScope: 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
 // En el mapa se pueden combinar restaurantes, cafés y tiendas a la vez.
 const mapPlaceTypes = new Set<'restaurant' | 'cafe' | 'store'>();
+let mapStoreFilterView = false;
 let baselineFormState = '';
 let baselineImageState = '';
 let baselineLogoState = '';
@@ -2555,6 +2556,23 @@ function render() {
 	cardPreviewUrls = [];
 	// El botón Nuevo solo se muestra en el directorio (no en Mi perfil, el mapa ni las vistas de categorías o cocinas).
 	document.body.classList.toggle('hide-new-button', profileMode || mapMode || Boolean(showingCatalog));
+	// En el mapa, si solo está activo el botón Tiendas se usan los mismos filtros que en la página Tiendas.
+	if (mapMode) {
+		const storeFilterView = mapPlaceTypes.size > 0 && [...mapPlaceTypes].every((type) => type === 'store');
+		if (storeFilterView !== mapStoreFilterView) {
+			mapStoreFilterView = storeFilterView;
+			if (storeFilterView) {
+				selectedEstablishmentFilters.clear();
+				selectedMealFilters.clear();
+				selectedCuisineFilters.clear();
+			} else {
+				selectedStoreTypeFilters.clear();
+				selectedProductFilters.clear();
+			}
+			updateDirectoryFilterLabels();
+		}
+		document.body.classList.toggle('map-stores-filters', storeFilterView);
+	}
 	// En las vistas de categorías, cocinas, servicios y zonas no hay filtros que aplicar.
 	document.body.classList.toggle('catalog-view', Boolean(showingCatalog));
 	if (showingCatalog) {
