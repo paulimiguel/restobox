@@ -434,7 +434,7 @@ const userInitials = userDisplayName
 					<button class="form-tab" id="tab-details" type="button" role="tab" aria-selected="false" aria-controls="panel-details" data-form-tab="details">2. Características</button>
 					<button class="form-tab" id="tab-links" type="button" role="tab" aria-selected="false" aria-controls="panel-links" data-form-tab="links">3. Links</button>
 					<button class="form-tab" id="tab-information" type="button" role="tab" aria-selected="false" aria-controls="panel-information" data-form-tab="information">4. Horarios</button>
-					<button class="form-tab" id="tab-description" type="button" role="tab" aria-selected="false" aria-controls="panel-description" data-form-tab="description">5. Descripción</button>
+					<button class="form-tab" id="tab-description" type="button" role="tab" aria-selected="false" aria-controls="panel-description" data-form-tab="description">5. Notas</button>
 					<button class="form-tab" id="tab-images" type="button" role="tab" aria-selected="false" aria-controls="panel-images" data-form-tab="images">6. Imágenes</button>
 				</div>
 
@@ -448,10 +448,7 @@ const userInitials = userDisplayName
 										<label class="restaurant-status-option"><input type="checkbox" name="favorite" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg><span>Favorito</span></label>
 										<label class="restaurant-status-option"><input type="checkbox" name="visited" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg><span>Visitado</span></label>
 										<label class="restaurant-status-option checked-status-option"><input type="checkbox" name="checked" /><span class="checked-icon" aria-hidden="true"></span><span>A visitar</span></label>
-										<label class="restaurant-status-option branches-status-option"><input type="checkbox" name="hasBranches" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 0 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Sucursales</span></label>
 									</div>
-									<input type="hidden" name="branchList" id="branch-list-value" />
-									<button id="edit-branches" class="secondary-button edit-branches-button" type="button" hidden>Sucursales (0)</button>
 								</div>
 							</div>
 							<div class="lead-data">
@@ -598,8 +595,9 @@ const userInitials = userDisplayName
 							<label class="boolean-check-control"><input name="healthy" type="checkbox" /><span>Saludable</span></label>
 						</div>
 						<div class="form-field branches-field store-only wide">
-							<label for="restaurant-branches">Sucursales</label>
-							<textarea id="restaurant-branches" name="branches" rows="4" maxlength="2000" placeholder="Escribí las direcciones de todas las sucursales, una por línea"></textarea>
+							<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
+							<input type="hidden" name="branchList" id="branch-list-value" />
+							<button id="edit-branches" class="secondary-button edit-branches-button" type="button" hidden>Sucursales (0)</button>
 						</div>
 					</div>
 				</section>

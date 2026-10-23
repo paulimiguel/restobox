@@ -2266,6 +2266,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	if (!selectedEstablishments.length) document.querySelector('.establishment-type-field')?.classList.add('view-empty-field');
 	if (!selectedCuisines.length) selectedCuisinesContainer.closest('.form-field')?.classList.add('view-empty-field');
 	if (!selectedServices.length) document.querySelector('.meal-type-field')?.classList.add('view-empty-field');
+	if (!hasBranchesInput.checked) document.querySelector('.branches-field')?.classList.add('view-empty-field');
 	if (!selectedProducts.length) document.querySelector('.products-field')?.classList.add('view-empty-field');
 	if (!selectedStoreTypes.length) document.querySelector('.store-type-field')?.classList.add('view-empty-field');
 	if (!hoursValue.value.trim()) document.querySelector('.schedule-field')?.classList.add('view-empty-field');
@@ -3337,8 +3338,10 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
-		hasBranchesInput.checked = Boolean(restaurant.hasBranches);
-		branchListInput.value = JSON.stringify(restaurant.branchList ?? []);
+		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '' })).filter((branch) => branch.address);
+		const branchList = restaurant.branchList?.length ? restaurant.branchList : legacyBranches;
+		hasBranchesInput.checked = Boolean(restaurant.hasBranches) || branchList.length > 0;
+		branchListInput.value = JSON.stringify(branchList);
 	} else {
 		hasBranchesInput.checked = false;
 		branchListInput.value = '[]';
@@ -6417,8 +6420,8 @@ form.addEventListener('submit', async (event) => {
 		city: savedCity,
 		address: data.address.trim(),
 		neighborhood: savedNeighborhood,
-		hasBranches: formData.has('hasBranches'),
-		branchList: formData.has('hasBranches') ? parseBranchList(branchListInput.value) : [],
+		hasBranches: placeStoreInput.checked && formData.has('hasBranches'),
+		branchList: placeStoreInput.checked && formData.has('hasBranches') ? parseBranchList(branchListInput.value) : [],
 		branchAddresses: existingRestaurant?.branchAddresses ?? [],
 		phone: data.phone.trim(),
 		mobile: data.mobile.trim(),

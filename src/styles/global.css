@@ -1840,7 +1840,7 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 body.map-stores-filters .filter-control.store-only-filter { display: grid; }
 body.map-stores-filters .restaurant-only-filter { display: none; }
 
-.edit-branches-button { width: 100%; margin-top: 8px; }
+.branches-field { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .branches-dialog { width: min(640px, calc(100% - 30px)); }
 .branches-table { width: 100%; border-collapse: collapse; }
 .branches-table th { padding: 0 6px 6px 0; color: #505852; font-size: 11px; font-weight: 600; text-align: left; }
