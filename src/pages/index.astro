@@ -595,9 +595,12 @@ const userInitials = userDisplayName
 							<label class="boolean-check-control"><input name="healthy" type="checkbox" /><span>Saludable</span></label>
 						</div>
 						<div class="form-field branches-field store-only wide">
-							<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
-							<input type="hidden" name="branchList" id="branch-list-value" />
-							<button id="edit-branches" class="secondary-button edit-branches-button" type="button" hidden>Sucursales (0)</button>
+							<div class="branches-controls">
+								<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
+								<input type="hidden" name="branchList" id="branch-list-value" />
+								<button id="edit-branches" class="secondary-button edit-branches-button" type="button" hidden>Ingresar sucursales</button>
+							</div>
+							<div id="branches-list" class="branches-list" hidden></div>
 						</div>
 					</div>
 				</section>
@@ -824,7 +827,7 @@ const userInitials = userDisplayName
 					<button id="close-branches" class="profile-close-button" type="button" aria-label="Cerrar" title="Cerrar">×</button>
 				</div>
 				<table class="branches-table">
-					<thead><tr><th>Dirección</th><th>Zona</th><th></th></tr></thead>
+					<thead><tr><th>Zona</th><th>Dirección</th><th>WhatsApp</th><th></th></tr></thead>
 					<tbody id="branches-rows"></tbody>
 				</table>
 				<button id="add-branch" class="secondary-button" type="button">+ Agregar sucursal</button>

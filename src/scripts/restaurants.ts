@@ -20,7 +20,7 @@ type Restaurant = {
 	address: string;
 	neighborhood: string;
 	hasBranches?: boolean;
-	branchList?: Array<{ address: string; zone: string }>;
+	branchList?: Array<{ address: string; zone: string; whatsapp: string }>;
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
@@ -384,6 +384,7 @@ const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number
 const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp-number-general')!;
 const pedidosYaInput = document.querySelector<HTMLInputElement>('#pedidosya-url')!;
 const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
+const branchesList = document.querySelector<HTMLElement>('#branches-list')!;
 const hasBranchesInput = document.querySelector<HTMLInputElement>('input[name="hasBranches"]')!;
 const branchListInput = document.querySelector<HTMLInputElement>('#branch-list-value')!;
 const editBranchesButton = document.querySelector<HTMLButtonElement>('#edit-branches')!;
@@ -2444,24 +2445,98 @@ function parseBranchList(value: string) {
 		const parsed = JSON.parse(value);
 		if (!Array.isArray(parsed)) return [];
 		return parsed
-			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim() }))
-			.filter((item) => item.address || item.zone);
+			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim(), whatsapp: String(item?.whatsapp ?? '').trim() }))
+			.filter((item) => item.address || item.zone || item.whatsapp);
 	} catch {
 		return [];
 	}
 }
 
-function updateBranchesButton() {
-	editBranchesButton.hidden = !hasBranchesInput.checked;
-	editBranchesButton.textContent = `Sucursales (${parseBranchList(branchListInput.value).length})`;
+const BRANCH_WHATSAPP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg>';
+const BRANCH_LOCATION_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>';
+
+function branchActionLink(href: string, label: string, icon: string) {
+	const link = document.createElement('a');
+	link.className = 'branch-action';
+	link.innerHTML = icon;
+	link.title = label;
+	link.setAttribute('aria-label', label);
+	if (href) {
+		link.href = href;
+		link.target = '_blank';
+		link.rel = 'noreferrer';
+	} else {
+		link.setAttribute('aria-disabled', 'true');
+	}
+	return link;
 }
 
-function addBranchRow(address = '', zone = '') {
+function renderBranchesList() {
+	const branches = hasBranchesInput.checked ? parseBranchList(branchListInput.value) : [];
+	branchesList.hidden = !branches.length;
+	branchesList.replaceChildren();
+	if (!branches.length) return;
+	const header = document.createElement('div');
+	header.className = 'branches-list-header';
+	['Sucursal', 'Dirección', 'WhatsApp', ''].forEach((title) => {
+		const cell = document.createElement('span');
+		cell.textContent = title;
+		header.append(cell);
+	});
+	branchesList.append(header);
+	const placeName = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+	branches.forEach((branch) => {
+		const row = document.createElement('div');
+		row.className = 'branches-list-row';
+		const zone = document.createElement('span');
+		zone.className = 'branch-zone';
+		zone.textContent = branch.zone || '—';
+		const address = document.createElement('span');
+		address.textContent = branch.address || '—';
+		const whatsapp = document.createElement('span');
+		whatsapp.className = 'branch-whatsapp';
+		whatsapp.textContent = branch.whatsapp || '—';
+		const actions = document.createElement('span');
+		actions.className = 'branch-actions';
+		const query = [placeName, branch.address, branch.zone, cityInput.value.trim()].filter(Boolean).join(', ');
+		actions.append(
+			branchActionLink(branch.whatsapp ? getWhatsAppUrl(branch.whatsapp, countryInput.value) : '', 'Abrir WhatsApp', BRANCH_WHATSAPP_ICON),
+			branchActionLink(branch.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : '', 'Ver ubicación en Google Maps', BRANCH_LOCATION_ICON),
+		);
+		row.append(zone, address, whatsapp, actions);
+		branchesList.append(row);
+	});
+}
+
+function updateBranchesButton() {
+	const count = parseBranchList(branchListInput.value).length;
+	const readOnly = form.classList.contains('view-mode');
+	editBranchesButton.hidden = !hasBranchesInput.checked || readOnly;
+	editBranchesButton.textContent = count ? `Editar sucursales (${count})` : 'Ingresar sucursales';
+	renderBranchesList();
+}
+
+function addBranchRow(branch = { address: '', zone: '', whatsapp: '' }) {
 	const row = document.createElement('tr');
 	const readOnly = form.classList.contains('view-mode');
-	[['address', address, 'Calle y número'], ['zone', zone, 'Zona o barrio']].forEach(([field, value, placeholder]) => {
+	const zoneCell = document.createElement('td');
+	const zoneSelect = document.createElement('select');
+	zoneSelect.dataset.branchField = 'zone';
+	zoneSelect.disabled = readOnly;
+	const zoneOptions = [...new Set([...neighborhoods, ...(branch.zone ? [branch.zone] : [])])].sort((a, b) => a.localeCompare(b, 'es'));
+	['', ...zoneOptions].forEach((zone) => {
+		const option = document.createElement('option');
+		option.value = zone;
+		option.textContent = zone || 'Elegir zona';
+		zoneSelect.append(option);
+	});
+	zoneSelect.value = branch.zone;
+	zoneCell.append(zoneSelect);
+	row.append(zoneCell);
+	[['address', branch.address, 'Calle y número', 'text'], ['whatsapp', branch.whatsapp, 'Ej. 11 1234 5678', 'tel']].forEach(([field, value, placeholder, type]) => {
 		const cell = document.createElement('td');
 		const input = document.createElement('input');
+		input.type = type;
 		input.dataset.branchField = field;
 		input.value = value;
 		input.placeholder = placeholder;
@@ -2488,7 +2563,7 @@ function openBranchesDialog() {
 	branchesDialog.classList.toggle('read-only', readOnly);
 	branchesRows.replaceChildren();
 	const branches = parseBranchList(branchListInput.value);
-	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '' }]).forEach((branch) => addBranchRow(branch.address, branch.zone));
+	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
 	branchesDialog.showModal();
 }
 
@@ -2502,10 +2577,10 @@ closeBranchesButton.addEventListener('click', () => branchesDialog.close());
 cancelBranchesButton.addEventListener('click', () => branchesDialog.close());
 branchesForm.addEventListener('submit', (event) => {
 	event.preventDefault();
-	const branches = [...branchesRows.querySelectorAll('tr')].map((row) => ({
-		address: row.querySelector<HTMLInputElement>('[data-branch-field="address"]')!.value.trim(),
-		zone: row.querySelector<HTMLInputElement>('[data-branch-field="zone"]')!.value.trim(),
-	})).filter((branch) => branch.address || branch.zone);
+	const fieldValue = (row: Element, field: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-branch-field="${field}"]`)!.value.trim();
+	const branches = [...branchesRows.querySelectorAll('tr')]
+		.map((row) => ({ zone: fieldValue(row, 'zone'), address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
+		.filter((branch) => branch.address || branch.zone || branch.whatsapp);
 	branchListInput.value = JSON.stringify(branches);
 	updateBranchesButton();
 	updateDirtyState();
@@ -3338,7 +3413,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
-		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '' })).filter((branch) => branch.address);
+		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', whatsapp: '' })).filter((branch) => branch.address);
 		const branchList = restaurant.branchList?.length ? restaurant.branchList : legacyBranches;
 		hasBranchesInput.checked = Boolean(restaurant.hasBranches) || branchList.length > 0;
 		branchListInput.value = JSON.stringify(branchList);
@@ -4423,6 +4498,7 @@ viewEditButton.addEventListener('click', () => {
 	form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')
 		.forEach((control) => { control.disabled = false; });
 	updateMapPreview(false);
+	updateBranchesButton();
 	updateClearButtons();
 	baselineFormState = captureFormState();
 	dirtyTrackingReady = true;
