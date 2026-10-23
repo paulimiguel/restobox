@@ -1112,10 +1112,10 @@ const userInitials = userDisplayName
 		</dialog>
 
 		<nav class="app-tabbar" aria-label="Navegación principal">
-			<button type="button" class={profileMode ? '' : 'active'} aria-current={profileMode ? undefined : 'page'} data-tabbar="directory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Directorio</span></button>
-			<button type="button" data-tabbar="establishment"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg><span>Categorías</span></button>
-			<button type="button" data-tabbar="cuisine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/></svg><span>Tipo de cocina</span></button>
-			<button type="button" class={profileMode ? 'active' : ''} aria-current={profileMode ? 'page' : undefined} data-tabbar="profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></button>
+			<a href="/" class={!profileMode && !mapMode && !storesMode ? 'active' : ''} aria-current={!profileMode && !mapMode && !storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Directorio</span></a>
+			<a href="/tiendas" class={storesMode ? 'active' : ''} aria-current={storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg><span>Tiendas</span></a>
+			<a href="/mapa" class={mapMode ? 'active' : ''} aria-current={mapMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15"/></svg><span>Mapa</span></a>
+			<a href="/perfil" class={profileMode ? 'active' : ''} aria-current={profileMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></a>
 		</nav>
 		<div id="toast" class="toast" role="status" aria-live="polite"></div>
 		<script src="../scripts/restaurants.ts"></script>
