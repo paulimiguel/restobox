@@ -1888,3 +1888,4 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .branch-combobox-create { display: block; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--forest); font: inherit; font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; }
 .branch-combobox-create:hover { background: color-mix(in srgb, var(--sage) 45%, white); }
 .branch-combobox-empty { margin: 0; padding: 8px 10px; color: var(--muted); font-size: 11px; }
+#panel-links:not(.store-mode) .catalog-link-field { display: none !important; }

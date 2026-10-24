@@ -32,6 +32,7 @@ type Restaurant = {
 	googleUrl: string;
 	linktreeUrl: string;
 	menuUrl: string;
+	catalogUrl?: string;
 	tiktokUrl: string;
 	instagramUrl: string;
 	facebookUrl: string;
@@ -365,6 +366,7 @@ const restaurantVideoExternal = document.querySelector<HTMLAnchorElement>('#rest
 const closeRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#close-restaurant-video')!;
 const linktreeInput = document.querySelector<HTMLInputElement>('#linktree-url')!;
 const menuUrlInput = document.querySelector<HTMLInputElement>('#menu-url')!;
+const catalogUrlInput = document.querySelector<HTMLInputElement>('#catalog-url')!;
 const websiteInput = document.querySelector<HTMLInputElement>('#website-url')!;
 const googleInput = document.querySelector<HTMLInputElement>('#google-url')!;
 const mapUrlInput = document.querySelector<HTMLInputElement>('#map-url')!;
@@ -402,6 +404,7 @@ const personalRateInput = form.elements.namedItem('rating') as HTMLInputElement;
 const personalRateButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-rate-value]')];
 const openLinktree = document.querySelector<HTMLAnchorElement>('#open-linktree')!;
 const openMenuLink = document.querySelector<HTMLAnchorElement>('#open-menu-link')!;
+const openCatalogLink = document.querySelector<HTMLAnchorElement>('#open-catalog-link')!;
 const openWebsite = document.querySelector<HTMLAnchorElement>('#open-website')!;
 const openGoogle = document.querySelector<HTMLAnchorElement>('#open-google')!;
 const openMap = document.querySelector<HTMLAnchorElement>('#open-map')!;
@@ -1402,6 +1405,7 @@ function renderSelectedEstablishments() {
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
 	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
 	panelDetails.classList.toggle('store-mode', placeStoreInput.checked);
+	document.querySelector<HTMLElement>('#panel-links')?.classList.toggle('store-mode', placeStoreInput.checked);
 	// Si es solo una tienda (ni restaurante ni café), no se piden Woki, TripAdvisor ni menú.
 	document.querySelector<HTMLElement>('#panel-links')?.classList.toggle('store-only-links', placeStoreInput.checked && !placeRestaurantInput.checked && !placeCafeInput.checked);
 }
@@ -2261,7 +2265,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	};
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
-		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
+		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
 		'description', 'notes', 'discounts', 'branches',
 	].forEach(markNamedField);
 
@@ -3565,6 +3569,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	loadScheduleFromText(restaurant?.hours ?? '');
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
+	updateExternalLink(catalogUrlInput, openCatalogLink);
 	updateExternalLink(websiteInput, openWebsite);
 	updateExternalLink(googleInput, openGoogle);
 	updateExternalLink(mapUrlInput, openMap);
@@ -3999,6 +4004,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
+	updateExternalLink(catalogUrlInput, openCatalogLink);
 	updateExternalLink(websiteInput, openWebsite);
 	updateExternalLink(googleInput, openGoogle);
 	updateExternalLink(mapUrlInput, openMap);
@@ -5336,6 +5342,7 @@ pasteTextButton.addEventListener('click', async () => {
 });
 linktreeInput.addEventListener('input', () => updateExternalLink(linktreeInput, openLinktree));
 menuUrlInput.addEventListener('input', () => updateExternalLink(menuUrlInput, openMenuLink));
+catalogUrlInput.addEventListener('input', () => updateExternalLink(catalogUrlInput, openCatalogLink));
 websiteInput.addEventListener('input', () => updateExternalLink(websiteInput, openWebsite));
 googleInput.addEventListener('input', () => updateExternalLink(googleInput, openGoogle));
 mapUrlInput.addEventListener('input', () => updateExternalLink(mapUrlInput, openMap));
@@ -6638,6 +6645,7 @@ form.addEventListener('submit', async (event) => {
 		googleUrl: data.googleUrl.trim(),
 		linktreeUrl: data.linktreeUrl.trim(),
 		menuUrl: data.menuUrl.trim(),
+		catalogUrl: (data.catalogUrl ?? '').trim(),
 		instagramUrl: data.instagramUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(),
 		facebookUrl: data.facebookUrl.trim(),
