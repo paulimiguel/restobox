@@ -389,7 +389,7 @@ const hasBranchesInput = document.querySelector<HTMLInputElement>('input[name="h
 const branchListInput = document.querySelector<HTMLInputElement>('#branch-list-value')!;
 const editBranchesButton = document.querySelector<HTMLButtonElement>('#edit-branches')!;
 const branchesDialog = document.querySelector<HTMLDialogElement>('#branches-dialog')!;
-const branchesCitySelect = document.querySelector<HTMLSelectElement>('#branches-city')!;
+const branchesCitySlot = document.querySelector<HTMLElement>('#branches-city-slot')!;
 const branchesForm = document.querySelector<HTMLFormElement>('#branches-form')!;
 const branchesRows = document.querySelector<HTMLTableSectionElement>('#branches-rows')!;
 const addBranchButton = document.querySelector<HTMLButtonElement>('#add-branch')!;
@@ -2519,22 +2519,147 @@ function updateBranchesButton() {
 	renderBranchesList();
 }
 
+type BranchComboboxConfig = {
+	placeholder: string;
+	options: () => string[];
+	add: (value: string) => string;
+	remove: (value: string) => void;
+};
+
+function createBranchCombobox(config: BranchComboboxConfig, initialValue: string, readOnly: boolean) {
+	let committed = initialValue;
+	const root = document.createElement('div');
+	root.className = 'branch-combobox';
+	const input = document.createElement('input');
+	input.type = 'text';
+	input.value = committed;
+	input.placeholder = config.placeholder;
+	input.maxLength = 80;
+	input.autocomplete = 'off';
+	input.readOnly = readOnly;
+	input.setAttribute('role', 'combobox');
+	const menu = document.createElement('div');
+	menu.className = 'branch-combobox-menu';
+	menu.hidden = true;
+	root.append(input, menu);
+	const sameText = (a: string, b: string) => a.toLocaleLowerCase('es') === b.toLocaleLowerCase('es');
+	const commit = (value: string) => {
+		committed = value;
+		input.value = value;
+		menu.hidden = true;
+	};
+	const render = (showAll: boolean) => {
+		const typed = input.value.trim();
+		const options = config.options();
+		const exact = options.find((option) => sameText(option, typed));
+		const query = showAll || exact ? '' : typed.toLocaleLowerCase('es');
+		const visible = options.filter((option) => option.toLocaleLowerCase('es').includes(query));
+		menu.replaceChildren();
+		visible.forEach((option) => {
+			const row = document.createElement('div');
+			row.className = 'branch-combobox-option' + (sameText(option, committed) ? ' selected' : '');
+			const pick = document.createElement('button');
+			pick.type = 'button';
+			pick.className = 'branch-combobox-pick';
+			pick.textContent = option;
+			pick.addEventListener('click', () => commit(option));
+			const remove = document.createElement('button');
+			remove.type = 'button';
+			remove.className = 'branch-combobox-remove';
+			remove.textContent = '×';
+			remove.title = 'Eliminar de la lista';
+			remove.setAttribute('aria-label', `Eliminar ${option} de la lista`);
+			remove.addEventListener('click', () => {
+				config.remove(option);
+				if (sameText(option, committed)) commit('');
+				render(true);
+				menu.hidden = false;
+			});
+			row.append(pick, remove);
+			menu.append(row);
+		});
+		if (typed && !exact) {
+			const create = document.createElement('button');
+			create.type = 'button';
+			create.className = 'branch-combobox-create';
+			create.textContent = `＋ Agregar “${typed}”`;
+			create.addEventListener('click', () => commit(config.add(typed)));
+			menu.append(create);
+		}
+		if (!menu.children.length) {
+			const empty = document.createElement('p');
+			empty.className = 'branch-combobox-empty';
+			empty.textContent = 'Escribí un nombre para agregarlo.';
+			menu.append(empty);
+		}
+	};
+	const open = (showAll: boolean) => {
+		if (readOnly) return;
+		render(showAll);
+		const rect = input.getBoundingClientRect();
+		menu.style.left = `${rect.left}px`;
+		menu.style.top = `${rect.bottom + 4}px`;
+		menu.style.width = `${rect.width}px`;
+		menu.hidden = false;
+	};
+	input.addEventListener('focus', () => open(true));
+	input.addEventListener('click', () => { if (menu.hidden) open(true); });
+	input.addEventListener('input', () => open(false));
+	input.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape' && !menu.hidden) {
+			event.stopPropagation();
+			event.preventDefault();
+			menu.hidden = true;
+			input.value = committed;
+		} else if (event.key === 'Enter') {
+			event.preventDefault();
+			const typed = input.value.trim();
+			if (!typed) return;
+			commit(config.options().find((option) => sameText(option, typed)) ?? config.add(typed));
+		}
+	});
+	menu.addEventListener('mousedown', (event) => event.preventDefault());
+	input.addEventListener('blur', () => {
+		menu.hidden = true;
+		input.value = committed;
+	});
+	return { element: root, getValue: () => committed };
+}
+
+const branchCityConfig: BranchComboboxConfig = {
+	placeholder: 'Elegí o escribí una ciudad',
+	options: () => [...new Set([...getLocationOptionState('city').values, DEFAULT_CITY])].sort((a, b) => a.localeCompare(b, 'es')),
+	add: (value) => ensureLocationOption('city', value),
+	remove: (value) => {
+		const state = getLocationOptionState('city');
+		setLocationOptionState('city', state.values.filter((item) => item !== value), [...new Set([...state.removed, value])]);
+		saveLocationOptions('city');
+		renderLocationOptions('city');
+	},
+};
+
+const branchZoneConfig: BranchComboboxConfig = {
+	placeholder: 'Elegí o escribí una zona',
+	options: () => [...neighborhoods].sort((a, b) => a.localeCompare(b, 'es')),
+	add: (value) => ensureNeighborhoodOption(value),
+	remove: (value) => {
+		neighborhoods = neighborhoods.filter((item) => item !== value);
+		removedNeighborhoods = [...new Set([...removedNeighborhoods, value])];
+		saveNeighborhoodSettings();
+		renderNeighborhoodOptions();
+	},
+};
+
+let branchesCityCombobox: ReturnType<typeof createBranchCombobox> | null = null;
+const branchRowZones = new Map<HTMLTableRowElement, () => string>();
+
 function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }) {
 	const row = document.createElement('tr');
 	const readOnly = form.classList.contains('view-mode');
 	const zoneCell = document.createElement('td');
-	const zoneSelect = document.createElement('select');
-	zoneSelect.dataset.branchField = 'zone';
-	zoneSelect.disabled = readOnly;
-	const zoneOptions = [...new Set([...neighborhoods, ...(branch.zone ? [branch.zone] : [])])].sort((a, b) => a.localeCompare(b, 'es'));
-	['', ...zoneOptions].forEach((zone) => {
-		const option = document.createElement('option');
-		option.value = zone;
-		option.textContent = zone || 'Elegir zona';
-		zoneSelect.append(option);
-	});
-	zoneSelect.value = branch.zone;
-	zoneCell.append(zoneSelect);
+	const zoneCombobox = createBranchCombobox(branchZoneConfig, branch.zone, readOnly);
+	branchRowZones.set(row, zoneCombobox.getValue);
+	zoneCell.append(zoneCombobox.element);
 	row.append(zoneCell);
 	[['address', branch.address, 'Calle y número', 'text'], ['whatsapp', branch.whatsapp, 'Ej. 11 1234 5678', 'tel']].forEach(([field, value, placeholder, type]) => {
 		const cell = document.createElement('td');
@@ -2566,13 +2691,12 @@ function openBranchesDialog() {
 	branchesDialog.classList.toggle('read-only', readOnly);
 	branchesRows.replaceChildren();
 	const branches = parseBranchList(branchListInput.value);
-	const branchesCity = branches.find((branch) => branch.city)?.city || DEFAULT_CITY;
-	branchesCitySelect.replaceChildren(...[...new Set([...getLocationOptionState('city').values, DEFAULT_CITY, branchesCity])]
-		.sort((a, b) => a.localeCompare(b, 'es'))
-		.map((city) => new Option(city, city)));
-	branchesCitySelect.value = branchesCity;
+	branchesCityCombobox = createBranchCombobox(branchCityConfig, branches.find((branch) => branch.city)?.city || DEFAULT_CITY, readOnly);
+	branchesCitySlot.replaceChildren(branchesCityCombobox.element);
+	branchRowZones.clear();
 	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
 	branchesDialog.showModal();
+	(document.activeElement as HTMLElement | null)?.blur();
 }
 
 hasBranchesInput.addEventListener('change', () => {
@@ -2587,7 +2711,7 @@ branchesForm.addEventListener('submit', (event) => {
 	event.preventDefault();
 	const fieldValue = (row: Element, field: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-branch-field="${field}"]`)!.value.trim();
 	const branches = [...branchesRows.querySelectorAll('tr')]
-		.map((row) => ({ zone: fieldValue(row, 'zone'), city: branchesCitySelect.value, address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
+		.map((row) => ({ zone: branchRowZones.get(row as HTMLTableRowElement)?.() ?? '', city: branchesCityCombobox?.getValue() || DEFAULT_CITY, address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
 		.filter((branch) => branch.address || branch.zone || branch.whatsapp);
 	branchListInput.value = JSON.stringify(branches);
 	updateBranchesButton();
