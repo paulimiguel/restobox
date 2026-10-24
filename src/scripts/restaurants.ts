@@ -2075,7 +2075,7 @@ function restaurantVideoEmbedUrl(value: string) {
 			return /^[\w-]{6,}$/.test(id) ? `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&playsinline=1` : '';
 		}
 		if (host === 'instagram.com' || host === 'm.instagram.com' || host === 'instagr.am') {
-			const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
+			const match = url.pathname.match(/^(?:\/[\w.]+)?\/(p|reel|reels|tv)\/([\w-]+)/i);
 			if (!match) return '';
 			const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
 			return `https://www.instagram.com/${kind}/${match[2]}/embed/`;
@@ -2106,7 +2106,7 @@ function instagramRestaurantVideoRoute(value: string) {
 	try {
 		const url = new URL(value.trim());
 		const host = url.hostname.toLocaleLowerCase('en').replace(/^www\./, '');
-		if (!['instagram.com', 'instagr.am'].includes(host) || !/^\/(?:p|reels?|tv)\/[\w-]+/i.test(url.pathname)) return '';
+		if (!['instagram.com', 'instagr.am'].includes(host) || !/^(?:\/[\w.]+)?\/(?:p|reels?|tv)\/[\w-]+/i.test(url.pathname)) return '';
 		return `/api/video-embed?redirect=1&url=${encodeURIComponent(url.href)}`;
 	} catch {
 		return '';

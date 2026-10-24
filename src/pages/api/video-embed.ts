@@ -24,7 +24,7 @@ function safeInstagramUrl(value: string) {
 	try {
 		const url = new URL(value);
 		if (url.protocol !== 'https:' || !INSTAGRAM_HOSTS.has(url.hostname.toLocaleLowerCase('en'))) return null;
-		const match = url.pathname.match(/^\/(p|reel|reels|tv)\/([\w-]+)/i);
+		const match = url.pathname.match(/^(?:\/[\w.]+)?\/(p|reel|reels|tv)\/([\w-]+)/i);
 		if (!match) return null;
 		const kind = match[1].toLocaleLowerCase('en') === 'reels' ? 'reel' : match[1].toLocaleLowerCase('en');
 		return new URL(`https://www.instagram.com/${kind}/${match[2]}/embed/`);
