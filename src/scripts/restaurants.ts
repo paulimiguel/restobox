@@ -1697,7 +1697,7 @@ const sharePreview = document.querySelector<HTMLElement>('#share-preview')!;
 
 function restaurantShareContent(restaurant: Restaurant) {
 	const category = getRestaurantEstablishmentTypes(restaurant).join(', ');
-	const cuisine = getRestaurantCuisines(restaurant).join(', ');
+	const cuisine = isStorePlace(restaurant) ? (restaurant.storeTypes ?? []).join(', ') : getRestaurantCuisines(restaurant).join(', ');
 	const address = [restaurant.address, restaurant.neighborhood, restaurant.city].filter(Boolean).join(', ');
 	const mapLink = restaurant.mapUrl || (address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([restaurant.name, address].join(', '))}` : '');
 	const lines = [
@@ -2994,7 +2994,9 @@ function render() {
 
 	const renderCard = (restaurant: Restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
-		const cardCuisines = getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
+		const cardCuisines = isStorePlace(restaurant)
+			? (restaurant.storeTypes ?? []).join(', ') || 'Sin tipo de tienda'
+			: getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
 		const hasVideo = isSupportedRestaurantVideoUrl(restaurant.videoUrl ?? '');
 		const whatsappUrl = getWhatsAppUrl(restaurant.mobile, restaurant.country);
 		const links = [
