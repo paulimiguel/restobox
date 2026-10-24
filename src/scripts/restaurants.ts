@@ -1402,7 +1402,7 @@ function renderSelectedEstablishments() {
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
 	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
 	panelDetails.classList.toggle('store-mode', placeStoreInput.checked);
-	// Si es solo una tienda (ni restaurante ni café), no se piden Woki, TripAdvisor, menú ni Pedidos Ya.
+	// Si es solo una tienda (ni restaurante ni café), no se piden Woki, TripAdvisor ni menú.
 	document.querySelector<HTMLElement>('#panel-links')?.classList.toggle('store-only-links', placeStoreInput.checked && !placeRestaurantInput.checked && !placeCafeInput.checked);
 }
 
