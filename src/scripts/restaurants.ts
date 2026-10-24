@@ -20,7 +20,7 @@ type Restaurant = {
 	address: string;
 	neighborhood: string;
 	hasBranches?: boolean;
-	branchList?: Array<{ address: string; zone: string; whatsapp: string }>;
+	branchList?: Array<{ address: string; zone: string; city: string; whatsapp: string }>;
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
@@ -2445,7 +2445,7 @@ function parseBranchList(value: string) {
 		const parsed = JSON.parse(value);
 		if (!Array.isArray(parsed)) return [];
 		return parsed
-			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim(), whatsapp: String(item?.whatsapp ?? '').trim() }))
+			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim(), city: String(item?.city ?? '').trim(), whatsapp: String(item?.whatsapp ?? '').trim() }))
 			.filter((item) => item.address || item.zone || item.whatsapp);
 	} catch {
 		return [];
@@ -2491,7 +2491,7 @@ function renderBranchesList() {
 		const zone = document.createElement('span');
 		zone.className = 'branch-zone';
 		zone.textContent = branch.zone || '—';
-		const query = [placeName, branch.address, branch.zone, cityInput.value.trim()].filter(Boolean).join(', ');
+		const query = [placeName, branch.address, branch.zone, branch.city || cityInput.value.trim()].filter(Boolean).join(', ');
 		const address = document.createElement('span');
 		address.className = 'branch-cell';
 		const addressText = document.createElement('span');
@@ -2518,7 +2518,7 @@ function updateBranchesButton() {
 	renderBranchesList();
 }
 
-function addBranchRow(branch = { address: '', zone: '', whatsapp: '' }) {
+function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }) {
 	const row = document.createElement('tr');
 	const readOnly = form.classList.contains('view-mode');
 	const zoneCell = document.createElement('td');
@@ -2535,6 +2535,20 @@ function addBranchRow(branch = { address: '', zone: '', whatsapp: '' }) {
 	zoneSelect.value = branch.zone;
 	zoneCell.append(zoneSelect);
 	row.append(zoneCell);
+	const cityCell = document.createElement('td');
+	const citySelect = document.createElement('select');
+	citySelect.dataset.branchField = 'city';
+	citySelect.disabled = readOnly;
+	const cityValue = branch.city || DEFAULT_CITY;
+	[...new Set([...getLocationOptionState('city').values, DEFAULT_CITY, cityValue])].sort((a, b) => a.localeCompare(b, 'es')).forEach((city) => {
+		const option = document.createElement('option');
+		option.value = city;
+		option.textContent = city;
+		citySelect.append(option);
+	});
+	citySelect.value = cityValue;
+	cityCell.append(citySelect);
+	row.append(cityCell);
 	[['address', branch.address, 'Calle y número', 'text'], ['whatsapp', branch.whatsapp, 'Ej. 11 1234 5678', 'tel']].forEach(([field, value, placeholder, type]) => {
 		const cell = document.createElement('td');
 		const input = document.createElement('input');
@@ -2565,7 +2579,7 @@ function openBranchesDialog() {
 	branchesDialog.classList.toggle('read-only', readOnly);
 	branchesRows.replaceChildren();
 	const branches = parseBranchList(branchListInput.value);
-	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
+	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
 	branchesDialog.showModal();
 }
 
@@ -2581,7 +2595,7 @@ branchesForm.addEventListener('submit', (event) => {
 	event.preventDefault();
 	const fieldValue = (row: Element, field: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-branch-field="${field}"]`)!.value.trim();
 	const branches = [...branchesRows.querySelectorAll('tr')]
-		.map((row) => ({ zone: fieldValue(row, 'zone'), address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
+		.map((row) => ({ zone: fieldValue(row, 'zone'), city: fieldValue(row, 'city'), address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
 		.filter((branch) => branch.address || branch.zone || branch.whatsapp);
 	branchListInput.value = JSON.stringify(branches);
 	updateBranchesButton();
@@ -3415,7 +3429,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
-		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', whatsapp: '' })).filter((branch) => branch.address);
+		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, whatsapp: '' })).filter((branch) => branch.address);
 		const branchList = restaurant.branchList?.length ? restaurant.branchList : legacyBranches;
 		hasBranchesInput.checked = Boolean(restaurant.hasBranches) || branchList.length > 0;
 		branchListInput.value = JSON.stringify(branchList);
