@@ -389,6 +389,7 @@ const hasBranchesInput = document.querySelector<HTMLInputElement>('input[name="h
 const branchListInput = document.querySelector<HTMLInputElement>('#branch-list-value')!;
 const editBranchesButton = document.querySelector<HTMLButtonElement>('#edit-branches')!;
 const branchesDialog = document.querySelector<HTMLDialogElement>('#branches-dialog')!;
+const branchesCitySelect = document.querySelector<HTMLSelectElement>('#branches-city')!;
 const branchesForm = document.querySelector<HTMLFormElement>('#branches-form')!;
 const branchesRows = document.querySelector<HTMLTableSectionElement>('#branches-rows')!;
 const addBranchButton = document.querySelector<HTMLButtonElement>('#add-branch')!;
@@ -2535,20 +2536,6 @@ function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, what
 	zoneSelect.value = branch.zone;
 	zoneCell.append(zoneSelect);
 	row.append(zoneCell);
-	const cityCell = document.createElement('td');
-	const citySelect = document.createElement('select');
-	citySelect.dataset.branchField = 'city';
-	citySelect.disabled = readOnly;
-	const cityValue = branch.city || DEFAULT_CITY;
-	[...new Set([...getLocationOptionState('city').values, DEFAULT_CITY, cityValue])].sort((a, b) => a.localeCompare(b, 'es')).forEach((city) => {
-		const option = document.createElement('option');
-		option.value = city;
-		option.textContent = city;
-		citySelect.append(option);
-	});
-	citySelect.value = cityValue;
-	cityCell.append(citySelect);
-	row.append(cityCell);
 	[['address', branch.address, 'Calle y número', 'text'], ['whatsapp', branch.whatsapp, 'Ej. 11 1234 5678', 'tel']].forEach(([field, value, placeholder, type]) => {
 		const cell = document.createElement('td');
 		const input = document.createElement('input');
@@ -2579,6 +2566,11 @@ function openBranchesDialog() {
 	branchesDialog.classList.toggle('read-only', readOnly);
 	branchesRows.replaceChildren();
 	const branches = parseBranchList(branchListInput.value);
+	const branchesCity = branches.find((branch) => branch.city)?.city || DEFAULT_CITY;
+	branchesCitySelect.replaceChildren(...[...new Set([...getLocationOptionState('city').values, DEFAULT_CITY, branchesCity])]
+		.sort((a, b) => a.localeCompare(b, 'es'))
+		.map((city) => new Option(city, city)));
+	branchesCitySelect.value = branchesCity;
 	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
 	branchesDialog.showModal();
 }
@@ -2595,7 +2587,7 @@ branchesForm.addEventListener('submit', (event) => {
 	event.preventDefault();
 	const fieldValue = (row: Element, field: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-branch-field="${field}"]`)!.value.trim();
 	const branches = [...branchesRows.querySelectorAll('tr')]
-		.map((row) => ({ zone: fieldValue(row, 'zone'), city: fieldValue(row, 'city'), address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
+		.map((row) => ({ zone: fieldValue(row, 'zone'), city: branchesCitySelect.value, address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
 		.filter((branch) => branch.address || branch.zone || branch.whatsapp);
 	branchListInput.value = JSON.stringify(branches);
 	updateBranchesButton();
