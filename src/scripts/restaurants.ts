@@ -4631,6 +4631,7 @@ viewEditButton.addEventListener('click', () => {
 		.forEach((control) => { control.disabled = false; });
 	updateMapPreview(false);
 	updateBranchesButton();
+	updatePersonalRate();
 	updateClearButtons();
 	baselineFormState = captureFormState();
 	dirtyTrackingReady = true;
