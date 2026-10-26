@@ -370,6 +370,7 @@ const imageDropText = document.querySelector<HTMLElement>('#image-drop-text')!;
 const importRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#import-restaurant-images')!;
 const insertImageButton = document.querySelector<HTMLButtonElement>('#insert-restaurant-image')!;
 const clearRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#clear-restaurant-images')!;
+const viewRestaurantImagesButton = document.querySelector<HTMLButtonElement>('#view-restaurant-images')!;
 const imageGalleryColumn = document.querySelector<HTMLDivElement>('.image-gallery-column')!;
 const imagePreviews = document.querySelector<HTMLDivElement>('#image-previews')!;
 const imagesPanel = document.querySelector<HTMLElement>('#panel-images')!;
@@ -3168,6 +3169,7 @@ async function hydrateRestaurantCardLogos(visibleRestaurants: Restaurant[], rend
 		cardImageIndexes.set(restaurant.id, 0);
 		targets.forEach((target) => {
 			const image = document.createElement('img');
+			image.addEventListener('load', () => fitCardImage(image));
 			image.src = sources[0];
 			image.alt = `Imagen 1 de ${sources.length} de ${restaurant.name}`;
 			image.loading = 'lazy';
@@ -3175,6 +3177,16 @@ async function hydrateRestaurantCardLogos(visibleRestaurants: Restaurant[], rend
 		});
 		if (sources.length > 1) list.querySelectorAll<HTMLElement>(`[data-card-image-navigation="${CSS.escape(restaurant.id)}"]`).forEach((navigation) => navigation.removeAttribute('hidden'));
 	});
+}
+
+// Las fotos verticales se muestran enteras (con un fondo difuminado de la misma foto) en vez de recortarse.
+function fitCardImage(image: HTMLImageElement) {
+	const container = image.parentElement;
+	if (!container) return;
+	const portrait = image.naturalHeight > image.naturalWidth * 1.05;
+	container.classList.toggle('card-image-portrait', portrait);
+	if (portrait) container.style.setProperty('--card-image-backdrop', `url("${image.currentSrc || image.src}")`);
+	else container.style.removeProperty('--card-image-backdrop');
 }
 
 function moveCardImage(restaurantId: string, direction: number) {
@@ -3351,6 +3363,7 @@ function renderImagePreviews() {
 	insertImageButton.disabled = isFull;
 	updateImportRestaurantImagesButton();
 	clearRestaurantImagesButton.hidden = restaurantImages.length === 0;
+	viewRestaurantImagesButton.hidden = restaurantImages.length === 0;
 	updateDirtyState();
 }
 
@@ -5779,6 +5792,7 @@ insertImageButton.addEventListener('click', () => {
 });
 importRestaurantImagesButton.addEventListener('click', () => void importImagesForEditingRestaurant());
 importRestaurantLogoButton.addEventListener('click', () => void importLogoForEditingRestaurant());
+viewRestaurantImagesButton.addEventListener('click', () => openImageCarousel(0));
 clearRestaurantImagesButton.addEventListener('click', () => {
 	if (!restaurantImages.length) return;
 	const imageCount = restaurantImages.length;
