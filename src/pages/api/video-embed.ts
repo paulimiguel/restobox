@@ -57,7 +57,7 @@ function safeInstagramMediaUrl(value: string) {
 	}
 }
 
-async function resolveInstagramVideo(url: URL) {
+async function fetchInstagramHtml(url: URL) {
 	const response = await fetch(url, {
 		signal: AbortSignal.timeout(10_000),
 		headers: { 'user-agent': 'Mozilla/5.0 (compatible; RestoBox/1.0)', accept: 'text/html' },
@@ -65,8 +65,18 @@ async function resolveInstagramVideo(url: URL) {
 	if (!response.ok) throw new Error(`Instagram respondió con ${response.status}`);
 	const html = await response.text();
 	if (html.length > 3_000_000) throw new Error('La respuesta de Instagram es demasiado grande');
-	const encoded = html.match(/\\?"video_url\\?"\s*:\s*\\?"((?:\\\\.|[^"\\])+)\\?"/)?.[1] ?? '';
-	return safeInstagramMediaUrl(decodeInstagramValue(encoded));
+	return html;
+}
+
+// Algunos reels no traen video_url en la página embed, pero sí video_versions en la página del post.
+async function resolveInstagramVideo(url: URL) {
+	const embedHtml = await fetchInstagramHtml(url);
+	const embedded = embedHtml.match(/\\?"video_url\\?"\s*:\s*\\?"((?:\\\\.|[^"\\])+)\\?"/)?.[1] ?? '';
+	const embeddedUrl = safeInstagramMediaUrl(decodeInstagramValue(embedded));
+	if (embeddedUrl) return embeddedUrl;
+	const postHtml = await fetchInstagramHtml(new URL(url.pathname.replace(/embed\/?$/, ''), url));
+	const version = postHtml.match(/\\?"video_versions\\?"\s*:\s*\[\s*\{[^}]*?\\?"url\\?"\s*:\s*\\?"((?:\\.|[^"\\])+)\\?"/)?.[1] ?? '';
+	return safeInstagramMediaUrl(decodeInstagramValue(version));
 }
 
 export const GET: APIRoute = async ({ url }) => {
