@@ -3366,7 +3366,8 @@ function renderCarouselImage() {
 		const active = index === carouselImageIndex;
 		thumb.classList.toggle('active', active);
 		thumb.setAttribute('aria-selected', String(active));
-		if (active) thumb.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+		// Se desplaza solo la tira de miniaturas: scrollIntoView movería también el diálogo y lo dejaría cortado.
+		if (active) imageCarouselThumbs.scrollTo({ left: thumb.offsetLeft - (imageCarouselThumbs.clientWidth - thumb.offsetWidth) / 2, behavior: 'smooth' });
 	});
 	imageCarouselImage.alt = `Imagen ${carouselImageIndex + 1} del lugar`;
 	imageCarouselCounter.textContent = `${carouselImageIndex + 1} de ${restaurantImages.length}`;

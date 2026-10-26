@@ -1247,7 +1247,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .restaurant-video-dialog.tiktok-video .restaurant-video-stage { aspect-ratio: 9 / 16; }
 
 .image-carousel-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; color: white; background: #0b0f0d; box-shadow: none; }
-.image-carousel-dialog[open] { display: grid; grid-template-rows: minmax(0, 1fr) auto; animation: carousel-in .22s ease-out; }
+.image-carousel-dialog[open] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; animation: carousel-in .22s ease-out; }
 .image-carousel-dialog::backdrop { background: #000; backdrop-filter: none; }
 @keyframes carousel-in { from { opacity: 0; } to { opacity: 1; } }
 .image-carousel-backdrop { position: absolute; inset: -60px; z-index: 0; background-position: center; background-size: cover; filter: blur(46px) brightness(.42) saturate(1.2); transition: background-image .3s; }
@@ -1265,7 +1265,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .image-carousel-arrow.previous { left: 18px; }
 .image-carousel-arrow.next { right: 18px; }
 .image-carousel-arrow svg { width: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.image-carousel-thumbs { position: relative; z-index: 2; display: flex; max-width: 100%; gap: 8px; justify-content: safe center; overflow-x: auto; padding: 10px 18px 18px; scrollbar-width: none; }
+.image-carousel-thumbs { position: relative; min-width: 0; z-index: 2; display: flex; max-width: 100%; gap: 8px; justify-content: safe center; overflow-x: auto; padding: 10px 18px 18px; scrollbar-width: none; }
 .image-carousel-thumbs::-webkit-scrollbar { display: none; }
 .image-carousel-thumbs[hidden] { display: none; }
 .image-carousel-thumb { flex: 0 0 auto; width: 58px; height: 58px; padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: 9px; background: #222; opacity: .55; cursor: pointer; transition: opacity .18s, border-color .18s, transform .18s; }
