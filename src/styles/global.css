@@ -294,6 +294,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .search-inline-action:hover, .search-inline-clear:hover { color: var(--ink); background: #e4e7e5; }
 .search-inline-action[hidden], .search-inline-clear[hidden] { display: none; }
 .quick-place-filters { display: grid; grid-template-columns: repeat(3, auto); align-items: center; gap: 7px; }
+.quick-place-filters[hidden] { display: none; }
 .quick-place-filter { display: inline-flex; height: 32px; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); background: white; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: color .18s, border-color .18s, background .18s, box-shadow .18s; }
 .quick-place-filter svg { width: 14px; height: 14px; flex: 0 0 14px; }
 .quick-place-filter:hover { color: var(--ink); background: #f7f8f7; }
@@ -1570,7 +1571,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 }
 
 /* Barra inferior de navegación */
-.app-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 38; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 96%, transparent); backdrop-filter: blur(10px); }
+.app-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 38; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 96%, transparent); backdrop-filter: blur(10px); }
 .app-tabbar :is(button, a) { display: flex; height: 52px; min-width: 0; align-items: center; justify-content: center; gap: 6px; padding: 0 4px; border: 0; border-top: 2px solid transparent; color: var(--muted); background: transparent; font-size: 10px; font-weight: 700; letter-spacing: .4px; line-height: 1.15; text-transform: uppercase; cursor: pointer; transition: color .18s, border-color .18s, background .18s; }
 .app-tabbar :is(button, a) svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .app-tabbar :is(button, a) span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1579,6 +1580,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 :root[data-color-mode='dark'] .app-tabbar { border-top-color: #202329; background: rgba(38,41,46,.97); }
 @media (max-width: 420px) { .app-tabbar :is(button, a) { flex-direction: column; gap: 2px; font-size: 9px; letter-spacing: .2px; } .app-tabbar :is(button, a) svg { width: 17px; height: 17px; } }
 @media print { .app-tabbar { display: none; } body { padding-bottom: 0; } }
+@media (max-width: 640px) { .app-tabbar { grid-template-columns: repeat(4, minmax(0, 1fr)); } .app-tabbar [data-tabbar-tablet-up] { display: none; } }
 
 /* Mi perfil: el directorio dividido en favoritos, visitados y a visitar */
 .app-tabbar a { text-decoration: none; }

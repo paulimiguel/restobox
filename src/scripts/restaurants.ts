@@ -193,9 +193,27 @@ const storesMode = document.body.dataset.storesMode === 'true';
 function isStorePlace(restaurant: Restaurant) {
 	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === 'tienda');
 }
+// En /restaurantes y /cafes el directorio se divide por tipo de lugar.
+const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes'
+	? document.body.dataset.placeScope
+	: 'all';
+const scopedPlacesMode = placeScope !== 'all';
+function hasEstablishmentKey(restaurant: Restaurant, key: string) {
+	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === key);
+}
+function isCafePlace(restaurant: Restaurant) {
+	return !isStorePlace(restaurant) && hasEstablishmentKey(restaurant, 'cafe');
+}
+// Un lugar con ambos tipos aparece en las dos páginas; los que no son cafés (ni tiendas) cuentan como restaurantes.
+function isRestaurantPlace(restaurant: Restaurant) {
+	return !isStorePlace(restaurant) && (hasEstablishmentKey(restaurant, 'restaurante') || !hasEstablishmentKey(restaurant, 'cafe'));
+}
 function isInCurrentScope(restaurant: Restaurant) {
 	if (profileMode || mapMode) return true;
-	return storesMode ? isStorePlace(restaurant) : !isStorePlace(restaurant);
+	if (storesMode) return isStorePlace(restaurant);
+	if (placeScope === 'cafes') return isCafePlace(restaurant);
+	if (placeScope === 'restaurants') return isRestaurantPlace(restaurant);
+	return !isStorePlace(restaurant);
 }
 let mapShowList = false;
 document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode; });
@@ -2990,7 +3008,7 @@ function render() {
 		button.classList.toggle('descending', active && (directorySort === 'recent' || directorySort.endsWith('-desc')));
 		button.setAttribute('aria-pressed', String(active));
 	});
-	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.filter(isInCurrentScope).length} ${storesMode ? 'tiendas' : 'lugares'}`;
+	resultDescription.textContent = `Mostrando ${filtered.length} de ${restaurants.filter(isInCurrentScope).length} ${storesMode ? 'tiendas' : placeScope === 'cafes' ? 'cafés' : placeScope === 'restaurants' ? 'restaurantes' : 'lugares'}`;
 
 	const renderCard = (restaurant: Restaurant) => {
 		const cardEstablishments = getRestaurantEstablishmentTypes(restaurant).join(', ') || 'Sin categoría';
@@ -3512,6 +3530,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	renderSelectedEstablishments();
 	renderEstablishmentOptions();
 	if (!restaurant && storesMode) setPlaceKindSelection('store', true);
+	if (!restaurant && placeScope === 'cafes') setPlaceKindSelection('cafe', true);
 	closeStoreTypeDropdown();
 	selectedStoreTypes = restaurant ? [...(restaurant.storeTypes ?? [])] : [];
 	renderSelectedStoreTypes();
@@ -6211,7 +6230,7 @@ document.addEventListener('click', (event) => {
 showCatalogButtons.forEach((button) => button.addEventListener('click', () => {
 	const kind = button.dataset.showCatalog as CatalogCardKind | undefined;
 	if (!kind || !catalogCardMeta[kind]) return;
-	if (profileMode || mapMode || storesMode) {
+	if (profileMode || mapMode || storesMode || scopedPlacesMode) {
 		window.location.assign(`/?vista=${kind}`);
 		return;
 	}
