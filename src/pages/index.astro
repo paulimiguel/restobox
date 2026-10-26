@@ -654,6 +654,20 @@ const userInitials = userDisplayName
 								<a id="open-tiktok" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TikTok" title="Abrir TikTok"><svg viewBox="0 0 24 24"><path d="M14 4v10.5a4.5 4.5 0 1 1-4-4.47"/><path d="M14 4c1 2.4 2.8 3.8 5 4"/></svg></a>
 							</div>
 						</div>
+						<div class="form-field">
+							<label for="linktree-url">Linktree</label>
+							<div class="url-with-action">
+								<input id="linktree-url" name="linktreeUrl" type="url" maxlength="300" placeholder="https://linktr.ee/PIAZZARISTO" />
+								<a id="open-linktree" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Linktr.ee" title="Abrir Linktr.ee"><span class="linktree-brand-icon" aria-hidden="true"></span></a>
+							</div>
+						</div>
+						<div class="form-field restaurant-link-field">
+							<label for="menu-url">Link al menú</label>
+							<div class="url-with-action">
+								<input id="menu-url" name="menuUrl" type="url" maxlength="300" placeholder="https://…" />
+								<a id="open-menu-link" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir menú" title="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></a>
+							</div>
+						</div>
 						<div class="form-field restaurant-link-field">
 							<label for="woki-url">Woki</label>
 							<div class="url-with-action">
@@ -668,25 +682,11 @@ const userInitials = userDisplayName
 								<a id="open-tripadvisor" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir TripAdvisor" title="Abrir TripAdvisor"><span class="tripadvisor-brand-icon" aria-hidden="true"></span></a>
 							</div>
 						</div>
-						<div class="form-field restaurant-link-field">
-							<label for="menu-url">Link al menú</label>
-							<div class="url-with-action">
-								<input id="menu-url" name="menuUrl" type="url" maxlength="300" placeholder="https://…" />
-								<a id="open-menu-link" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir menú" title="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></a>
-							</div>
-						</div>
 						<div class="form-field">
-							<label for="linktree-url">Linktree</label>
+							<label for="whatsapp-number">WhatsApp</label>
 							<div class="url-with-action">
-								<input id="linktree-url" name="linktreeUrl" type="url" maxlength="300" placeholder="https://linktr.ee/PIAZZARISTO" />
-								<a id="open-linktree" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Linktr.ee" title="Abrir Linktr.ee"><span class="linktree-brand-icon" aria-hidden="true"></span></a>
-							</div>
-						</div>
-						<div class="form-field catalog-link-field">
-							<label for="catalog-url">Link al catálogo</label>
-							<div class="url-with-action">
-								<input id="catalog-url" name="catalogUrl" type="url" maxlength="300" placeholder="https://…" />
-								<a id="open-catalog-link" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir catálogo" title="Abrir catálogo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></a>
+								<input id="whatsapp-number" name="mobile" type="tel" maxlength="30" placeholder="+54 9 223…" />
+								<a id="open-whatsapp-web" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
 							</div>
 						</div>
 						<div class="form-field">
@@ -696,11 +696,11 @@ const userInitials = userDisplayName
 								<a id="open-pedidosya" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir PedidosYa" title="Abrir PedidosYa"><span class="pedidosya-brand-icon" style={`--pedidosya-logo: url("${pedidosYaLogoUrl}")`} aria-hidden="true"></span></a>
 							</div>
 						</div>
-						<div class="form-field">
-							<label for="whatsapp-number">WhatsApp</label>
+						<div class="form-field catalog-link-field">
+							<label for="catalog-url">Link al catálogo</label>
 							<div class="url-with-action">
-								<input id="whatsapp-number" name="mobile" type="tel" maxlength="30" placeholder="+54 9 223…" />
-								<a id="open-whatsapp-web" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
+								<input id="catalog-url" name="catalogUrl" type="url" maxlength="300" placeholder="https://…" />
+								<a id="open-catalog-link" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir catálogo" title="Abrir catálogo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></a>
 							</div>
 						</div>
 					</div>
