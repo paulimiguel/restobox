@@ -591,7 +591,7 @@ let selectedProducts: string[] = [];
 let searchTerms: string[] = [];
 let searchScope: 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
-// En el mapa se pueden combinar restaurantes, cafés y tiendas a la vez.
+// En el mapa se elige un solo tipo de lugar a la vez (restaurantes, cafés, tiendas o todos).
 const mapPlaceTypes = new Set<'restaurant' | 'cafe' | 'store'>();
 let mapStoreFilterView = false;
 let baselineFormState = '';
@@ -5494,8 +5494,10 @@ quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () 
 	if (mapMode) {
 		if (nextType === 'all') mapPlaceTypes.clear();
 		else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') {
-			if (mapPlaceTypes.has(nextType)) mapPlaceTypes.delete(nextType);
-			else mapPlaceTypes.add(nextType);
+			// En el mapa se elige un solo tipo a la vez; tocar el activo vuelve a Todos.
+			const wasActive = mapPlaceTypes.has(nextType);
+			mapPlaceTypes.clear();
+			if (!wasActive) mapPlaceTypes.add(nextType);
 		}
 	} else if (nextType === 'all') quickPlaceType = 'all';
 	else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
