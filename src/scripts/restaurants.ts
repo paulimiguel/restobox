@@ -210,6 +210,16 @@ function isCafePlace(restaurant: Restaurant) {
 function isRestaurantPlace(restaurant: Restaurant) {
 	return !isStorePlace(restaurant) && (hasEstablishmentKey(restaurant, 'restaurante') || !hasEstablishmentKey(restaurant, 'cafe'));
 }
+// Tipo de pin en el mapa: tienda si es una tienda; si no, el primer tipo de la ficha (café o restaurante).
+function mapPlaceKind(restaurant: Restaurant): 'restaurant' | 'cafe' | 'store' {
+	if (isStorePlace(restaurant)) return 'store';
+	for (const type of getRestaurantEstablishmentTypes(restaurant)) {
+		const key = neighborhoodImageKey(type);
+		if (key.startsWith('cafe')) return 'cafe';
+		if (key.startsWith('restaur')) return 'restaurant';
+	}
+	return 'restaurant';
+}
 function isInCurrentScope(restaurant: Restaurant) {
 	if (profileMode || mapMode) return true;
 	if (storesMode) return isStorePlace(restaurant);
@@ -3158,7 +3168,7 @@ function render() {
 	const showCards = !mapMode || mapShowList;
 	list.innerHTML = !showCards ? '' : profileMode ? renderProfileSections(filtered, renderCard) : filtered.map(renderCard).join('');
 	if (showCards) void hydrateRestaurantCardLogos(filtered, ++cardRenderVersion);
-	if (mapMode) updateMapRestaurants(filtered, restaurants.length);
+	if (mapMode) updateMapRestaurants(filtered.map((restaurant) => ({ ...restaurant, kind: mapPlaceKind(restaurant) })), restaurants.length);
 
 	emptyState.hidden = profileMode || mapMode || filtered.length > 0;
 	list.hidden = mapMode ? !mapShowList || filtered.length === 0 : !profileMode && filtered.length === 0;
