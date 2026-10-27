@@ -63,7 +63,6 @@ const userInitials = userDisplayName
 
 						<a class="top-nav-button header-nav-link" id="header-restaurants" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 						<a class="top-nav-button header-nav-link" id="header-cafes" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
-						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 						<details class="top-dropdown header-nav-link" id="header-delivery">
 							<summary class="top-nav-button" aria-current={deliveryMode ? 'page' : undefined}><span>DELIVERY/TAKE AWAY</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel delivery-panel">
@@ -72,6 +71,7 @@ const userInitials = userDisplayName
 								<a class="map-menu-link" href="/entregas" aria-current={deliveryMode && deliveryKind === '' ? 'page' : undefined}>Todos</a>
 							</div>
 						</details>
+						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 						<details class="top-dropdown show-dropdown">
 							<summary class="top-nav-button"><span>MOSTRAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel show-panel">
@@ -209,7 +209,6 @@ const userInitials = userDisplayName
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>BUSCAR</button>
 							<a class="mobile-menu-item" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 							<a class="mobile-menu-item" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
-							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 							<details class="mobile-menu-section" open={deliveryMode}>
 								<summary><span>DELIVERY/TAKE AWAY</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options">
@@ -218,6 +217,7 @@ const userInitials = userDisplayName
 									<a class="map-menu-link" href="/entregas" aria-current={deliveryMode && deliveryKind === '' ? 'page' : undefined}>Todos</a>
 								</div>
 							</details>
+							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
 							<details class="mobile-menu-section">
 								<summary><span>MOSTRAR</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options mobile-show-options">
@@ -309,6 +309,8 @@ const userInitials = userDisplayName
 										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="restaurant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg>Restaurantes</button>
 										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="cafe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/></svg>Cafes</button>
 										<button class="quick-place-filter" type="button" role="radio" aria-checked="false" data-place-type="store" data-map-only hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>Tiendas</button>
+										<button class="quick-place-filter quick-service-filter" type="button" aria-pressed="false" data-map-service="delivery" data-map-only hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M8.5 17H14l2-8h-3M16 9h2.5L18 14.5M5 12h5"/></svg>Delivery</button>
+										<button class="quick-place-filter quick-service-filter" type="button" aria-pressed="false" data-map-service="takeaway" data-map-only hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>Take away</button>
 									</div>
 								</div>
 								<div class="directory-toolbar-lower-row">
