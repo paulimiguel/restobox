@@ -300,6 +300,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .quick-place-filter { display: inline-flex; height: 32px; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); background: white; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: color .18s, border-color .18s, background .18s, box-shadow .18s; }
 .quick-place-filter svg { width: 14px; height: 14px; flex: 0 0 14px; }
 .quick-place-filter:hover { color: var(--ink); background: #f7f8f7; }
+.quick-place-filter:disabled { opacity: .42; box-shadow: none; pointer-events: none; }
 .quick-place-filter.active { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 2px 7px color-mix(in srgb, var(--forest) 24%, transparent); }
 .search-scope-options { display: inline-flex; width: max-content; max-width: 100%; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #f1f3f2; }
 .search-scope-option { min-width: 64px; min-height: 28px; padding: 4px 9px; border: 0; border-radius: 5px; color: var(--muted); background: transparent; font-size: 9px; font-weight: 700; letter-spacing: .2px; text-transform: uppercase; white-space: nowrap; transition: color .18s, background .18s, box-shadow .18s; }

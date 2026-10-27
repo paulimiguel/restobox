@@ -5638,13 +5638,18 @@ document.querySelectorAll<HTMLButtonElement>('[data-map-service]').forEach((butt
 	updateMapServiceButtons();
 	render();
 }));
+// Delivery y Take away solo se pueden marcar con Restaurantes o Cafés; con Todos o Tiendas quedan deshabilitados.
 function updateMapServiceButtons() {
+	const enabled = mapPlaceTypes.has('restaurant') || mapPlaceTypes.has('cafe');
+	if (!enabled) mapServices.clear();
 	document.querySelectorAll<HTMLButtonElement>('[data-map-service]').forEach((button) => {
 		const active = mapServices.has(button.dataset.mapService as 'delivery' | 'takeaway');
+		button.disabled = !enabled;
 		button.classList.toggle('active', active);
 		button.setAttribute('aria-pressed', String(active));
 	});
 }
+if (mapMode) updateMapServiceButtons();
 quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextType = button.dataset.placeType;
 	if (mapMode) {
@@ -5655,6 +5660,7 @@ quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () 
 			mapPlaceTypes.clear();
 			if (!wasActive) mapPlaceTypes.add(nextType);
 		}
+		updateMapServiceButtons();
 	} else if (nextType === 'all') quickPlaceType = 'all';
 	else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
 	showingCatalog = null;
