@@ -9,6 +9,7 @@ type GoogleText = { text?: string };
 type GoogleMoney = { currencyCode?: string; units?: string; nanos?: number };
 type GoogleAddressComponent = { longText?: string; types?: string[] };
 type GooglePlace = {
+	location?: { latitude?: number; longitude?: number };
 	displayName?: GoogleText; formattedAddress?: string; addressComponents?: GoogleAddressComponent[];
 	nationalPhoneNumber?: string; internationalPhoneNumber?: string; websiteUri?: string; googleMapsUri?: string;
 	googleMapsLinks?: { directionsUri?: string; placeUri?: string }; regularOpeningHours?: { weekdayDescriptions?: string[] };
@@ -39,6 +40,33 @@ const component = (place: GooglePlace, ...types: string[]) => place.addressCompo
 const normalized = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
 const unique = (values: string[]) => [...new Map(values.map((value) => value.trim()).filter(Boolean).map((value) => [normalized(value), value])).values()];
 const titleCase = (value: string) => value.replaceAll('_', ' ').replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es'));
+
+// Google casi nunca informa el barrio en Argentina: si falta, se consulta la zona de las coordenadas en OpenStreetMap
+// (Nominatim pide como máximo una consulta por segundo y un User-Agent que identifique la aplicación).
+let lastZoneRequestAt = 0;
+async function zoneFromCoordinates(latitude?: number, longitude?: number) {
+	if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '';
+	const wait = lastZoneRequestAt + 1100 - Date.now();
+	lastZoneRequestAt = Date.now() + Math.max(wait, 0);
+	if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+	try {
+		const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${new URLSearchParams({ lat: String(latitude), lon: String(longitude), format: 'jsonv2', zoom: '16', addressdetails: '1' })}`, {
+			signal: AbortSignal.timeout(8_000),
+			headers: { 'user-agent': 'RestoBox/1.0 (+https://restobox.beweb.com.ar)', 'accept-language': 'es', accept: 'application/json' },
+		});
+		if (!response.ok) return '';
+		const { address } = await response.json() as { address?: Record<string, string> };
+		return (address?.neighbourhood || address?.suburb || address?.quarter || address?.city_district || '').trim();
+	} catch {
+		return '';
+	}
+}
+
+// Un celular argentino llega de Google como "+54 9 …": se usa como WhatsApp en el formato de wa.me (solo dígitos).
+function mobileFromGooglePhone(phone?: string) {
+	const value = phone?.trim() ?? '';
+	return /^\+54[\s-]*9/.test(value) ? value.replace(/\D/g, '') : '';
+}
 
 function googleSearchUrl(...values: Array<string | undefined>) {
 	const query = values.map((value) => value?.trim() ?? '').filter(Boolean).join(', ');
@@ -475,7 +503,7 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 
 		const fieldMask = [
-			'id', 'displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'internationalPhoneNumber',
+			'id', 'displayName', 'formattedAddress', 'addressComponents', 'location', 'nationalPhoneNumber', 'internationalPhoneNumber',
 			'websiteUri', 'googleMapsUri', 'googleMapsLinks', 'regularOpeningHours', 'rating', 'priceLevel', 'priceRange',
 			'types', 'primaryType', 'editorialSummary', 'generativeSummary', 'reviewSummary', 'photos', 'delivery', 'takeout',
 			'servesBreakfast', 'servesBrunch', 'servesLunch', 'servesDinner', 'servesBeer', 'servesWine',
@@ -521,6 +549,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const street = component(place, 'route');
 		const streetNumber = component(place, 'street_number');
 		const address = [street, streetNumber].filter(Boolean).join(' ') || place.formattedAddress?.trim() || '';
+		const neighborhood = component(place, 'neighborhood', 'sublocality_level_1', 'sublocality') || await zoneFromCoordinates(place.location?.latitude, place.location?.longitude);
 		const priceMap: Record<string, string> = { PRICE_LEVEL_FREE: '$', PRICE_LEVEL_INEXPENSIVE: '$', PRICE_LEVEL_MODERATE: '$$', PRICE_LEVEL_EXPENSIVE: '$$$', PRICE_LEVEL_VERY_EXPENSIVE: '$$$$' };
 		const establishmentMap: Record<string, string> = {
 			restaurant: 'Restaurante', cafe: 'Café', coffee_shop: 'Café', bar: 'Bar', pub: 'Pub', night_club: 'Bar', bakery: 'Panadería',
@@ -534,7 +563,8 @@ export const POST: APIRoute = async ({ request }) => {
 			ramen_restaurant: 'Ramen', seafood_restaurant: 'Mariscos', spanish_restaurant: 'Española', steak_house: 'Parrilla', sushi_restaurant: 'Sushi',
 			thai_restaurant: 'Tailandesa', turkish_restaurant: 'Turca', vegan_restaurant: 'Vegana', vegetarian_restaurant: 'Vegetariana', vietnamese_restaurant: 'Vietnamita',
 		};
-		const establishmentTypes = unique((place.types ?? []).map((type) => establishmentMap[type]).filter(Boolean));
+		const storeTypes = new Set(['store', 'grocery_store', 'food_store', 'convenience_store', 'supermarket', 'market', 'liquor_store', 'butcher_shop', 'health_food_store', 'gift_shop', 'wholesaler', 'shopping_mall']);
+		const establishmentTypes = unique([...(place.types ?? []).map((type) => establishmentMap[type]).filter(Boolean), ...((place.types ?? []).some((type) => storeTypes.has(type)) ? ['Tienda'] : [])]);
 		const trustedClassificationText = normalized([
 			officialPage.description, ...officialPage.keywords,
 			instagramPage.description, ...instagramPage.keywords,
@@ -542,6 +572,7 @@ export const POST: APIRoute = async ({ request }) => {
 			wokiMatch?.category, wokiMatch?.info, wokiMatch?.subtitle, ...(wokiMatch?.tags ?? []),
 		].filter(Boolean).join(' '));
 		const detectedEstablishments = Object.entries({ Restaurante: /\brestaurante\b/, Café: /\bcafe\b|coffee shop/, Bar: /\bbar\b/, Pub: /\bpub\b/, Panadería: /\bpanaderia\b|bakery/, Heladería: /\bheladeria\b|ice cream/, Cervecería: /\bcerveceria\b|brewery/ }).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value);
+		const placeTypes = unique([...establishmentTypes, ...detectedEstablishments]);
 		const cuisineTerms: Record<string, RegExp> = {
 			Pastas: /\bpastas?\b/, Parrilla: /\bparrilla\b|steak/, Pizzas: /\bpizzas?\b/, Sushi: /\bsushi\b/, Mariscos: /\bmariscos?\b|seafood/,
 			Argentina: /\bargentin[ao]\b/, Italiana: /\bitalian[ao]\b/, Japonesa: /\bjapones[ao]\b/, Peruana: /\bperuan[ao]\b/,
@@ -566,12 +597,12 @@ export const POST: APIRoute = async ({ request }) => {
 
 		return json(await enrichResult({
 			name: place.displayName?.text?.trim() || name, description, notes,
-			establishmentTypes: unique([...establishmentTypes, ...detectedEstablishments]), cuisines, mealTypes, tags,
+			establishmentTypes: placeTypes.length ? placeTypes : ['Restaurante'], cuisines, mealTypes, tags,
 			rating: place.rating ? String(Math.min(5, Math.max(1, Math.round(place.rating)))) : '', score: place.rating ? String(place.rating) : '',
 			price: priceMap[place.priceLevel ?? ''] ?? wokiMatch?.price ?? '', averagePrice: averagePrice(place),
-			country: component(place, 'country'), province: component(place, 'administrative_area_level_1'), city: component(place, 'locality', 'administrative_area_level_2'),
-			neighborhood: component(place, 'neighborhood', 'sublocality_level_1', 'sublocality'), address,
-			phone: place.internationalPhoneNumber?.trim() || place.nationalPhoneNumber?.trim() || '', mobile: whatsapp,
+			country: 'Argentina', province: component(place, 'administrative_area_level_1'), city: component(place, 'locality', 'administrative_area_level_2'),
+			neighborhood, address,
+			phone: place.internationalPhoneNumber?.trim() || place.nationalPhoneNumber?.trim() || '', mobile: whatsapp || mobileFromGooglePhone(place.internationalPhoneNumber),
 			website: place.websiteUri?.trim() ?? '',
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
