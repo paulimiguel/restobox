@@ -937,8 +937,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-description .discounts-field textarea { height: 64px; min-height: 64px; }
 .notes-field { position: relative; gap: 7px; }
 .long-text-editor-dialog form { position: relative; }
-.note-bullets-input { -webkit-text-fill-color: transparent; }
-.note-bullets-input::placeholder { -webkit-text-fill-color: initial; }
+textarea.note-bullets-input, .view-mode textarea.note-bullets-input:disabled { -webkit-text-fill-color: transparent !important; }
+textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !important; }
 .note-bullets-mirror { position: absolute; z-index: 1; box-sizing: border-box; overflow: hidden; border-style: solid; border-color: transparent; white-space: pre-wrap; overflow-wrap: break-word; pointer-events: none; }
 .note-bullets-mirror .note-bullet { color: var(--forest); }
 .long-text-field { gap: 7px; }

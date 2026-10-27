@@ -1897,15 +1897,16 @@ function normalizeNotesBullets(input = notesInput) {
 // Las viñetas de las notas son texto ("• "), y un textarea no permite colorear solo una parte:
 // se dibuja encima una copia del texto, alineada con el campo, con las viñetas en el color del tema.
 function mirrorNoteBullets(input: HTMLTextAreaElement) {
-	const host = input.parentElement;
-	if (!host) return;
 	const mirror = document.createElement('div');
 	mirror.className = 'note-bullets-mirror';
 	mirror.setAttribute('aria-hidden', 'true');
-	host.append(mirror);
 	input.classList.add('note-bullets-input');
+	let renderedValue: string | null = null;
 	const textProperties = ['color', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing', 'text-transform', 'tab-size'];
 	function refresh() {
+		// El campo puede cambiar de contenedor después (se envuelve para el botón de borrar): la copia lo sigue.
+		if (!input.parentElement) return;
+		if (mirror.parentElement !== input.parentElement) input.parentElement.append(mirror);
 		const style = getComputedStyle(input);
 		textProperties.forEach((property) => mirror.style.setProperty(property, style.getPropertyValue(property)));
 		const borderLeft = parseFloat(style.borderLeftWidth) || 0;
@@ -1917,14 +1918,21 @@ function mirrorNoteBullets(input: HTMLTextAreaElement) {
 		mirror.style.height = `${input.offsetHeight}px`;
 		mirror.style.borderWidth = `${style.borderTopWidth} ${style.borderRightWidth} ${style.borderBottomWidth} ${style.borderLeftWidth}`;
 		mirror.style.padding = `${style.paddingTop} ${(parseFloat(style.paddingRight) || 0) + scrollbar}px ${style.paddingBottom} ${style.paddingLeft}`;
-		const parts = input.value.split('•');
-		mirror.replaceChildren(...parts.flatMap((part, index) => {
-			const bullet = document.createElement('span');
-			bullet.className = 'note-bullet';
-			bullet.textContent = '•';
-			return index ? [bullet, document.createTextNode(part)] : [document.createTextNode(part)];
-		}));
+		if (renderedValue !== input.value) {
+			renderedValue = input.value;
+			mirror.replaceChildren(...renderedValue.split('•').flatMap((part, index) => {
+				const bullet = document.createElement('span');
+				bullet.className = 'note-bullet';
+				bullet.textContent = '•';
+				return index ? [bullet, document.createTextNode(part)] : [document.createTextNode(part)];
+			}));
+		}
 		mirror.scrollTop = input.scrollTop;
+	}
+	let refreshFrame = 0;
+	function scheduleRefresh() {
+		if (refreshFrame) return;
+		refreshFrame = requestAnimationFrame(() => { refreshFrame = 0; refresh(); });
 	}
 	const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!;
 	Object.defineProperty(input, 'value', {
@@ -1935,8 +1943,11 @@ function mirrorNoteBullets(input: HTMLTextAreaElement) {
 	input.addEventListener('input', refresh);
 	input.addEventListener('scroll', () => { mirror.scrollTop = input.scrollTop; });
 	input.form?.addEventListener('reset', () => setTimeout(refresh));
-	new ResizeObserver(refresh).observe(input);
-	new MutationObserver(refresh).observe(document.documentElement, { attributes: true });
+	// La posición cambia al pasar de ficha a edición, al cambiar de pestaña o de tema.
+	new ResizeObserver(scheduleRefresh).observe(input);
+	new MutationObserver(scheduleRefresh).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'hidden', 'data-theme', 'data-color-mode', 'data-font'] });
+	new MutationObserver(scheduleRefresh).observe(document.documentElement, { attributes: true });
+	window.addEventListener('resize', scheduleRefresh);
 	refresh();
 }
 mirrorNoteBullets(notesInput);
