@@ -1172,9 +1172,9 @@ const userInitials = userDisplayName
 		<nav class="app-tabbar" aria-label="Navegación principal">
 			<a href="/restaurantes" class={restaurantsMode ? 'active' : ''} aria-current={restaurantsMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Restaurantes</span></a>
 			<a href="/cafes" class={cafesMode ? 'active' : ''} aria-current={cafesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/></svg><span>Cafés</span></a>
-			<a href="/tiendas" class={storesMode ? 'active' : ''} aria-current={storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg><span>Tiendas</span></a>
 			<a href="/entregas" class={deliveryMode ? 'active' : ''} aria-current={deliveryMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14l-1 11H6L5 9Zm4 0V7a3 3 0 0 1 6 0v2M9 14h6"/></svg><span>Entregas</span></a>
-			<a href="/mapa" class={mapMode ? 'active' : ''} aria-current={mapMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15"/></svg><span>Mapa</span></a>
+			<a href="/tiendas" class={storesMode ? 'active' : ''} aria-current={storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg><span>Tiendas</span></a>
+			<a href="/mapa" class={mapMode ? 'active' : ''} aria-current={mapMode ? 'page' : undefined} data-tabbar-tablet-up><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15"/></svg><span>Mapa</span></a>
 			<a href="/perfil" class={profileMode ? 'active' : ''} aria-current={profileMode ? 'page' : undefined} data-tabbar-tablet-up><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></a>
 		</nav>
 		<div id="toast" class="toast" role="status" aria-live="polite"></div>

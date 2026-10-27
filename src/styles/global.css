@@ -1594,7 +1594,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 :root[data-color-mode='dark'] .app-tabbar { border-top-color: #202329; background: rgba(38,41,46,.97); }
 @media (max-width: 420px) { .app-tabbar :is(button, a) { flex-direction: column; gap: 2px; font-size: 9px; letter-spacing: .2px; } .app-tabbar :is(button, a) svg { width: 17px; height: 17px; } }
 @media print { .app-tabbar { display: none; } body { padding-bottom: 0; } }
-@media (max-width: 640px) { .app-tabbar { grid-template-columns: repeat(5, minmax(0, 1fr)); } .app-tabbar [data-tabbar-tablet-up] { display: none; } }
+@media (max-width: 640px) { .app-tabbar { grid-template-columns: repeat(4, minmax(0, 1fr)); } .app-tabbar [data-tabbar-tablet-up] { display: none; } }
 
 /* Mi perfil: el directorio dividido en favoritos, visitados y a visitar */
 .app-tabbar a { text-decoration: none; }
