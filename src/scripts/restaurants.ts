@@ -589,7 +589,7 @@ let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
 let selectedProducts: string[] = [];
 let searchTerms: string[] = [];
-let searchScope: 'name' | 'category' | 'zone' = 'name';
+let searchScope: 'all' | 'name' | 'category' | 'zone' = 'all';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
 // En el mapa se elige un solo tipo de lugar a la vez (restaurantes, cafés, tiendas o todos).
 const mapPlaceTypes = new Set<'restaurant' | 'cafe' | 'store'>();
@@ -2964,13 +2964,24 @@ function render() {
 		const restaurantEstablishments = getRestaurantEstablishmentTypes(restaurant);
 		const restaurantMeals = restaurant.mealTypes ?? [];
 		const restaurantCuisines = getRestaurantCuisines(restaurant);
+		// "Todo" busca en el nombre y en cualquier dato asociado al lugar (cocina, categoría, zona, calle, servicios, etiquetas…).
 		const searchValues = (searchScope === 'category'
 			? (storesMode ? restaurant.storeTypes ?? [] : restaurantEstablishments)
 			: searchScope === 'zone'
 				? [restaurant.neighborhood ?? '']
-				: [restaurant.name]
+				: searchScope === 'name'
+					? [restaurant.name]
+					: [
+						restaurant.name, restaurant.address, restaurant.neighborhood, restaurant.city, restaurant.province,
+						...(restaurant.branchList ?? []).flatMap((branch) => [branch.address, branch.zone, branch.city]), ...(restaurant.branchAddresses ?? []),
+						...restaurantEstablishments, ...restaurantMeals, ...restaurantCuisines, ...restaurantTags(restaurant),
+						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts,
+					].filter((value): value is string => typeof value === 'string' && value.length > 0)
 		).map(neighborhoodImageKey);
-		const matchesTerm = normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
+		const searchHaystack = searchValues.join(' | ');
+		const matchesTerm = searchScope === 'all'
+			? normalizedSearchTerms.every((term) => term.split(/\s+/).every((word) => searchHaystack.includes(word)))
+			: normalizedSearchTerms.every((term) => searchValues.some((value) => value.includes(term)));
 		const normalizedEstablishments = restaurantEstablishments.map(neighborhoodImageKey);
 		const quickPrefix = (type: string) => type === 'restaurant' ? 'restaur' : type === 'cafe' ? 'cafe' : 'tienda';
 		const matchesQuickType = mapMode
@@ -5589,7 +5600,7 @@ clearSearchButton.addEventListener('click', () => {
 });
 searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextScope = button.dataset.searchScope;
-	if (nextScope === 'name' || nextScope === 'category' || nextScope === 'zone') searchScope = nextScope;
+	if (nextScope === 'all' || nextScope === 'name' || nextScope === 'category' || nextScope === 'zone') searchScope = nextScope;
 	searchScopeButtons.forEach((option) => {
 		const active = option.dataset.searchScope === searchScope;
 		option.classList.toggle('active', active);
