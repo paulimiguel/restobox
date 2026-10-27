@@ -13,8 +13,12 @@ export default defineConfig({
 	},
 	// `data` es un enlace al directorio compartido del servidor. Así los
 	// usuarios no pierden su sesión cada vez que se publica una versión.
+	// La sesión dura 90 días: sin vencimiento la cookie se descarta al cerrar el navegador y en el celular
+	// o la tablet había que volver a ingresar cada vez que se abría la app.
 	session: {
 		driver: sessionDrivers.fsLite({ base: 'data/sessions' }),
+		cookie: { maxAge: 60 * 60 * 24 * 90 },
+		ttl: 60 * 60 * 24 * 90,
 	},
 	adapter: node({ mode: 'standalone' }),
 });
