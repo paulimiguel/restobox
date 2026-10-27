@@ -1894,6 +1894,54 @@ function normalizeNotesBullets(input = notesInput) {
 	if (input === notesInput) updateClearButton(notesInput);
 }
 
+// Las viñetas de las notas son texto ("• "), y un textarea no permite colorear solo una parte:
+// se dibuja encima una copia del texto, alineada con el campo, con las viñetas en el color del tema.
+function mirrorNoteBullets(input: HTMLTextAreaElement) {
+	const host = input.parentElement;
+	if (!host) return;
+	const mirror = document.createElement('div');
+	mirror.className = 'note-bullets-mirror';
+	mirror.setAttribute('aria-hidden', 'true');
+	host.append(mirror);
+	input.classList.add('note-bullets-input');
+	const textProperties = ['color', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing', 'text-transform', 'tab-size'];
+	function refresh() {
+		const style = getComputedStyle(input);
+		textProperties.forEach((property) => mirror.style.setProperty(property, style.getPropertyValue(property)));
+		const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+		const borderRight = parseFloat(style.borderRightWidth) || 0;
+		const scrollbar = Math.max(0, input.offsetWidth - input.clientWidth - borderLeft - borderRight);
+		mirror.style.top = `${input.offsetTop}px`;
+		mirror.style.left = `${input.offsetLeft}px`;
+		mirror.style.width = `${input.offsetWidth}px`;
+		mirror.style.height = `${input.offsetHeight}px`;
+		mirror.style.borderWidth = `${style.borderTopWidth} ${style.borderRightWidth} ${style.borderBottomWidth} ${style.borderLeftWidth}`;
+		mirror.style.padding = `${style.paddingTop} ${(parseFloat(style.paddingRight) || 0) + scrollbar}px ${style.paddingBottom} ${style.paddingLeft}`;
+		const parts = input.value.split('•');
+		mirror.replaceChildren(...parts.flatMap((part, index) => {
+			const bullet = document.createElement('span');
+			bullet.className = 'note-bullet';
+			bullet.textContent = '•';
+			return index ? [bullet, document.createTextNode(part)] : [document.createTextNode(part)];
+		}));
+		mirror.scrollTop = input.scrollTop;
+	}
+	const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!;
+	Object.defineProperty(input, 'value', {
+		configurable: true,
+		get() { return valueDescriptor.get!.call(this); },
+		set(value: string) { valueDescriptor.set!.call(this, value); refresh(); },
+	});
+	input.addEventListener('input', refresh);
+	input.addEventListener('scroll', () => { mirror.scrollTop = input.scrollTop; });
+	input.form?.addEventListener('reset', () => setTimeout(refresh));
+	new ResizeObserver(refresh).observe(input);
+	new MutationObserver(refresh).observe(document.documentElement, { attributes: true });
+	refresh();
+}
+mirrorNoteBullets(notesInput);
+mirrorNoteBullets(longTextEditorValue);
+
 function pasteTextWithoutLinks(event: ClipboardEvent) {
 	const input = event.currentTarget as HTMLTextAreaElement;
 	const clipboard = event.clipboardData;
@@ -3192,7 +3240,12 @@ function fitCardImage(image: HTMLImageElement) {
 function moveCardImage(restaurantId: string, direction: number) {
 	const sources = cardImageSources.get(restaurantId);
 	if (!sources || sources.length < 2) return;
-	const nextIndex = ((cardImageIndexes.get(restaurantId) ?? 0) + direction + sources.length) % sources.length;
+	showCardImage(restaurantId, ((cardImageIndexes.get(restaurantId) ?? 0) + direction + sources.length) % sources.length);
+}
+
+function showCardImage(restaurantId: string, nextIndex: number) {
+	const sources = cardImageSources.get(restaurantId);
+	if (!sources?.[nextIndex]) return;
 	cardImageIndexes.set(restaurantId, nextIndex);
 	const images = [...list.querySelectorAll<HTMLImageElement>(`[data-card-logo="${CSS.escape(restaurantId)}"] img`)];
 	const restaurant = restaurants.find((item) => item.id === restaurantId);
@@ -3201,6 +3254,49 @@ function moveCardImage(restaurantId: string, direction: number) {
 		image.alt = `Imagen ${nextIndex + 1} de ${sources.length}${restaurant ? ` de ${restaurant.name}` : ''}`;
 	});
 }
+
+// En iconos grandes y medianos, al pasar el mouse sobre la imagen de una tarjeta se van rotando las imágenes del lugar.
+const CARD_HOVER_ROTATION_MS = 1100;
+const hoverCapable = window.matchMedia('(hover: hover)');
+let cardRotationTimer: number | undefined;
+let cardRotationId = '';
+
+function stopCardRotation() {
+	window.clearInterval(cardRotationTimer);
+	cardRotationTimer = undefined;
+	if (cardRotationId) showCardImage(cardRotationId, 0);
+	cardRotationId = '';
+}
+
+function cardMediaFromEvent(event: MouseEvent) {
+	return (event.target as HTMLElement).closest<HTMLElement>('.restaurant-card-media');
+}
+
+list.addEventListener('mouseover', (event) => {
+	if (!hoverCapable.matches || !['columns-5', 'columns-6'].includes(directoryView)) return;
+	const media = cardMediaFromEvent(event);
+	if (!media || media.contains(event.relatedTarget as Node | null)) return;
+	const restaurantId = media.querySelector<HTMLElement>('[data-card-logo]')?.dataset.cardLogo;
+	const sources = restaurantId ? cardImageSources.get(restaurantId) : undefined;
+	if (!restaurantId || !sources || sources.length < 2) return;
+	stopCardRotation();
+	cardRotationId = restaurantId;
+	sources.forEach((source) => { new Image().src = source; });
+	cardRotationTimer = window.setInterval(() => {
+		if (!media.isConnected) {
+			cardRotationId = '';
+			stopCardRotation();
+			return;
+		}
+		moveCardImage(restaurantId, 1);
+	}, CARD_HOVER_ROTATION_MS);
+});
+
+list.addEventListener('mouseout', (event) => {
+	const media = cardMediaFromEvent(event);
+	if (!media || media.contains(event.relatedTarget as Node | null)) return;
+	stopCardRotation();
+});
 
 async function getRestaurantImages(restaurantId: string): Promise<StoredImage[]> {
 	const media = await getServerMedia(restaurantId, 'image');
