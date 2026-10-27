@@ -17,11 +17,11 @@ type CachedPosition = { fingerprint: string; position: Position };
 
 const cacheKey = 'restobox-map-coordinates-osm-v1';
 const defaultCenter: L.LatLngTuple = [-38.0055, -57.5426];
-// Cada tipo de lugar tiene su pin: la gota con el mismo ícono que usan los botones de filtro.
-const pinGlyphs: Record<PlaceKind, string> = {
-	restaurant: '<path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/>',
-	cafe: '<path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/>',
-	store: '<path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/>',
+// Cada tipo de lugar tiene su pin: la gota con un emoji en el círculo blanco (cada dispositivo lo dibuja con su estilo).
+const pinEmojis: Record<PlaceKind, string> = {
+	restaurant: '🍽️',
+	cafe: '☕',
+	store: '🛍️',
 };
 const pinIcons = new Map<PlaceKind, L.DivIcon>();
 function pinIcon(kind: PlaceKind = 'restaurant') {
@@ -29,7 +29,7 @@ function pinIcon(kind: PlaceKind = 'restaurant') {
 	if (!icon) {
 		icon = L.divIcon({
 			className: 'map-pin',
-			html: `<svg viewBox="0 0 64 64" width="34" height="42" aria-hidden="true"><path d="M32 2C17.1 2 6 13.1 6 27.9 6 45.3 32 62 32 62s26-16.7 26-34.1C58 13.1 46.9 2 32 2Z" fill="currentColor" stroke="#fff" stroke-width="3"/><circle cx="32" cy="27" r="15" fill="#fff"/><g transform="translate(20 15) scale(1)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${pinGlyphs[kind]}</g></svg>`,
+			html: `<svg viewBox="0 0 64 64" width="34" height="42" aria-hidden="true"><path d="M32 2C17.1 2 6 13.1 6 27.9 6 45.3 32 62 32 62s26-16.7 26-34.1C58 13.1 46.9 2 32 2Z" fill="currentColor" stroke="#fff" stroke-width="3"/><circle cx="32" cy="27" r="16" fill="#fff"/></svg><span class="map-pin-emoji">${pinEmojis[kind]}</span>`,
 			iconSize: [34, 42],
 			iconAnchor: [17, 42],
 			popupAnchor: [0, -38],

@@ -1650,6 +1650,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .map-error { display: grid; height: 100%; place-items: center; padding: 32px; color: var(--muted); text-align: center; }
 .map-pin { color: var(--forest); background: transparent; border: 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
 .map-pin svg { display: block; }
+.map-pin-emoji { position: absolute; top: 9px; left: 0; width: 34px; font-size: 14px; line-height: 17px; text-align: center; pointer-events: none; }
 .map-info { color: #28312d; font-family: Arial, sans-serif; line-height: 1.35; }
 .map-info strong { display: block; margin-bottom: 4px; font-size: 14px; }
 .map-info-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 9px; }
