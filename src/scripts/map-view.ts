@@ -9,35 +9,19 @@ export type MapPlace = {
 	province?: string;
 	country?: string;
 	mapUrl?: string;
-	kind?: PlaceKind;
 };
-export type PlaceKind = 'restaurant' | 'cafe' | 'store';
 type Position = { lat: number; lng: number };
 type CachedPosition = { fingerprint: string; position: Position };
 
 const cacheKey = 'restobox-map-coordinates-osm-v1';
 const defaultCenter: L.LatLngTuple = [-38.0055, -57.5426];
-// Cada tipo de lugar tiene su pin: la gota con un emoji en el círculo blanco (cada dispositivo lo dibuja con su estilo).
-const pinEmojis: Record<PlaceKind, string> = {
-	restaurant: '🍽️',
-	cafe: '☕',
-	store: '🛍️',
-};
-const pinIcons = new Map<PlaceKind, L.DivIcon>();
-function pinIcon(kind: PlaceKind = 'restaurant') {
-	let icon = pinIcons.get(kind);
-	if (!icon) {
-		icon = L.divIcon({
-			className: 'map-pin',
-			html: `<svg viewBox="0 0 64 64" width="34" height="42" aria-hidden="true"><path d="M32 2C17.1 2 6 13.1 6 27.9 6 45.3 32 62 32 62s26-16.7 26-34.1C58 13.1 46.9 2 32 2Z" fill="currentColor" stroke="#fff" stroke-width="3"/><circle cx="32" cy="27" r="16" fill="#fff"/></svg><span class="map-pin-emoji">${pinEmojis[kind]}</span>`,
-			iconSize: [34, 42],
-			iconAnchor: [17, 42],
-			popupAnchor: [0, -38],
-		});
-		pinIcons.set(kind, icon);
-	}
-	return icon;
-}
+const pinIcon = L.divIcon({
+	className: 'map-pin',
+	html: '<svg viewBox="0 0 64 64" width="34" height="42" aria-hidden="true"><path d="M32 2C17.1 2 6 13.1 6 27.9 6 45.3 32 62 32 62s26-16.7 26-34.1C58 13.1 46.9 2 32 2Z" fill="currentColor" stroke="#fff" stroke-width="3"/><circle cx="32" cy="27" r="9" fill="#fff"/></svg>',
+	iconSize: [34, 42],
+	iconAnchor: [17, 42],
+	popupAnchor: [0, -38],
+});
 
 let map: L.Map | null = null;
 let statusElement: HTMLElement | null = null;
@@ -140,7 +124,7 @@ async function resolveLocations() {
 			} else {
 				coordinateCache[next.id] = { fingerprint, position };
 				positions.set(next.id, position);
-				markers.set(next.id, L.marker([position.lat, position.lng], { icon: pinIcon(next.kind), title: next.name }).bindPopup(popupHtml(next)));
+				markers.set(next.id, L.marker([position.lat, position.lng], { icon: pinIcon, title: next.name }).bindPopup(popupHtml(next)));
 			}
 			renderMarkers(false);
 		}
@@ -175,8 +159,6 @@ export function updateMapRestaurants(visible: MapPlace[], total: number) {
 	if (!map) return;
 	current = visible;
 	totalPlaces = total;
-	// Si cambió el tipo de un lugar ya ubicado, se actualiza su pin.
-	visible.forEach((place) => markers.get(place.id)?.setIcon(pinIcon(place.kind)));
 	map.invalidateSize();
 	renderMarkers(false);
 	void resolveLocations();
