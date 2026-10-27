@@ -1913,3 +1913,14 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .branch-combobox-create:hover { background: color-mix(in srgb, var(--sage) 45%, white); }
 .branch-combobox-empty { margin: 0; padding: 8px 10px; color: var(--muted); font-size: 11px; }
 #panel-links:not(.store-mode) .catalog-link-field { display: none !important; }
+
+/* Mapa (tablet y escritorio): Todo / Nombre / Zona justo debajo del buscador; los botones de tipo a la derecha ocupan las dos filas */
+@media (min-width: 641px) {
+	body[data-map-mode='true'] .action-search-group { grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 8px; }
+	body[data-map-mode='true'] .directory-search-row, body[data-map-mode='true'] .directory-toolbar-lower-row { display: contents; }
+	body[data-map-mode='true'] .directory-search-row .action-search { grid-column: 1; grid-row: 1; }
+	body[data-map-mode='true'] .quick-place-filters { grid-column: 2; grid-row: 1 / span 2; }
+	body[data-map-mode='true'] .search-scope-options { grid-column: 1; grid-row: 2; justify-self: start; }
+	body[data-map-mode='true'] .directory-actions-grid { grid-column: 1; grid-row: 2; justify-self: end; }
+	body[data-map-mode='true'] .search-terms-row { grid-column: 1 / -1; }
+}
