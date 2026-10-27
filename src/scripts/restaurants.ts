@@ -198,6 +198,8 @@ const placeScope = document.body.dataset.placeScope === 'restaurants' || documen
 	? document.body.dataset.placeScope
 	: 'all';
 const scopedPlacesMode = placeScope !== 'all';
+// En Entregas, ?tipo=delivery o ?tipo=takeaway deja solo los lugares con ese servicio.
+const deliveryKind = new URLSearchParams(window.location.search).get('tipo');
 function hasEstablishmentKey(restaurant: Restaurant, key: string) {
 	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === key);
 }
@@ -212,7 +214,11 @@ function isInCurrentScope(restaurant: Restaurant) {
 	if (profileMode || mapMode) return true;
 	if (storesMode) return isStorePlace(restaurant);
 	if (placeScope === 'cafes') return isCafePlace(restaurant);
-	if (placeScope === 'delivery') return Boolean(restaurant.delivery || restaurant.takeAway);
+	if (placeScope === 'delivery') {
+		if (deliveryKind === 'delivery') return Boolean(restaurant.delivery);
+		if (deliveryKind === 'takeaway') return Boolean(restaurant.takeAway);
+		return Boolean(restaurant.delivery || restaurant.takeAway);
+	}
 	if (placeScope === 'restaurants') return isRestaurantPlace(restaurant);
 	return !isStorePlace(restaurant);
 }

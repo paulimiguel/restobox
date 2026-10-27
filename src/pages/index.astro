@@ -9,6 +9,8 @@ const storesMode = Astro.props.stores === true;
 const restaurantsMode = Astro.props.restaurants === true;
 const cafesMode = Astro.props.cafes === true;
 const deliveryMode = Astro.props.delivery === true;
+// En Entregas el submenú filtra por Delivery o Take away (?tipo=delivery | takeaway); sin filtro muestra todos.
+const deliveryKind = ['delivery', 'takeaway'].includes(Astro.url.searchParams.get('tipo') ?? '') ? (Astro.url.searchParams.get('tipo') as string) : '';
 const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : deliveryMode ? 'delivery' : 'all';
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
@@ -62,7 +64,14 @@ const userInitials = userDisplayName
 						<a class="top-nav-button header-nav-link" id="header-restaurants" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 						<a class="top-nav-button header-nav-link" id="header-cafes" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
-						<a class="top-nav-button header-nav-link" id="header-delivery" href="/entregas" aria-current={deliveryMode ? 'page' : undefined}>ENTREGAS</a>
+						<details class="top-dropdown header-nav-link" id="header-delivery">
+							<summary class="top-nav-button" aria-current={deliveryMode ? 'page' : undefined}><span>ENTREGAS</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div class="dropdown-panel delivery-panel">
+								<a class="map-menu-link" href="/entregas?tipo=delivery" aria-current={deliveryMode && deliveryKind === 'delivery' ? 'page' : undefined}>Delivery</a>
+								<a class="map-menu-link" href="/entregas?tipo=takeaway" aria-current={deliveryMode && deliveryKind === 'takeaway' ? 'page' : undefined}>Take away</a>
+								<a class="map-menu-link" href="/entregas" aria-current={deliveryMode && deliveryKind === '' ? 'page' : undefined}>Todos</a>
+							</div>
+						</details>
 						<details class="top-dropdown show-dropdown">
 							<summary class="top-nav-button"><span>MOSTRAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel show-panel">
@@ -201,7 +210,14 @@ const userInitials = userDisplayName
 							<a class="mobile-menu-item" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 							<a class="mobile-menu-item" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
-							<a class="mobile-menu-item" href="/entregas" aria-current={deliveryMode ? 'page' : undefined}>ENTREGAS</a>
+							<details class="mobile-menu-section" open={deliveryMode}>
+								<summary><span>ENTREGAS</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+								<div class="mobile-menu-options">
+									<a class="map-menu-link" href="/entregas?tipo=delivery" aria-current={deliveryMode && deliveryKind === 'delivery' ? 'page' : undefined}>Delivery</a>
+									<a class="map-menu-link" href="/entregas?tipo=takeaway" aria-current={deliveryMode && deliveryKind === 'takeaway' ? 'page' : undefined}>Take away</a>
+									<a class="map-menu-link" href="/entregas" aria-current={deliveryMode && deliveryKind === '' ? 'page' : undefined}>Todos</a>
+								</div>
+							</details>
 							<details class="mobile-menu-section">
 								<summary><span>MOSTRAR</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options mobile-show-options">
@@ -270,7 +286,7 @@ const userInitials = userDisplayName
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
 							<h1 id="catalog-title" class="catalog-title"></h1>
-							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? 'Entregas de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? (deliveryKind === 'delivery' ? 'Delivery de ' : deliveryKind === 'takeaway' ? 'Take away de ' : 'Entregas de ') : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>

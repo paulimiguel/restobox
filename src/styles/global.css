@@ -195,6 +195,8 @@ body.mobile-menu-open { overflow: hidden; }
 .show-catalogs-button.active { color: var(--button-ink); background: var(--forest); }
 .map-menu-link { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 10px; padding: 7px 10px; color: #454b47; background: transparent; text-decoration: none; font-size: 12px; font-weight: 700; }
 .map-menu-link:hover { color: var(--accent-text); background: var(--sage); }
+.map-menu-link[aria-current='page'] { color: var(--accent-text); background: var(--sage); }
+.delivery-panel { min-width: 160px; padding: 6px; }
 .map-menu-link svg { width: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .mobile-catalog-menu-options > div { max-height: 240px; overflow-y: auto; }
 .mobile-catalog-menu-options .show-catalogs-button { padding-left: 12px; }
