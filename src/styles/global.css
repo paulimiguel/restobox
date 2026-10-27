@@ -1790,14 +1790,14 @@ a.mobile-menu-item { text-decoration: none; }
 
 /* Mapa: cuatro botones de tipo de lugar (Todos, Restaurantes, Cafes y Tiendas), combinables */
 .quick-place-filter[data-map-only][hidden] { display: none; }
-body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(4, auto); }
-/* Mapa: Delivery y Take away en una segunda fila, debajo de Restaurantes y Cafés */
-body[data-map-mode='true'] .quick-service-filter[data-map-service='delivery'] { grid-column: 2; }
+body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(3, auto); }
+/* Mapa: Restaurantes, Cafés y Tiendas arriba; Delivery, Take away y Todos en la segunda fila */
+body[data-map-mode='true'] .quick-place-filter[data-place-type='all'] { order: 6; }
 /* Mapa: solo el botón Filtrar (sin Ver ni Ordenar) */
 body[data-map-mode='true'] .directory-actions-grid .directory-action-menu:not(.filter-action-menu) { display: none; }
 body[data-map-mode='true'] .directory-actions-grid { grid-template-columns: minmax(0, 1fr); width: min(100%, 135px); margin-left: auto; }
 @media (max-width: 640px) { body[data-map-mode='true'] .directory-actions-grid { width: 100%; } }
-@media (max-width: 640px) { body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(4, auto); } }
+@media (max-width: 640px) { body[data-map-mode='true'] .quick-place-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* Tienda sola (sin restaurante ni café): se ocultan los links propios de la gastronomía */
 #panel-links.store-only-links .restaurant-link-field { display: none !important; }
