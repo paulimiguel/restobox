@@ -141,19 +141,23 @@ async function instagramProfileImage(value: string) {
 		if (!/(?:^|\.)instagram\.com$/i.test(profileUrl.hostname)) return '';
 		const username = profileUrl.pathname.split('/').filter(Boolean)[0] ?? '';
 		if (!/^[a-z0-9._]+$/i.test(username)) return '';
-		const embedUrl = await safePublicUrl(`https://www.instagram.com/${encodeURIComponent(username)}/embed/`);
-		const response = await fetch(embedUrl, {
-			redirect: 'manual', signal: AbortSignal.timeout(10_000),
-			headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' },
-		});
-		if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) return '';
-		const html = await response.text();
-		if (html.length > 3_000_000) return '';
-		const match = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|[^"\\])+)\\?"/);
-		if (!match) return '';
-		let imageUrl = match[1];
-		for (let level = 0; level < 3 && !/^https?:\/\//i.test(imageUrl); level += 1) imageUrl = JSON.parse(`"${imageUrl}"`) as string;
-		return (await safePublicUrl(imageUrl)).href;
+		// La página del perfil trae la foto en 150×150; la del embed solo en 100×100. Instagram firma cada URL, así que no se puede pedir otro tamaño.
+		for (const path of [`/${encodeURIComponent(username)}/`, `/${encodeURIComponent(username)}/embed/`]) {
+			const pageUrl = await safePublicUrl(`https://www.instagram.com${path}`);
+			const response = await fetch(pageUrl, {
+				redirect: 'manual', signal: AbortSignal.timeout(10_000),
+				headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' },
+			});
+			if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) continue;
+			const html = await response.text();
+			if (html.length > 3_000_000) continue;
+			const match = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|\\[^"]|[^"\\])+)\\?"/);
+			if (!match) continue;
+			let imageUrl = match[1];
+			for (let level = 0; level < 3 && !/^https?:\/\//i.test(imageUrl); level += 1) imageUrl = JSON.parse(`"${imageUrl}"`) as string;
+			return (await safePublicUrl(imageUrl)).href;
+		}
+		return '';
 	} catch { return ''; }
 }
 
