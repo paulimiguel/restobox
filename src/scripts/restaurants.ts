@@ -385,6 +385,7 @@ const imageHelp = document.querySelector<HTMLElement>('.image-field label small'
 const primaryImagePreview = document.querySelector<HTMLDivElement>('#primary-image-preview')!;
 const videoInput = document.querySelector<HTMLInputElement>('#restaurant-video-url')!;
 const viewRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#view-restaurant-video')!;
+const openRestaurantVideoPage = document.querySelector<HTMLAnchorElement>('#open-restaurant-video-page')!;
 const restaurantVideoDialog = document.querySelector<HTMLDialogElement>('#restaurant-video-dialog')!;
 const restaurantVideoFrame = document.querySelector<HTMLIFrameElement>('#restaurant-video-frame')!;
 const restaurantVideoPlayer = document.querySelector<HTMLVideoElement>('#restaurant-video-player')!;
@@ -2223,6 +2224,17 @@ function updateRestaurantVideoButton() {
 	const supported = isSupportedRestaurantVideoUrl(videoInput.value);
 	videoInput.setCustomValidity(videoInput.value.trim() && !supported ? 'Ingresá un enlace válido de YouTube, Instagram o TikTok.' : '');
 	viewRestaurantVideoButton.disabled = !supported;
+	// "Abrir página del video" lleva a la página original (Instagram, YouTube, TikTok o cualquier otra).
+	let pageUrl = '';
+	try {
+		const url = new URL(videoInput.value.trim());
+		if (url.protocol === 'https:' || url.protocol === 'http:') pageUrl = url.href;
+	} catch { /* Sin enlace válido no hay página para abrir. */ }
+	if (pageUrl) openRestaurantVideoPage.href = pageUrl;
+	else openRestaurantVideoPage.removeAttribute('href');
+	openRestaurantVideoPage.classList.toggle('disabled', !pageUrl);
+	openRestaurantVideoPage.setAttribute('aria-disabled', String(!pageUrl));
+	openRestaurantVideoPage.tabIndex = pageUrl ? 0 : -1;
 }
 
 function closeRestaurantVideo() {

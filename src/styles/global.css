@@ -1044,8 +1044,10 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .editing-record .image-gallery-column { grid-template-rows: minmax(auto, 1fr) auto; align-content: stretch; }
 .images-logo-row .image-previews { grid-template-columns: repeat(4, 1fr); align-content: start; }
 .image-gallery-actions { display: flex; min-height: 29px; justify-content: flex-end; gap: 6px; margin-top: 2px; }
-.view-restaurant-images, #view-restaurant-video { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.view-restaurant-images svg, #view-restaurant-video svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.view-restaurant-images, #view-restaurant-video, .open-video-page { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.open-video-page { text-decoration: none; }
+.open-video-page.disabled { opacity: .45; pointer-events: none; }
+.view-restaurant-images svg, #view-restaurant-video svg, .open-video-page svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .view-restaurant-images[hidden] { display: none; }
 .view-restaurant-images, .insert-image-button, .import-restaurant-images, .import-restaurant-logo, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
 .import-restaurant-images, .import-restaurant-logo { display: none; }
