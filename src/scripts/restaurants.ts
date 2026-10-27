@@ -194,7 +194,7 @@ function isStorePlace(restaurant: Restaurant) {
 	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === 'tienda');
 }
 // En /restaurantes y /cafes el directorio se divide por tipo de lugar.
-const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes'
+const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes' || document.body.dataset.placeScope === 'delivery'
 	? document.body.dataset.placeScope
 	: 'all';
 const scopedPlacesMode = placeScope !== 'all';
@@ -212,6 +212,7 @@ function isInCurrentScope(restaurant: Restaurant) {
 	if (profileMode || mapMode) return true;
 	if (storesMode) return isStorePlace(restaurant);
 	if (placeScope === 'cafes') return isCafePlace(restaurant);
+	if (placeScope === 'delivery') return Boolean(restaurant.delivery || restaurant.takeAway);
 	if (placeScope === 'restaurants') return isRestaurantPlace(restaurant);
 	return !isStorePlace(restaurant);
 }
@@ -1082,7 +1083,6 @@ const emptyFieldOptions: Array<{ id: string; label: string; isEmpty: (restaurant
 	{ id: 'city', label: 'Ciudad', isEmpty: (r) => !r.city?.trim() },
 	{ id: 'address', label: 'Dirección', isEmpty: (r) => !r.address?.trim() },
 	{ id: 'neighborhood', label: 'Zona', isEmpty: (r) => !r.neighborhood?.trim() },
-	{ id: 'phone', label: 'Teléfono', isEmpty: (r) => !r.phone?.trim() },
 	{ id: 'mobile', label: 'Celular', isEmpty: (r) => !r.mobile?.trim() },
 	{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
 	{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },

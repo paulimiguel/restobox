@@ -8,7 +8,8 @@ const mapMode = Astro.props.map === true;
 const storesMode = Astro.props.stores === true;
 const restaurantsMode = Astro.props.restaurants === true;
 const cafesMode = Astro.props.cafes === true;
-const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : 'all';
+const deliveryMode = Astro.props.delivery === true;
+const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : deliveryMode ? 'delivery' : 'all';
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
 const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
@@ -36,7 +37,7 @@ const userInitials = userDisplayName
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-title" content="FoodieBox" />
-		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : storesMode ? 'FoodieBox · Tiendas' : restaurantsMode ? 'FoodieBox · Restaurantes' : cafesMode ? 'FoodieBox · Cafés' : 'FoodieBox · Directorio de restaurantes'}</title>
+		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : storesMode ? 'FoodieBox · Tiendas' : restaurantsMode ? 'FoodieBox · Restaurantes' : cafesMode ? 'FoodieBox · Cafés' : deliveryMode ? 'FoodieBox · Delivery y take away' : 'FoodieBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -61,6 +62,7 @@ const userInitials = userDisplayName
 						<a class="top-nav-button header-nav-link" id="header-restaurants" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 						<a class="top-nav-button header-nav-link" id="header-cafes" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 						<a class="top-nav-button header-nav-link" id="header-stores" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
+						<a class="top-nav-button header-nav-link" id="header-delivery" href="/entregas" aria-current={deliveryMode ? 'page' : undefined}>DEL/TA</a>
 						<details class="top-dropdown show-dropdown">
 							<summary class="top-nav-button"><span>MOSTRAR</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div class="dropdown-panel show-panel">
@@ -199,6 +201,7 @@ const userInitials = userDisplayName
 							<a class="mobile-menu-item" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 							<a class="mobile-menu-item" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 							<a class="mobile-menu-item" href="/tiendas" aria-current={storesMode ? 'page' : undefined}>TIENDAS</a>
+							<a class="mobile-menu-item" href="/entregas" aria-current={deliveryMode ? 'page' : undefined}>DEL/TA</a>
 							<details class="mobile-menu-section">
 								<summary><span>MOSTRAR</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
 								<div class="mobile-menu-options mobile-show-options">
@@ -267,7 +270,7 @@ const userInitials = userDisplayName
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
 							<h1 id="catalog-title" class="catalog-title"></h1>
-							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? 'Delivery y take away de ' : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>
@@ -296,7 +299,6 @@ const userInitials = userDisplayName
 									<div class="search-scope-options" role="radiogroup" aria-label="Campo de búsqueda">
 										<button class="search-scope-option active" type="button" role="radio" aria-checked="true" data-search-scope="all" title="Busca en el nombre y en cualquier dato del lugar: cocina, categoría, zona, calle, servicios…">Todo</button>
 										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="name">Nombre</button>
-										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="category">{storesMode ? 'Tipo de tienda' : 'Categoria'}</button>
 										<button class="search-scope-option" type="button" role="radio" aria-checked="false" data-search-scope="zone">Zona</button>
 									</div>
 									<div class="directory-actions-grid">
@@ -460,13 +462,13 @@ const userInitials = userDisplayName
 							<div class="lead-data">
 								<label><span class="field-label">Nombre del lugar <span class="required">*</span></span><input name="name" required maxlength="80" placeholder="Ej. Casa Cavia" /></label>
 								<label>Dirección <input name="address" maxlength="120" placeholder="Calle y número" /></label>
-								<label>Zona
+								<div class="lead-contacts">
+								<label class="zone-field">Zona
 									<div id="neighborhood-combobox" class="cuisine-combobox neighborhood-combobox">
 										<input id="neighborhood" name="neighborhood" type="text" maxlength="80" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="neighborhood-options" placeholder="Escribí una zona y pulsá Enter" />
 										<div id="neighborhood-options" class="cuisine-dropdown neighborhood-dropdown" role="listbox" hidden></div>
 									</div>
 								</label>
-								<div class="lead-contacts">
 									<div class="form-field whatsapp-general-field">
 										<label for="whatsapp-number-general">WhatsApp</label>
 										<div class="url-with-action">
@@ -474,12 +476,17 @@ const userInitials = userDisplayName
 											<a id="open-whatsapp-web-general" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
 										</div>
 									</div>
-									<label>Teléfono <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
+									<input name="phone" type="hidden" />
 									<div class="place-kind-options" role="group" aria-label="Tipo de lugar">
 										<span class="place-kind-title">Tipo de lugar</span>
 										<label class="boolean-check-control"><input name="placeRestaurant" type="checkbox" /><span>Restaurante</span></label>
 										<label class="boolean-check-control"><input name="placeCafe" type="checkbox" /><span>Café</span></label>
 										<label class="boolean-check-control"><input name="placeStore" type="checkbox" /><span>Tienda</span></label>
+									</div>
+									<div class="place-kind-options delivery-options" role="group" aria-label="Entregas">
+										<span class="place-kind-title">Entregas</span>
+										<label class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Delivery</span></label>
+										<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
 									</div>
 									<div class="view-personal-statuses" aria-label="Estado del lugar">
 										<strong id="view-favorite-status" class="favorite-status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg>Favorito</strong>
@@ -595,8 +602,6 @@ const userInitials = userDisplayName
 							</div>
 						</div>
 						<div class="form-field characteristics-checks wide">
-							<label class="boolean-check-control"><input name="delivery" type="checkbox" /><span>Delivery</span></label>
-							<label class="boolean-check-control"><input name="takeAway" type="checkbox" /><span>Take away</span></label>
 							<label class="boolean-check-control"><input name="glutenFree" type="checkbox" /><span>Sin gluten</span></label>
 							<label class="boolean-check-control"><input name="healthy" type="checkbox" /><span>Saludable</span></label>
 						</div>
@@ -1152,6 +1157,7 @@ const userInitials = userDisplayName
 			<a href="/restaurantes" class={restaurantsMode ? 'active' : ''} aria-current={restaurantsMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Restaurantes</span></a>
 			<a href="/cafes" class={cafesMode ? 'active' : ''} aria-current={cafesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/></svg><span>Cafés</span></a>
 			<a href="/tiendas" class={storesMode ? 'active' : ''} aria-current={storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg><span>Tiendas</span></a>
+			<a href="/entregas" class={deliveryMode ? 'active' : ''} aria-current={deliveryMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14l-1 11H6L5 9Zm4 0V7a3 3 0 0 1 6 0v2M9 14h6"/></svg><span>DEL/TA</span></a>
 			<a href="/mapa" class={mapMode ? 'active' : ''} aria-current={mapMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15"/></svg><span>Mapa</span></a>
 			<a href="/perfil" class={profileMode ? 'active' : ''} aria-current={profileMode ? 'page' : undefined} data-tabbar-tablet-up><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Mi perfil</span></a>
 		</nav>
