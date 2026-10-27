@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { getSettings } from '../../lib/server/database';
 
 export const prerender = false;
 
@@ -9,6 +10,7 @@ type GoogleText = { text?: string };
 type GoogleMoney = { currencyCode?: string; units?: string; nanos?: number };
 type GoogleAddressComponent = { longText?: string; types?: string[] };
 type GooglePlace = {
+	id?: string;
 	location?: { latitude?: number; longitude?: number };
 	displayName?: GoogleText; formattedAddress?: string; addressComponents?: GoogleAddressComponent[];
 	nationalPhoneNumber?: string; internationalPhoneNumber?: string; websiteUri?: string; googleMapsUri?: string;
@@ -62,10 +64,113 @@ async function zoneFromCoordinates(latitude?: number, longitude?: number) {
 	}
 }
 
-// Un celular argentino llega de Google como "+54 9 …": se usa como WhatsApp en el formato de wa.me (solo dígitos).
-function mobileFromGooglePhone(phone?: string) {
-	const value = phone?.trim() ?? '';
-	return /^\+54[\s-]*9/.test(value) ? value.replace(/\D/g, '') : '';
+
+// Categorías de FoodieBox (solapa Características). Se deducen de los tipos y servicios de Google y del texto
+// de Google, Instagram, el sitio y Woki. Solo se devuelven categorías de esta lista, en este orden.
+const googleStoreTypes = new Set(['store', 'grocery_store', 'food_store', 'convenience_store', 'supermarket', 'market', 'liquor_store', 'butcher_shop', 'health_food_store', 'gift_shop', 'wholesaler', 'shopping_mall']);
+function detectCategories(place: GooglePlace, text: string) {
+	const types = new Set(place.types ?? []);
+	const hasType = (...values: string[]) => values.some((value) => types.has(value));
+	const matches = (pattern: RegExp) => pattern.test(text);
+	const found: Array<[string, boolean]> = [
+		['Bar', hasType('bar', 'cocktail_bar', 'wine_bar') || matches(/\bbar\b/)],
+		['Bodegón', matches(/\bbodegon\b/)],
+		['Boliche', hasType('night_club') || matches(/\bboliche\b|\bdiscoteca\b|night ?club/)],
+		['Café', hasType('cafe', 'coffee_shop') || matches(/\bcafe\b|cafeteria|coffee shop|specialty coffee/)],
+		['Casa de té', hasType('tea_house') || matches(/casa de te\b|teteria|tea house/)],
+		['Cervecería', hasType('brewery', 'beer_garden') || matches(/cerveceria|brewery|brewpub/)],
+		['Comida rápida', hasType('fast_food_restaurant') || matches(/comida rapida|fast food/)],
+		['Delivery', Boolean(place.delivery) || matches(/\bdelivery\b/)],
+		['Eventos', matches(/\beventos?\b|salon de fiestas/)],
+		['Heladería', hasType('ice_cream_shop') || matches(/heladeria|ice cream/)],
+		['Juegos', matches(/juegos de mesa|\bjuegos\b|board games/)],
+		['Karaoke', matches(/karaoke/)],
+		['Keto', matches(/\bketo\b|cetogenic/)],
+		['Pub', hasType('pub') || matches(/\bpub\b/)],
+		['Puertas cerradas', matches(/puertas cerradas/)],
+		['Recitales', matches(/\brecitales?\b/)],
+		['Restaurante', hasType('restaurant') || [...types].some((type) => type.endsWith('_restaurant')) || matches(/\brestaurante\b/)],
+		['Rooftop', matches(/rooftop/)],
+		['Shows en vivo', Boolean(place.liveMusic) || matches(/shows? en vivo|musica en vivo|live music/)],
+		['Sin gluten', matches(/sin gluten|gluten free|sin tacc|celiac/)],
+		['Take away', Boolean(place.takeout) || matches(/take ?away|para llevar/)],
+		['Talleres', matches(/\btalleres?\b/)],
+		['Tapeo', matches(/\btapeo\b|\btapas\b/)],
+		['Teatro', hasType('performing_arts_theater') || matches(/\bteatro\b/)],
+		['Tienda', [...types].some((type) => googleStoreTypes.has(type)) || matches(/\btienda\b/)],
+		['Trattoria', matches(/trattoria/)],
+		['Vermutería', matches(/vermuteria|\bvermut\b/)],
+	];
+	return found.filter(([, present]) => present).map(([category]) => category);
+}
+
+// Servicios de FoodieBox (solapa Características): en qué momentos del día se come o toma algo y si hay tienda o eventos.
+// Se deducen de los servicios de Google y del texto de Google, Instagram, el sitio y Woki.
+function detectServices(place: GooglePlace, text: string, isStore: boolean) {
+	const types = new Set(place.types ?? []);
+	const matches = (pattern: RegExp) => pattern.test(text);
+	const isCafe = types.has('cafe') || types.has('coffee_shop') || types.has('tea_house');
+	const found: Array<[string, boolean]> = [
+		['Desayuno', Boolean(place.servesBreakfast) || matches(/\bdesayunos?\b|breakfast/)],
+		['Brunch', Boolean(place.servesBrunch) || matches(/\bbrunch\b/)],
+		['Almuerzo', Boolean(place.servesLunch) || matches(/\balmuerzos?\b|\blunch\b/)],
+		['Merienda', isCafe || matches(/\bmeriendas?\b|tea time/)],
+		['Drunch', matches(/\bdrunch\b/)],
+		['Cena', Boolean(place.servesDinner) || matches(/\bcenas?\b|\bdinner\b/)],
+		['After-dinner', matches(/after[- ]?dinner|poscena|post ?cena/)],
+		['Tragos', Boolean(place.servesCocktails) || matches(/\btragos?\b|cocteles|cocktails?|cocteleria/)],
+		['Tienda', isStore],
+		['Eventos', matches(/\beventos?\b|salon de fiestas/)],
+	];
+	return found.filter(([, present]) => present).map(([service]) => service);
+}
+
+// Listas de FoodieBox (cocinas, categorías, servicios) tal como están cargadas en la configuración del servidor.
+function catalogList(key: 'cuisines' | 'establishmentTypes' | 'serviceTypes') {
+	try {
+		const values = (getSettings().catalogs as Record<string, unknown> | undefined)?.[key];
+		return Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
+	} catch { return []; }
+}
+
+// Tipos de cocina de Google y los nombres con que pueden estar cargados en la lista (se usa el primero que exista).
+const googleCuisineNames: Record<string, string[]> = {
+	argentinian_restaurant: ['Argentina', 'Cocina argentina'], american_restaurant: ['Americana'], asian_restaurant: ['Asiática', 'Cocina asiática'],
+	barbecue_restaurant: ['Parrilla'], steak_house: ['Steakhouse', 'Parrilla'], brazilian_restaurant: ['Brasileña'], chinese_restaurant: ['China'],
+	french_restaurant: ['Francesa'], greek_restaurant: ['Griega'], indian_restaurant: ['India'], indonesian_restaurant: ['Indonesia'],
+	italian_restaurant: ['Italiana'], japanese_restaurant: ['Japonesa', 'Cocina japonesa'], korean_restaurant: ['Coreana', 'Comida coreana'],
+	lebanese_restaurant: ['Libanesa'], mediterranean_restaurant: ['Mediterránea'], mexican_restaurant: ['Mexicana', 'Comida mexicana'],
+	middle_eastern_restaurant: ['Medio Oriente'], peruvian_restaurant: ['Peruana', 'Comida peruana'], pizza_restaurant: ['Pizzas', 'Pizza', 'Pizzería'],
+	ramen_restaurant: ['Ramen'], seafood_restaurant: ['Mariscos', 'Cocina de mar'], spanish_restaurant: ['Española', 'Cocina española', 'Comida española'],
+	sushi_restaurant: ['Sushi'], thai_restaurant: ['Tailandesa'], turkish_restaurant: ['Turca'], vegan_restaurant: ['Vegana'],
+	vegetarian_restaurant: ['Vegetariana'], vietnamese_restaurant: ['Vietnamita'], hamburger_restaurant: ['Hamburguesas'], sandwich_shop: ['Sandwiches'],
+	fast_food_restaurant: ['Comida rápida'], cafe: ['Cafetería'], coffee_shop: ['Cafetería'], brewery: ['Cervecería'], dessert_shop: ['Postres'],
+};
+// Nombres de la lista que no indican por sí solos un tipo de cocina: no se deducen del texto.
+const ambiguousCuisineNames = new Set(['almuerzo', 'bar', 'cafe', 'cafeteria', 'eventos', 'pub', 'restaurante', 'tragos', 'comidas', 'elegante', 'moderno', 'internacional',
+	'entretenimiento', 'trivia', 'balneario', 'europea', 'cosmopolita', 'contemporanea', 'buffet', 'cantina', 'gama media', 'hotel boutique', 'centro cultural',
+	'club de playa', 'club nocturno', 'bar nocturno', 'merienda buffet', 'plato del dia', 'parador de playa', 'menu por pasos', 'gourmet', 'cocina casera']);
+
+// Tipo de cocina: se elige siempre de la lista cargada en FoodieBox, deducido de los tipos de Google y del texto
+// de Google, Instagram, el sitio y Woki (un nombre de la lista se marca si aparece en el texto).
+function detectCuisines(place: GooglePlace, text: string, catalog: string[]) {
+	const byKey = new Map(catalog.map((name) => [normalized(name).trim(), name]));
+	const fromTypes = (place.types ?? []).flatMap((type) => {
+		const candidates = googleCuisineNames[type] ?? [];
+		const known = candidates.find((name) => byKey.has(normalized(name)));
+		return catalog.length ? (known ? [byKey.get(normalized(known)) as string] : []) : candidates.slice(0, 1);
+	});
+	const seenStems = new Set<string>(fromTypes.map((name) => normalized(name).trim().replace(/s$/, '')));
+	const fromText = catalog.filter((name) => {
+		const key = normalized(name).trim();
+		if (key.length < 4 || key.includes('/') || ambiguousCuisineNames.has(key)) return false;
+		const stem = key.replace(/s$/, '');
+		if (seenStems.has(stem)) return false;
+		const matched = new RegExp(`(?:^|[^a-z0-9])${stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?(?![a-z0-9])`).test(text);
+		if (matched) seenStems.add(stem);
+		return matched;
+	});
+	return unique([...fromTypes, ...fromText]).slice(0, 6);
 }
 
 function googleSearchUrl(...values: Array<string | undefined>) {
@@ -135,14 +240,60 @@ async function readPublicPage(value: string): Promise<PublicPageData> {
 	return { links: [], images: [], description: '', keywords: [], text: '' };
 }
 
-async function instagramProfileImage(value: string) {
+// Decodifica texto de un JSON incrustado en la página (a veces con doble escape).
+function decodeEscapedText(value: string) {
+	let decoded = value;
+	for (let level = 0; level < 3; level += 1) {
+		try {
+			const next = JSON.parse(`"${decoded}"`) as string;
+			if (next === decoded) break;
+			decoded = next;
+		} catch { break; }
+	}
+	return decoded.trim();
+}
+
+// Enlaces de la bio de Instagram (el JSON de la página trae "bio_links": [{ url, title }]).
+function instagramBioLinks(html: string) {
+	const key = '"bio_links":[';
+	const start = html.indexOf(key);
+	if (start < 0) return [];
+	const open = start + key.length - 1;
+	let depth = 0;
+	let inString = false;
+	for (let index = open; index < Math.min(html.length, open + 20_000); index += 1) {
+		const char = html[index];
+		if (inString) {
+			if (char === '\\') index += 1;
+			else if (char === '"') inString = false;
+		} else if (char === '"') inString = true;
+		else if (char === '[') depth += 1;
+		else if (char === ']') {
+			depth -= 1;
+			if (depth === 0) {
+				try {
+					return (JSON.parse(html.slice(open, index + 1)) as Array<{ url?: string }>)
+						.map((item) => item.url ?? '').filter((link) => /^https?:\/\//i.test(link));
+				} catch { return []; }
+			}
+		}
+	}
+	return [];
+}
+
+// Foto y bio del perfil de Instagram. La página del perfil trae la foto en 150×150; la del embed solo en 100×100.
+// Instagram firma cada URL, así que no se puede pedir otro tamaño. La bio solo está en el JSON de la página (no en og:description).
+async function instagramProfile(value: string) {
+	let image = '';
+	let biography = '';
+	let externalLinks: string[] = [];
 	try {
 		const profileUrl = new URL(value);
-		if (!/(?:^|\.)instagram\.com$/i.test(profileUrl.hostname)) return '';
+		if (!/(?:^|\.)instagram\.com$/i.test(profileUrl.hostname)) return { image, biography, externalLinks };
 		const username = profileUrl.pathname.split('/').filter(Boolean)[0] ?? '';
-		if (!/^[a-z0-9._]+$/i.test(username)) return '';
-		// La página del perfil trae la foto en 150×150; la del embed solo en 100×100. Instagram firma cada URL, así que no se puede pedir otro tamaño.
+		if (!/^[a-z0-9._]+$/i.test(username)) return { image, biography, externalLinks };
 		for (const path of [`/${encodeURIComponent(username)}/`, `/${encodeURIComponent(username)}/embed/`]) {
+			if (image && biography) break;
 			const pageUrl = await safePublicUrl(`https://www.instagram.com${path}`);
 			const response = await fetch(pageUrl, {
 				redirect: 'manual', signal: AbortSignal.timeout(10_000),
@@ -151,21 +302,38 @@ async function instagramProfileImage(value: string) {
 			if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) continue;
 			const html = await response.text();
 			if (html.length > 3_000_000) continue;
-			const match = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|\\[^"]|[^"\\])+)\\?"/);
-			if (!match) continue;
-			let imageUrl = match[1];
-			for (let level = 0; level < 3 && !/^https?:\/\//i.test(imageUrl); level += 1) imageUrl = JSON.parse(`"${imageUrl}"`) as string;
-			return (await safePublicUrl(imageUrl)).href;
+			if (!image) {
+				const match = html.match(/\\?"profile_pic_url\\?"\s*:\s*\\?"((?:\\\\.|\\[^"]|[^"\\])+)\\?"/);
+				if (match) {
+					try {
+						let imageUrl = match[1];
+						for (let level = 0; level < 3 && !/^https?:\/\//i.test(imageUrl); level += 1) imageUrl = JSON.parse(`"${imageUrl}"`) as string;
+						image = (await safePublicUrl(imageUrl)).href;
+					} catch { /* Sin foto utilizable en esta página. */ }
+				}
+			}
+			if (!externalLinks.length) externalLinks = instagramBioLinks(html);
+			if (!biography) {
+				const match = html.match(/\\?"biography\\?"\s*:\s*\\?"((?:\\\\.|\\[^"]|[^"\\])*)\\?"/);
+				if (match) biography = decodeEscapedText(match[1]);
+			}
 		}
-		return '';
-	} catch { return ''; }
+	} catch { /* Se devuelve lo que se haya podido leer. */ }
+	return { image, biography, externalLinks };
 }
 
 async function pageDataOrEmpty(url: string): Promise<PublicPageData> {
 	if (!url) return { links: [], images: [], description: '', keywords: [], text: '' };
 	try {
-		const [page, profileImage] = await Promise.all([readPublicPage(url), instagramProfileImage(url)]);
-		return { ...page, images: unique([profileImage, ...page.images]) };
+		const [page, profile] = await Promise.all([readPublicPage(url), instagramProfile(url)]);
+		// En un perfil de Instagram los únicos enlaces útiles son los de la bio (el resto es la navegación de la red).
+		const isInstagram = /(?:^|\.)instagram\.com$/i.test(new URL(url).hostname);
+		return {
+			...page,
+			links: isInstagram ? unique(profile.externalLinks) : page.links,
+			images: unique([profile.image, ...page.images]),
+			description: [profile.biography, page.description].filter(Boolean).join(' '),
+		};
 	} catch { return { links: [], images: [], description: '', keywords: [], text: '' }; }
 }
 const socialLink = (links: string[], pattern: RegExp) => links.find((link) => pattern.test(link)) ?? '';
@@ -474,13 +642,124 @@ async function fallbackWithoutGoogle(requestedName: string) {
 	return await wokiFallback(requestedName) || await publicWebFallback(requestedName);
 }
 
+// Precio por persona como rango, con el mismo formato que ya se carga a mano: "$30,000-$40,000" o "+$60,000".
 function averagePrice(place: GooglePlace) {
-	const values = [place.priceRange?.startPrice, place.priceRange?.endPrice].map((money) => money ? Number(money.units ?? 0) + Number(money.nanos ?? 0) / 1e9 : 0).filter((value) => value > 0);
-	if (!values.length) return '';
-	const amount = values.reduce((total, value) => total + value, 0) / values.length;
+	const amount = (money?: GoogleMoney) => money ? Math.round(Number(money.units ?? 0) + Number(money.nanos ?? 0) / 1e9) : 0;
+	const start = amount(place.priceRange?.startPrice);
+	const end = amount(place.priceRange?.endPrice);
+	if (!start && !end) return '';
 	const currency = place.priceRange?.startPrice?.currencyCode || place.priceRange?.endPrice?.currencyCode || 'ARS';
-	try { return new Intl.NumberFormat('es-AR', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount); }
-	catch { return `${currency} ${Math.round(amount)}`; }
+	const money = (value: number) => `${currency === 'ARS' ? '$' : `${currency} `}${value.toLocaleString('en-US')}`;
+	if (start && end) return `${money(start)}-${money(end)}`;
+	return start ? `+${money(start)}` : `Hasta ${money(end)}`;
+}
+
+// Delivery, take away, sin gluten y saludable: se deducen de la descripción (bio) de Instagram.
+function detectInstagramFlags(text: string) {
+	const matches = (pattern: RegExp) => pattern.test(text);
+	return {
+		delivery: matches(/\bdelivery\b|\benvios?\b|a domicilio|pedidos ?ya|\brappi\b/),
+		takeAway: matches(/take ?away|para llevar|retiro en (?:el )?(?:local|sucursal)|retiros? por/),
+		glutenFree: matches(/sin gluten|gluten ?free|sin tacc|celiac|libre de gluten/),
+		healthy: matches(/saludable|healthy|comida sana|\bfit\b|organic|plant based|nutritiv|bienestar|detox/),
+	};
+}
+
+// ---- Enlaces del lugar (solapa Links) ----
+type LinkKind = 'instagram' | 'facebook' | 'tiktok' | 'linktree' | 'tripAdvisor' | 'woki' | 'pedidosYa' | 'whatsapp';
+const linkPatterns: Record<LinkKind, RegExp> = {
+	instagram: /^https?:\/\/(?:www\.)?instagram\.com\/(?!(?:p|reel|reels|tv|explore|accounts|stories|direct|about|legal|developer)(?:\/|$))[\w.]+\/?(?:[?#].*)?$/i,
+	facebook: /^https?:\/\/(?:www\.|m\.|es-la\.)?facebook\.com\/(?!(?:sharer|share|dialog|plugins|tr|login|policies|help|privacy|legal)(?:\/|\.php|\?|$))[^/?#]+/i,
+	tiktok: /^https?:\/\/(?:www\.|vm\.)?tiktok\.com\/@[\w.]+/i,
+	linktree: /^https?:\/\/(?:www\.)?linktr\.ee\/[\w.]+/i,
+	tripAdvisor: /^https?:\/\/(?:[\w-]+\.)?tripadvisor\.[a-z.]+\/[^\s]*_Review-[^\s]*/i,
+	woki: /^https?:\/\/(?:www\.)?wokiapp\.com\/restaurante\/[^\s]+/i,
+	pedidosYa: /^https?:\/\/(?:www\.)?pedidosya\.com(?:\.[a-z]{2})?\/restaurantes?\/[^\s]+/i,
+	whatsapp: /^https?:\/\/(?:wa\.me\/|api\.whatsapp\.com\/send|(?:www\.)?whatsapp\.com\/send)[^\s]*/i,
+};
+const menuLinkPattern = /men[uú]|carta\b/i;
+
+function pickLink(kind: LinkKind, ...sources: string[][]) {
+	for (const links of sources) {
+		const found = links.find((link) => linkPatterns[kind].test(link));
+		if (found) return found;
+	}
+	return '';
+}
+
+function normalizeInstagramUrl(link: string) {
+	const username = link.match(/instagram\.com\/([\w.]+)/i)?.[1];
+	return username ? `https://www.instagram.com/${username}/` : '';
+}
+
+// Un enlace que no es de ninguna red ni servicio conocido ni un formulario: se puede usar como sitio web.
+function isPlainWebsite(link: string) {
+	return /^https?:\/\//i.test(link) && !Object.values(linkPatterns).some((pattern) => pattern.test(link))
+		&& !/(?:^|\.)(?:instagram|facebook|tiktok|youtube|google|forms\.gle|bit\.ly|goo\.gl|maps\.app\.goo\.gl|wa\.me)(?:\.|\/|$)/i.test(new URL(link).hostname + '/');
+}
+
+// Enlaces (con su título) de una página de Linktree, leídos del JSON que la propia página incluye.
+async function linktreeLinks(value: string): Promise<Array<{ title: string; url: string }>> {
+	try {
+		const url = await safePublicUrl(value);
+		if (!/(?:^|\.)linktr\.ee$/i.test(url.hostname)) return [];
+		const response = await fetch(url, {
+			redirect: 'manual', signal: AbortSignal.timeout(8_000),
+			headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' },
+		});
+		if (!response.ok) return [];
+		const html = await response.text();
+		if (html.length > 3_000_000) return [];
+		const raw = cheerio.load(html)('script#__NEXT_DATA__').text();
+		type Item = { title?: string; url?: string; type?: string };
+		const pageProps = (JSON.parse(raw) as { props?: { pageProps?: { links?: Item[]; pinnedLinks?: Item[]; socialLinks?: Item[] } } }).props?.pageProps;
+		return [...(pageProps?.pinnedLinks ?? []), ...(pageProps?.links ?? []), ...(pageProps?.socialLinks ?? [])]
+			.filter((item): item is Item & { url: string } => typeof item.url === 'string' && /^https?:\/\//i.test(item.url))
+			.map((item) => ({ title: item.title ?? item.type ?? '', url: item.url }));
+	} catch { return []; }
+}
+
+// WhatsApp argentino con el formato "+54 9 2236 98-4767": prefijo de país, 9 de celular y 10 dígitos agrupados 4-2-4.
+function formatWhatsapp(value: string) {
+	let digits = value.replace(/\D/g, '').replace(/^00/, '');
+	if (digits.startsWith('54')) digits = digits.slice(2);
+	if (digits.startsWith('9') && digits.length === 11) digits = digits.slice(1);
+	digits = digits.replace(/^0/, '');
+	if (digits.length === 12) {
+		// Formato local con el 15 del celular: 0223 15 698 4767
+		for (const areaLength of [2, 3, 4]) {
+			if (digits.slice(areaLength, areaLength + 2) === '15') { digits = digits.slice(0, areaLength) + digits.slice(areaLength + 2); break; }
+		}
+	}
+	return digits.length === 10 ? `+54 9 ${digits.slice(0, 4)} ${digits.slice(4, 6)}-${digits.slice(6)}` : '';
+}
+
+function whatsappFromLink(link: string) {
+	try {
+		const url = new URL(link);
+		return formatWhatsapp(url.hostname.includes('wa.me') ? url.pathname : (url.searchParams.get('phone') ?? ''));
+	} catch { return ''; }
+}
+
+// Número en la bio de Instagram: solo si viene precedido de una palabra que lo identifica como contacto.
+function phoneFromBio(bio: string) {
+	const match = bio.match(/(?:whats?app|wsp|wpp|\bwa\b|📱|📲|📞|☎|reservas|pedidos|turnos)[^\d+]{0,25}(\+?\d[\d\s().-]{7,17}\d)/i);
+	return match ? formatWhatsapp(match[1]) : '';
+}
+
+// Celular de Google (+54 9 …) como WhatsApp.
+function mobileFromGooglePhone(phone?: string) {
+	const value = phone?.trim() ?? '';
+	return /^\+54[\s-]*9/.test(value) ? formatWhatsapp(value) : '';
+}
+
+// Búsqueda del lugar en Google Maps (con el identificador del lugar para que abra la ficha exacta).
+function googleMapsSearchUrl(place: GooglePlace, name: string) {
+	const url = new URL('https://www.google.com/maps/search/');
+	url.searchParams.set('api', '1');
+	url.searchParams.set('query', [place.displayName?.text || name, place.formattedAddress].filter(Boolean).join(', '));
+	if (place.id) url.searchParams.set('query_place_id', place.id);
+	return url.href;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -535,20 +814,39 @@ export const POST: APIRoute = async ({ request }) => {
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 
-		const officialPage = await pageDataOrEmpty(place.websiteUri?.trim() ?? '');
-		const instagramUrl = socialLink(officialPage.links, /(?:^|\.)instagram\.com\//i);
-		const facebookUrl = socialLink(officialPage.links, /(?:^|\.)facebook\.com\//i);
-		const tiktokUrl = socialLink(officialPage.links, /(?:^|\.)tiktok\.com\//i);
+		const websiteUri = place.websiteUri?.trim() ?? '';
+		// Muchos lugares cargan su Instagram, Facebook o Linktree como sitio web en Google.
+		const websiteIsSocial = (['instagram', 'facebook', 'tiktok', 'linktree'] as LinkKind[]).some((kind) => linkPatterns[kind].test(websiteUri));
+		const officialPage = websiteIsSocial ? await pageDataOrEmpty('') : await pageDataOrEmpty(websiteUri);
+		const siteLinks = unique([...(websiteIsSocial ? [websiteUri] : []), ...officialPage.links]);
 		const wokiMatch = await findWokiPlace(place, name);
-		const wokiUrl = socialLink(officialPage.links, /(?:^|\.)wokiapp\.com\//i) || (wokiMatch?.slug ? `https://www.wokiapp.com/restaurante/${encodeURIComponent(wokiMatch.slug)}` : '');
-		const tripAdvisorUrl = socialLink(officialPage.links, /(?:^|\.)tripadvisor\./i);
-		const linktreeUrl = socialLink(officialPage.links, /(?:^|\.)linktr\.ee\//i);
-		const menuUrl = officialPage.links.find((link) => /(?:menu|carta)/i.test(link)) ?? '';
-		const [instagramPage, facebookPage, wokiPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl), pageDataOrEmpty(wokiUrl)]);
-		const allLinks = unique([...officialPage.links, ...instagramPage.links, ...facebookPage.links, ...wokiPage.links]);
-		const whatsappLink = socialLink(allLinks, /(?:wa\.me|whatsapp\.com)/i);
-		let whatsapp = '';
-		if (whatsappLink) { const parsed = new URL(whatsappLink); whatsapp = parsed.hostname.includes('wa.me') ? parsed.pathname.replace(/\D/g, '') : (parsed.searchParams.get('phone') ?? '').replace(/\D/g, ''); }
+		const wokiUrl = pickLink('woki', siteLinks) || (wokiMatch?.slug ? `https://www.wokiapp.com/restaurante/${encodeURIComponent(wokiMatch.slug)}` : '');
+		let facebookUrl = pickLink('facebook', siteLinks);
+		const [wokiPage, firstFacebookPage] = await Promise.all([pageDataOrEmpty(wokiUrl), pageDataOrEmpty(facebookUrl)]);
+		// Si el sitio no enlaza el Instagram o el Facebook, se busca en Woki y en el propio Facebook.
+		const instagramUrl = normalizeInstagramUrl(pickLink('instagram', siteLinks, firstFacebookPage.links, wokiPage.links));
+		if (!facebookUrl) facebookUrl = pickLink('facebook', wokiPage.links);
+		const [instagramPage, facebookPage] = await Promise.all([
+			pageDataOrEmpty(instagramUrl),
+			facebookUrl && facebookUrl !== pickLink('facebook', siteLinks) ? pageDataOrEmpty(facebookUrl) : Promise.resolve(firstFacebookPage),
+		]);
+		// Instagram: enlaces de la bio y direcciones escritas en la descripción (Linktree, WhatsApp).
+		const bioUrls = (instagramPage.description.match(/(?:https?:\/\/)?(?:www\.)?(?:linktr\.ee|wa\.me)\/[\w./?=&%+-]+/gi) ?? [])
+			.map((link) => (/^https?:/i.test(link) ? link : `https://${link}`));
+		const instagramLinks = unique([...instagramPage.links, ...bioUrls]);
+		const linktreeUrl = pickLink('linktree', instagramLinks, siteLinks, facebookPage.links);
+		const linktree = linktreeUrl ? await linktreeLinks(linktreeUrl) : [];
+		const linktreeUrls = linktree.map((item) => item.url);
+		const allLinks = unique([...siteLinks, ...instagramLinks, ...facebookPage.links, ...wokiPage.links, ...linktreeUrls]);
+		const tiktokUrl = pickLink('tiktok', siteLinks, instagramLinks, linktreeUrls, facebookPage.links);
+		const tripAdvisorUrl = pickLink('tripAdvisor', allLinks);
+		const pedidosYaUrl = pickLink('pedidosYa', allLinks);
+		const menuUrl = linktree.find((item) => menuLinkPattern.test(item.title))?.url
+			|| [...linktreeUrls, ...siteLinks, ...instagramLinks].find((link) => /\/(?:menu|carta)|menu\.|carta\./i.test(link) && !linkPatterns.instagram.test(link))
+			|| '';
+		const website = websiteUri && !websiteIsSocial ? websiteUri : (instagramLinks.find(isPlainWebsite) ?? '');
+		const whatsappLink = pickLink('whatsapp', allLinks);
+		const whatsapp = whatsappFromLink(whatsappLink) || phoneFromBio(instagramPage.description) || mobileFromGooglePhone(place.internationalPhoneNumber);
 
 		const street = component(place, 'route');
 		const streetNumber = component(place, 'street_number');
@@ -567,24 +865,17 @@ export const POST: APIRoute = async ({ request }) => {
 			ramen_restaurant: 'Ramen', seafood_restaurant: 'Mariscos', spanish_restaurant: 'Española', steak_house: 'Parrilla', sushi_restaurant: 'Sushi',
 			thai_restaurant: 'Tailandesa', turkish_restaurant: 'Turca', vegan_restaurant: 'Vegana', vegetarian_restaurant: 'Vegetariana', vietnamese_restaurant: 'Vietnamita',
 		};
-		const storeTypes = new Set(['store', 'grocery_store', 'food_store', 'convenience_store', 'supermarket', 'market', 'liquor_store', 'butcher_shop', 'health_food_store', 'gift_shop', 'wholesaler', 'shopping_mall']);
-		const establishmentTypes = unique([...(place.types ?? []).map((type) => establishmentMap[type]).filter(Boolean), ...((place.types ?? []).some((type) => storeTypes.has(type)) ? ['Tienda'] : [])]);
 		const trustedClassificationText = normalized([
 			officialPage.description, ...officialPage.keywords,
 			instagramPage.description, ...instagramPage.keywords,
 			wokiPage.description, ...wokiPage.keywords,
 			wokiMatch?.category, wokiMatch?.info, wokiMatch?.subtitle, ...(wokiMatch?.tags ?? []),
 		].filter(Boolean).join(' '));
-		const detectedEstablishments = Object.entries({ Restaurante: /\brestaurante\b/, Café: /\bcafe\b|coffee shop/, Bar: /\bbar\b/, Pub: /\bpub\b/, Panadería: /\bpanaderia\b|bakery/, Heladería: /\bheladeria\b|ice cream/, Cervecería: /\bcerveceria\b|brewery/ }).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value);
-		const placeTypes = unique([...establishmentTypes, ...detectedEstablishments]);
-		const cuisineTerms: Record<string, RegExp> = {
-			Pastas: /\bpastas?\b/, Parrilla: /\bparrilla\b|steak/, Pizzas: /\bpizzas?\b/, Sushi: /\bsushi\b/, Mariscos: /\bmariscos?\b|seafood/,
-			Argentina: /\bargentin[ao]\b/, Italiana: /\bitalian[ao]\b/, Japonesa: /\bjapones[ao]\b/, Peruana: /\bperuan[ao]\b/,
-			Mexicana: /\bmexican[ao]\b/, Mediterránea: /\bmediterrane[ao]\b/, Vegana: /\bvegan[ao]\b/, Vegetariana: /\bvegetarian[ao]\b/,
-		};
-		const cuisines = unique([...(place.types ?? []).map((type) => cuisineMap[type]).filter(Boolean), ...Object.entries(cuisineTerms).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value)]);
-		const sourceMeals = Object.entries({ Desayuno: /\bdesayuno\b|breakfast/, Brunch: /\bbrunch\b/, Almuerzo: /\balmuerzo\b|lunch/, Merienda: /\bmerienda\b/, Cena: /\bcena\b|dinner/, Drunch: /\bdrunch\b/, 'After dinner': /after dinner/, Poscena: /\bposcena\b/ }).filter(([, pattern]) => pattern.test(trustedClassificationText)).map(([value]) => value);
-		const mealTypes = unique([...(place.servesBreakfast ? ['Desayuno'] : []), ...(place.servesBrunch ? ['Brunch'] : []), ...(place.servesLunch ? ['Almuerzo'] : []), ...(place.servesDinner ? ['Cena'] : []), ...sourceMeals]);
+		const googleSummaryText = normalized([place.displayName?.text, place.generativeSummary?.overview?.text, place.generativeSummary?.description?.text, place.editorialSummary?.text].filter(Boolean).join(' '));
+		const placeTypes = detectCategories(place, `${googleSummaryText} ${trustedClassificationText}`);
+		const cuisines = detectCuisines(place, `${googleSummaryText} ${trustedClassificationText}`, catalogList('cuisines'));
+		const mealTypes = detectServices(place, `${googleSummaryText} ${trustedClassificationText}`, placeTypes.includes('Tienda'));
+		const instagramFlags = detectInstagramFlags(normalized([instagramPage.description, ...instagramPage.keywords].join(' ')));
 		const featureTags = [
 			...(place.servesBeer ? ['Cerveza'] : []), ...(place.servesWine ? ['Vinos'] : []), ...(place.servesCocktails ? ['Coctelería'] : []),
 			...(place.servesDessert ? ['Postres'] : []), ...(place.servesCoffee ? ['Café'] : []), ...(place.servesVegetarianFood ? ['Opciones vegetarianas'] : []),
@@ -606,12 +897,12 @@ export const POST: APIRoute = async ({ request }) => {
 			price: priceMap[place.priceLevel ?? ''] ?? wokiMatch?.price ?? '', averagePrice: averagePrice(place),
 			country: 'Argentina', province: component(place, 'administrative_area_level_1'), city: component(place, 'locality', 'administrative_area_level_2'),
 			neighborhood, address,
-			phone: place.internationalPhoneNumber?.trim() || place.nationalPhoneNumber?.trim() || '', mobile: whatsapp || mobileFromGooglePhone(place.internationalPhoneNumber),
-			website: place.websiteUri?.trim() ?? '',
+			phone: place.internationalPhoneNumber?.trim() || place.nationalPhoneNumber?.trim() || '', mobile: whatsapp,
+			website,
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
-			mapUrl: place.googleMapsLinks?.placeUri?.trim() || place.googleMapsUri?.trim() || '',
-			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery), takeAway: Boolean(place.takeout),
+			mapUrl: googleMapsSearchUrl(place, name),
+			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy,
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));

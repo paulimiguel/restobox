@@ -4021,6 +4021,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		facebookUrl: imported.facebookUrl?.trim() ?? '',
 		wokiUrl: imported.wokiUrl?.trim() ?? '',
 		tripAdvisorUrl: imported.tripAdvisorUrl?.trim() ?? '',
+		pedidosYaUrl: imported.pedidosYaUrl?.trim() ?? '',
 		mapUrl: importedGoogleMapsLocation(imported),
 		hours: imported.hours?.trim() ?? '',
 		notes: imported.notes?.trim() ?? '',
@@ -4105,6 +4106,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('facebookUrl', imported.facebookUrl);
 	setImportedField('wokiUrl', imported.wokiUrl);
 	setImportedField('tripAdvisorUrl', imported.tripAdvisorUrl);
+	setImportedField('pedidosYaUrl', imported.pedidosYaUrl);
 	setImportedField('linktreeUrl', imported.linktreeUrl);
 	loadScheduleFromText(imported.hours ?? '');
 	if (['$', '$$', '$$$', '$$$$'].includes(imported.price ?? '')) setImportedField('price', imported.price);
