@@ -544,8 +544,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-columns-5, .view-columns-6) .restaurant-card-image.external-dragging::after { content: 'Soltá la imagen'; }
 .restaurant-list:is(.view-columns-5, .view-columns-6) .restaurant-card-image.uploading-card-image::after { content: 'Guardando…'; }
 .restaurant-card-image img { width: 100%; height: 100%; padding: 0; object-fit: cover; transition: transform .3s ease; }
-:is(.restaurant-card-image, .image-preview).card-image-portrait::before { position: absolute; inset: -12px; content: ''; background: var(--card-image-backdrop) center / cover; filter: blur(14px) brightness(.85); }
-:is(.restaurant-card-image, .image-preview).card-image-portrait img { position: relative; object-fit: contain; }
+.restaurant-card-image.card-image-portrait::before { position: absolute; inset: -12px; content: ''; background: var(--card-image-backdrop) center / cover; filter: blur(14px) brightness(.85); }
+.restaurant-card-image.card-image-portrait img { position: relative; object-fit: contain; }
 .restaurant-card-image-navigation { position: absolute; top: 50%; right: 7px; left: 7px; z-index: 4; display: none; align-items: center; justify-content: space-between; pointer-events: none; transform: translateY(-50%); }
 .restaurant-card-image-navigation[hidden] { display: none !important; }
 .restaurant-list:is(.view-columns-5, .view-columns-6) .restaurant-card-image-navigation { display: flex; }

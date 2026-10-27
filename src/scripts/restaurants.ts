@@ -3408,7 +3408,6 @@ function renderImagePreviews() {
 		wrapper.dataset.imageIndex = String(index);
 		wrapper.title = 'Arrastrá para cambiar el orden';
 		const preview = document.createElement('img');
-		preview.addEventListener('load', () => fitCardImage(preview));
 		preview.src = url;
 		preview.alt = `Imagen ${index + 1} del lugar`;
 		preview.draggable = false;
