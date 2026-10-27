@@ -654,6 +654,36 @@ function averagePrice(place: GooglePlace) {
 	return start ? `+${money(start)}` : `Hasta ${money(end)}`;
 }
 
+// Horarios escritos en la bio de Instagram: se devuelven las líneas que nombran un día y traen una hora o "cerrado",
+// para que el cliente las cargue con el mismo analizador del botón "Pegar horarios".
+// Cada línea se normaliza a "Lunes a viernes: 8:00 – 20:00" (o "Domingo: Cerrado"), que es lo que ese analizador entiende.
+function hoursFromBio(bio: string) {
+	const dayWord = /\b(?:lun(?:es)?|mar(?:tes)?|mi[eé](?:rcoles)?|jue(?:ves)?|vie(?:rnes)?|s[aá]b(?:ado)?s?|dom(?:ingo)?s?)\b\.?/i;
+	const timeRange = /(\d{1,2})(?::(\d{2}))?\s*(?:hs?\b\.?)?\s*(?:a|al|-|–|—)\s*(\d{1,2})(?::(\d{2}))?\s*(?:hs?\b\.?|horas?\b)?/gi;
+	const time = (hour: string, minutes?: string) => `${Number(hour)}:${minutes ?? '00'}`;
+	return bio.split(/\n|•|\|/)
+		.map((line) => line.trim())
+		.flatMap((line) => {
+			if (!dayWord.test(line)) return [];
+			const ranges = [...line.matchAll(timeRange)].filter((match) => Number(match[1]) <= 24 && Number(match[3]) <= 24);
+			const closed = /cerrado/i.test(line);
+			if (!ranges.length && !closed) return [];
+			const dayText = line.slice(0, ranges.length ? ranges[0].index : line.search(/cerrado/i))
+				.replace(/\b(?:de|desde|el|los|las|todos)\s*$/i, '').replace(/[\s:,\-–—]+$/, '').replace(/\b(s[aá]bado|domingo)s\b/gi, '$1').trim();
+			if (!dayWord.test(dayText)) return [];
+			const hours = ranges.length ? ranges.map((match) => `${time(match[1], match[2])} – ${time(match[3], match[4])}`).join(', ') : 'Cerrado';
+			return [`${dayText}: ${hours}`];
+		})
+		.join('\n');
+}
+
+// Texto del resumen de Google como puntos ("• …"): un punto por línea o, si viene en un párrafo, por oración.
+function bulletLines(text: string) {
+	const lines = text.split(/\n+/).map((line) => line.replace(/^[\s•*-]+/, '').trim()).filter(Boolean);
+	const items = lines.length > 1 ? lines : (lines[0] ?? '').split(/(?<=[.!?])\s+/).filter(Boolean);
+	return items.map((item) => `• ${item}`).join('\n');
+}
+
 // Delivery, take away, sin gluten y saludable: se deducen de la descripción (bio) de Instagram.
 function detectInstagramFlags(text: string) {
 	const matches = (pattern: RegExp) => pattern.test(text);
@@ -884,8 +914,12 @@ export const POST: APIRoute = async ({ request }) => {
 		];
 		const ignoredTypes = new Set(['point_of_interest', 'establishment', 'food', ...Object.keys(establishmentMap), ...Object.keys(cuisineMap)]);
 		const tags = unique([...featureTags, ...officialPage.keywords, ...instagramPage.keywords, ...facebookPage.keywords, ...wokiPage.keywords, ...(wokiMatch?.tags ?? []), ...(place.types ?? []).filter((type) => !ignoredTypes.has(type)).map(titleCase)]).slice(0, 20).join(', ');
-		const description = place.generativeSummary?.overview?.text?.trim() || place.generativeSummary?.description?.text?.trim() || place.editorialSummary?.text?.trim() || officialPage.description || wokiMatch?.info?.trim() || wokiPage.description || '';
-		const notes = place.reviewSummary?.text?.text?.trim() || '';
+		// Descripción y notas: el resumen generado por IA de Google (resumen general y, debajo, los puntos con detalles del lugar).
+		const aiOverview = place.generativeSummary?.overview?.text?.trim() ?? '';
+		const aiDetails = place.generativeSummary?.description?.text?.trim() ?? '';
+		const description = aiOverview || aiDetails || place.editorialSummary?.text?.trim() || officialPage.description || wokiMatch?.info?.trim() || wokiPage.description || '';
+		const notesSource = aiOverview && aiDetails ? aiDetails : place.reviewSummary?.text?.text?.trim() ?? '';
+		const notes = notesSource ? bulletLines(notesSource) : '';
 		const googleImageUrls = unique((place.photos ?? []).slice(0, 8).map((photo) => photo.name ? `/api/google-place-photo?name=${encodeURIComponent(photo.name)}` : ''));
 		const wokiImageUrls = unique([wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...wokiPage.images]);
 		const imageUrls = unique([...googleImageUrls, ...wokiImageUrls, ...officialPage.images, ...facebookPage.images]).slice(0, 12);
@@ -902,7 +936,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: googleMapsSearchUrl(place, name),
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') ?? '', delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy,
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy,
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));
