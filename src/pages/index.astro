@@ -1019,17 +1019,18 @@ const userInitials = userDisplayName
 				<h2>Editar campos comunes</h2>
 				<p id="bulk-edit-count" class="bulk-edit-help"></p>
 				<div class="bulk-edit-grid">
-					<label><span>Zona</span><input name="neighborhood" list="bulk-neighborhoods" placeholder="Sin cambios" /></label>
+					<label><span>Zona</span><input name="neighborhood" list="bulk-neighborhoods" placeholder="Sin cambios (podés escribir una zona nueva)" /></label>
 					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
 					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
 					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
-					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div></div>
-					<div class="bulk-choice-field"><span>Servicios</span><div id="bulk-service-options" class="bulk-choice-list"></div></div>
+					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div><input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="establishmentTypes" data-bulk-add-list="#bulk-establishment-options" placeholder="Nueva categoría y Enter" /></div>
+					<div class="bulk-choice-field"><span>Servicios</span><div id="bulk-service-options" class="bulk-choice-list"></div><input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="mealTypes" data-bulk-add-list="#bulk-service-options" placeholder="Nuevo servicio y Enter" /></div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Tipo de cocina</span>
 						<details class="bulk-choice-dropdown">
 							<summary><span id="bulk-cuisines-label">Seleccionar tipos de cocina</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="bulk-cuisine-options" class="bulk-choice-list"></div>
 						</details>
+						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="cuisines" data-bulk-add-list="#bulk-cuisine-options" placeholder="Nuevo tipo de cocina y Enter" />
 					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Etiquetas</span>
 						<details class="bulk-choice-dropdown">

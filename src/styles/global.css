@@ -769,6 +769,9 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .bulk-choice-list { display: flex; min-height: 42px; flex-wrap: wrap; align-content: flex-start; gap: 5px 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: white; }
 .bulk-choice-list label { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); font-size: 11px; font-weight: 400; cursor: pointer; }
 .bulk-choice-list input { width: 14px; height: 14px; accent-color: var(--forest); }
+.bulk-choice-add { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font: inherit; font-size: 11px; font-weight: 400; }
+.bulk-choice-add:focus { border-color: var(--forest); outline: 2px solid color-mix(in srgb, var(--forest) 15%, transparent); }
+:root[data-color-mode='dark'] .bulk-choice-add { background: #1d242d; border-color: #59606a; }
 .bulk-choice-dropdown { position: relative; }
 .bulk-choice-dropdown > summary { display: flex; height: 42px; align-items: center; justify-content: space-between; padding: 0 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; list-style: none; cursor: pointer; }
 .bulk-choice-dropdown > summary::-webkit-details-marker { display: none; }

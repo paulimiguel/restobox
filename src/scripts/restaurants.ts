@@ -6696,6 +6696,38 @@ editSelectedPlacesButton.addEventListener('click', () => {
 });
 
 cancelBulkEdit.addEventListener('click', () => bulkEditDialog.close());
+// En "Editar campos comunes" se escriben categorías, servicios o tipos de cocina nuevos y se agregan con Enter
+// (quedan marcados y se suman a las listas al aplicar). Enter en Zona, Ciudad, etc. solo confirma el valor, no aplica.
+bulkEditForm.addEventListener('keydown', (event) => {
+	const input = event.target;
+	if (event.key !== 'Enter' || !(input instanceof HTMLInputElement) || ['checkbox', 'radio', 'submit', 'button'].includes(input.type)) return;
+	event.preventDefault();
+	const name = input.dataset.bulkAdd;
+	const list = input.dataset.bulkAddList ? bulkEditForm.querySelector<HTMLElement>(input.dataset.bulkAddList) : null;
+	if (!name || !list) {
+		input.blur();
+		return;
+	}
+	const value = capitalizeFirstLetter(input.value);
+	if (!value) return;
+	let option = [...list.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`)]
+		.find((item) => item.value.toLocaleLowerCase('es') === value.toLocaleLowerCase('es'));
+	const isNew = !option;
+	if (!option) {
+		const label = document.createElement('label');
+		option = document.createElement('input');
+		option.type = 'checkbox';
+		option.name = name;
+		option.value = value;
+		label.append(option, value);
+		list.querySelector('.cuisine-empty')?.remove();
+		list.append(label);
+	}
+	option.checked = true;
+	option.dispatchEvent(new Event('change', { bubbles: true }));
+	input.value = '';
+	showToast(isNew ? `“${value}” agregado; se guarda al aplicar los cambios` : `“${value}” marcado`);
+});
 bulkEditForm.addEventListener('change', (event) => {
 	const input = event.target as HTMLInputElement;
 	if (input.matches('input[name="cuisines"]')) {
