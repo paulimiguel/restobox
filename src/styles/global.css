@@ -893,7 +893,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .characteristics-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
-/* Sin gluten, Saludable y Desayuno y/o merienda libre en la misma fila (en el celular, en dos columnas) */
+/* Sin gluten, Saludable y Desayuno/Merienda libre en la misma fila (en el celular, en dos columnas) */
 .characteristics-checks > .boolean-check-control:has(input[name="freeBreakfast"]) { order: 1; }
 .rate-control { display: flex; height: 40px; min-height: 40px; align-items: center; justify-content: flex-end; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; }
 .rate-stars { display: flex; align-items: center; gap: 1px; }
