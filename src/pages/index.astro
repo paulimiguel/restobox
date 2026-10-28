@@ -490,8 +490,8 @@ const userInitials = userDisplayName
 							</div>
 							<div class="lead-data">
 								<label><span class="field-label">Nombre del lugar <span class="required">*</span></span><input name="name" required maxlength="80" placeholder="Ej. Casa Cavia" /></label>
-								<label>Dirección <input name="address" maxlength="120" placeholder="Calle y número" /></label>
 								<div class="lead-contacts">
+								<label class="address-field">Dirección <input name="address" maxlength="120" placeholder="Calle y número" /></label>
 								<label class="zone-field">Zona
 									<div id="neighborhood-combobox" class="cuisine-combobox neighborhood-combobox">
 										<input id="neighborhood" name="neighborhood" type="text" maxlength="80" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="neighborhood-options" placeholder="Escribí una zona y pulsá Enter" />
@@ -505,7 +505,7 @@ const userInitials = userDisplayName
 											<a id="open-whatsapp-web-general" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp Web" title="Abrir WhatsApp Web"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>
 										</div>
 									</div>
-									<input name="phone" type="hidden" />
+									<label class="phone-field">Teléfono fijo <input name="phone" type="tel" maxlength="30" placeholder="+54 223…" /></label>
 									<div class="place-kind-options" role="group" aria-label="Tipo de lugar">
 										<span class="place-kind-title">Tipo de lugar</span>
 										<label class="boolean-check-control"><input name="placeRestaurant" type="checkbox" /><span>Restaurante</span></label>

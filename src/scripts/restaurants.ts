@@ -1099,6 +1099,7 @@ const emptyFieldOptions: Array<{ id: string; label: string; isEmpty: (restaurant
 	{ id: 'address', label: 'Dirección', isEmpty: (r) => !r.address?.trim() },
 	{ id: 'neighborhood', label: 'Zona', isEmpty: (r) => !r.neighborhood?.trim() },
 	{ id: 'mobile', label: 'Celular', isEmpty: (r) => !r.mobile?.trim() },
+	{ id: 'phone', label: 'Teléfono fijo', isEmpty: (r) => !r.phone?.trim() },
 	{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
 	{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },
 	{ id: 'linktreeUrl', label: 'Linktree', isEmpty: (r) => !r.linktreeUrl?.trim() },

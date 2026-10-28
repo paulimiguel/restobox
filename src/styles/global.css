@@ -1146,7 +1146,9 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-general .view-personal-statuses strong { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; }
 .view-mode #panel-general .view-personal-statuses strong[hidden] { display: none; }
 .view-mode #panel-general .lead-contacts > label { order: 4; }
+.view-mode #panel-general .lead-contacts > label.address-field { order: -1; }
 .view-mode #panel-general .lead-contacts > label.zone-field { order: 0; }
+.view-mode #panel-general .lead-contacts > label.phone-field { order: 1; }
 .view-mode #panel-general label, .view-mode #panel-general .form-field { display: grid; grid-template-columns: 155px minmax(0, 1fr); min-height: 37px; align-items: center; gap: 11px; font-size: 13px; }
 .view-mode #panel-general .form-field > label { display: block; min-height: 0; }
 .view-mode #panel-general .lead-data > label, .view-mode #panel-general .lead-contacts > label, .view-mode #panel-general .lead-contacts > .form-field { border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
@@ -1723,10 +1725,11 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > :not(.rate-field):not(label:has(input[name="score"])) { grid-column: 1 / -1; }
 }
 
-/* Celular, al editar: zona primero y ciudad y provincia después de WhatsApp */
+/* Celular, al editar: dirección, zona, WhatsApp y teléfono fijo; después ciudad y provincia */
 @media (max-width: 640px) {
 	#restaurant-form:not(.view-mode) .lead-contacts > .whatsapp-general-field { order: 0; }
 	#restaurant-form:not(.view-mode) .lead-contacts > label { order: 1; }
+	#restaurant-form:not(.view-mode) .lead-contacts > label.address-field { order: -2; }
 	#restaurant-form:not(.view-mode) .lead-contacts > label.zone-field { order: -1; }
 	#restaurant-form:not(.view-mode) .lead-contacts > .location-fields { order: 2; }
 	#restaurant-form:not(.view-mode) .lead-contacts > .place-kind-options { order: 3; }
