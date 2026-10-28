@@ -943,6 +943,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-description textarea { height: 130px; min-height: 130px; overflow-y: auto; }
 #panel-description .notes-field textarea { height: 90px; min-height: 90px; }
 #panel-description .discounts-field textarea { height: 64px; min-height: 64px; }
+/* Descuentos: oculto por ahora. El campo sigue en el formulario, así que los descuentos ya cargados se conservan al guardar. */
+#panel-description .discounts-field { display: none !important; }
 .notes-field { position: relative; gap: 7px; }
 .long-text-editor-dialog form { position: relative; }
 textarea.note-bullets-input, .view-mode textarea.note-bullets-input:disabled { -webkit-text-fill-color: transparent !important; }
