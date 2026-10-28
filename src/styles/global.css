@@ -1926,3 +1926,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	body[data-map-mode='true'] .directory-actions-grid { grid-column: 1; grid-row: 2; justify-self: end; }
 	body[data-map-mode='true'] .search-terms-row { grid-column: 1 / -1; }
 }
+
+/* Menú: TODOS resaltado como botón con el color del tema (por encima del estado activo y del modo oscuro) */
+:root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px color-mix(in srgb, var(--forest) 28%, transparent); }
+:root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--button-ink); background: var(--forest-dark); }

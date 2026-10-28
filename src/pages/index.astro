@@ -9,9 +9,11 @@ const storesMode = Astro.props.stores === true;
 const restaurantsMode = Astro.props.restaurants === true;
 const cafesMode = Astro.props.cafes === true;
 const deliveryMode = Astro.props.delivery === true;
+// /todos: todos los lugares cargados (restaurantes, cafés, tiendas, delivery y take away).
+const everythingMode = Astro.props.everything === true;
 // En Entregas el submenú filtra por Delivery o Take away (?tipo=delivery | takeaway); sin filtro muestra todos.
 const deliveryKind = ['delivery', 'takeaway'].includes(Astro.url.searchParams.get('tipo') ?? '') ? (Astro.url.searchParams.get('tipo') as string) : '';
-const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : deliveryMode ? 'delivery' : 'all';
+const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : deliveryMode ? 'delivery' : everythingMode ? 'everything' : 'all';
 const sessionUser = await Astro.session?.get('user');
 const currentUser = sessionUser ? (getUserProfile(sessionUser.id) ?? sessionUser) : undefined;
 const userDisplayName = currentUser?.alias || currentUser?.name || currentUser?.username || 'Usuario';
@@ -39,7 +41,7 @@ const userInitials = userDisplayName
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-title" content="FoodieBox" />
-		<title>{profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : storesMode ? 'FoodieBox · Tiendas' : restaurantsMode ? 'FoodieBox · Restaurantes' : cafesMode ? 'FoodieBox · Cafés' : deliveryMode ? 'FoodieBox · Delivery/Take away' : 'FoodieBox · Directorio de restaurantes'}</title>
+		<title>{everythingMode ? 'FoodieBox · Todos los lugares' : profileMode ? 'FoodieBox · Mi perfil' : mapMode ? 'FoodieBox · Mapa de lugares' : storesMode ? 'FoodieBox · Tiendas' : restaurantsMode ? 'FoodieBox · Restaurantes' : cafesMode ? 'FoodieBox · Cafés' : deliveryMode ? 'FoodieBox · Delivery/Take away' : 'FoodieBox · Directorio de restaurantes'}</title>
 		<script is:inline>
 			try {
 				const colorMode = localStorage.getItem('restobox-color-mode') === 'dark' ? 'dark' : 'light';
@@ -61,6 +63,7 @@ const userInitials = userDisplayName
 							<span>BUSCAR</span>
 						</button>
 
+						<a class="top-nav-button header-nav-link nav-all-button" id="header-all" href="/todos" aria-current={everythingMode ? 'page' : undefined}>TODOS</a>
 						<a class="top-nav-button header-nav-link" id="header-restaurants" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 						<a class="top-nav-button header-nav-link" id="header-cafes" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 						<details class="top-dropdown header-nav-link" id="header-delivery">
@@ -210,6 +213,7 @@ const userInitials = userDisplayName
 						</header>
 						<nav class="mobile-menu-nav" aria-label="Men&uacute; principal m&oacute;vil">
 							<button class="mobile-menu-item" type="button" data-mobile-menu-action="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>BUSCAR</button>
+							<a class="mobile-menu-item mobile-all-button" href="/todos" aria-current={everythingMode ? 'page' : undefined}>TODOS</a>
 							<a class="mobile-menu-item" href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}>RESTAURANTES</a>
 							<a class="mobile-menu-item" href="/cafes" aria-current={cafesMode ? 'page' : undefined}>CAFÉS</a>
 							<details class="mobile-menu-section" open={deliveryMode}>
@@ -292,7 +296,7 @@ const userInitials = userDisplayName
 					<section class="directory-actions" id="directorio" aria-label="Herramientas del directorio">
 						<div id="directory-owner-summary" class="directory-owner-summary">
 							<h1 id="catalog-title" class="catalog-title"></h1>
-							<h1>{profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? (deliveryKind === 'delivery' ? 'Delivery de ' : deliveryKind === 'takeaway' ? 'Take away de ' : 'Delivery/Take away de ') : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<h1>{everythingMode ? 'Todos los lugares de ' : profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? (deliveryKind === 'delivery' ? 'Delivery de ' : deliveryKind === 'takeaway' ? 'Take away de ' : 'Delivery/Take away de ') : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>

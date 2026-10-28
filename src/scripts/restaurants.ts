@@ -194,7 +194,7 @@ function isStorePlace(restaurant: Restaurant) {
 	return getRestaurantEstablishmentTypes(restaurant).some((type) => neighborhoodImageKey(type) === 'tienda');
 }
 // En /restaurantes y /cafes el directorio se divide por tipo de lugar.
-const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes' || document.body.dataset.placeScope === 'delivery'
+const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes' || document.body.dataset.placeScope === 'delivery' || document.body.dataset.placeScope === 'everything'
 	? document.body.dataset.placeScope
 	: 'all';
 const scopedPlacesMode = placeScope !== 'all';
@@ -211,7 +211,7 @@ function isRestaurantPlace(restaurant: Restaurant) {
 	return !isStorePlace(restaurant) && (hasEstablishmentKey(restaurant, 'restaurante') || !hasEstablishmentKey(restaurant, 'cafe'));
 }
 function isInCurrentScope(restaurant: Restaurant) {
-	if (profileMode || mapMode) return true;
+	if (profileMode || mapMode || placeScope === 'everything') return true;
 	if (storesMode) return isStorePlace(restaurant);
 	if (placeScope === 'cafes') return isCafePlace(restaurant);
 	if (placeScope === 'delivery') {
@@ -223,7 +223,7 @@ function isInCurrentScope(restaurant: Restaurant) {
 	return !isStorePlace(restaurant);
 }
 let mapShowList = false;
-document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode; });
+document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode && !(placeScope === 'everything' && element.dataset.placeType === 'store'); });
 const mapPanel = document.querySelector<HTMLElement>('#map-panel');
 if (mapMode && mapPanel) {
 	mapPanel.hidden = false;
