@@ -691,6 +691,7 @@ function detectInstagramFlags(text: string) {
 		delivery: matches(/\bdelivery\b|\benvios?\b|a domicilio|pedidos ?ya|\brappi\b/),
 		takeAway: matches(/take ?away|para llevar|retiro en (?:el )?(?:local|sucursal)|retiros? por/),
 		glutenFree: matches(/sin gluten|gluten ?free|sin tacc|celiac|libre de gluten/),
+		freeBreakfast: matches(/(?:desayunos?|meriendas?) (?:y (?:desayunos?|meriendas?) )?libres?|libre de (?:desayuno|merienda)/),
 		healthy: matches(/saludable|healthy|comida sana|\bfit\b|organic|plant based|nutritiv|bienestar|detox/),
 	};
 }
@@ -936,7 +937,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: googleMapsSearchUrl(place, name),
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy,
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast,
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));
