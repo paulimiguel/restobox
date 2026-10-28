@@ -683,8 +683,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .empty-state p { max-width: 340px; margin: 0 auto 20px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
 dialog { width: min(896px, calc(100% - 30px)); max-height: calc(100vh - 30px); padding: 0; border: 0; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 80px rgba(15,30,23,.25); }
-#restaurant-dialog { height: min(760px, calc(100vh - 30px)); overflow: hidden; }
-#restaurant-dialog:has(> form:is(.editing-record, .view-mode)) { height: min(840px, calc(100vh - 30px)); }
+/* La ficha del lugar, la edición y el alta usan el mismo tamaño de ventana */
+#restaurant-dialog { width: min(960px, calc(100% - 30px)); height: min(880px, calc(100vh - 30px)); overflow: hidden; }
 #restaurant-dialog > form { position: relative; display: grid; height: 100%; max-height: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
 #restaurant-dialog > form .tab-panel { min-height: 0; overflow-y: auto; }
 dialog form { max-height: calc(100vh - 30px); overflow-y: auto; }
