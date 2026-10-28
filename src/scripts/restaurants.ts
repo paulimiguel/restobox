@@ -223,7 +223,9 @@ function isInCurrentScope(restaurant: Restaurant) {
 	return !isStorePlace(restaurant);
 }
 let mapShowList = false;
-document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode && !(placeScope === 'everything' && element.dataset.placeType === 'store'); });
+// En /todos los botones rápidos son los mismos que en el mapa (Tiendas, Delivery y Take away incluidos).
+const mapLikeQuickFilters = mapMode || placeScope === 'everything';
+document.querySelectorAll<HTMLElement>('[data-map-only]').forEach((element) => { element.hidden = !mapMode && !(placeScope === 'everything' && element.matches('.quick-place-filter')); });
 const mapPanel = document.querySelector<HTMLElement>('#map-panel');
 if (mapMode && mapPanel) {
 	mapPanel.hidden = false;
@@ -3007,7 +3009,7 @@ function render() {
 		const matchesQuickType = mapMode
 			? mapPlaceTypes.size === 0 || [...mapPlaceTypes].some((type) => normalizedEstablishments.some((value) => value.startsWith(quickPrefix(type))))
 			: quickPlaceType === 'all' || normalizedEstablishments.some((value) => value.startsWith(quickPrefix(quickPlaceType)));
-		const matchesMapService = !mapMode || mapServices.size === 0
+		const matchesMapService = !mapLikeQuickFilters || mapServices.size === 0
 			|| [...mapServices].some((service) => service === 'delivery' ? Boolean(restaurant.delivery) : Boolean(restaurant.takeAway));
 		const restaurantTagValues = restaurantTags(restaurant).map((tag) => tag.toLocaleLowerCase('es'));
 		const matchesEstablishment = !selectedEstablishmentFilters.size || [...selectedEstablishmentFilters].some((value) => restaurantEstablishments.includes(value));
@@ -5642,7 +5644,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-map-service]').forEach((butt
 }));
 // Delivery y Take away solo se pueden marcar con Restaurantes o Cafés; con Todos o Tiendas quedan deshabilitados.
 function updateMapServiceButtons() {
-	const enabled = mapPlaceTypes.has('restaurant') || mapPlaceTypes.has('cafe');
+	const enabled = mapMode ? mapPlaceTypes.has('restaurant') || mapPlaceTypes.has('cafe') : quickPlaceType === 'restaurant' || quickPlaceType === 'cafe';
 	if (!enabled) mapServices.clear();
 	document.querySelectorAll<HTMLButtonElement>('[data-map-service]').forEach((button) => {
 		const active = mapServices.has(button.dataset.mapService as 'delivery' | 'takeaway');
@@ -5651,7 +5653,7 @@ function updateMapServiceButtons() {
 		button.setAttribute('aria-pressed', String(active));
 	});
 }
-if (mapMode) updateMapServiceButtons();
+if (mapLikeQuickFilters) updateMapServiceButtons();
 quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () => {
 	const nextType = button.dataset.placeType;
 	if (mapMode) {
@@ -5667,6 +5669,7 @@ quickPlaceFilterButtons.forEach((button) => button.addEventListener('click', () 
 	else if (nextType === 'restaurant' || nextType === 'cafe' || nextType === 'store') quickPlaceType = quickPlaceType === nextType ? 'all' : nextType;
 	showingCatalog = null;
 	updateQuickPlaceFilterButtons();
+	if (mapLikeQuickFilters) updateMapServiceButtons();
 	render();
 }));
 directoryFilterPanel.addEventListener('change', (event) => {
