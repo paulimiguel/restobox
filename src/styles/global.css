@@ -890,6 +890,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .characteristics-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
+/* Desayuno y/o merienda libre va debajo de Sin gluten (Saludable queda a su derecha) */
+.characteristics-checks > .boolean-check-control:has(input[name="freeBreakfast"]) { grid-column: 1; grid-row: 2; }
 .rate-control { display: flex; height: 40px; min-height: 40px; align-items: center; justify-content: flex-end; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; }
 .rate-stars { display: flex; align-items: center; gap: 1px; }
 .rate-stars button { width: 24px; height: 24px; padding: 0; border: 0; color: #c8ccc9; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; transition: color .15s ease, transform .15s ease; }
