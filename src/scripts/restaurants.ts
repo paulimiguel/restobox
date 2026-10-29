@@ -1128,7 +1128,6 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 	{ id: 'notes', label: 'Notas', options: [
 		{ id: 'description', label: 'Descripción', isEmpty: (r) => !r.description?.trim() },
 		{ id: 'notes', label: 'Notas', isEmpty: (r) => !r.notes?.trim() },
-		{ id: 'discounts', label: 'Descuentos', isEmpty: (r) => !r.discounts?.trim() },
 	] },
 	{ id: 'images', label: 'Imágenes', options: [
 		{ id: 'images', label: 'Imágenes', isEmpty: (r) => !r.imageCount },
