@@ -6512,7 +6512,8 @@ function showInstallInstructions() {
 	installAppDialog.showModal();
 }
 document.querySelector('#header-install-app')?.addEventListener('click', async () => {
-	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
+	// La opción está en el menú de perfil: se cierra ese menú al tocarla.
+	document.querySelector<HTMLDetailsElement>('.user-dropdown')?.removeAttribute('open');
 	if (isStandaloneApp()) {
 		showToast('FoodieBox ya está instalada en este dispositivo');
 		return;
