@@ -7,6 +7,7 @@ export type RestaurantRecord = Record<string, unknown> & {
 	name: string;
 	createdAt: string;
 	imageCount?: number;
+	logoCount?: number;
 };
 
 export type MediaRecord = {
@@ -113,20 +114,22 @@ function transaction<T>(operation: () => T): T {
 export function listRestaurants(): RestaurantRecord[] {
 	const rows = database.prepare(`
 		SELECT r.data_json,
-			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'image') AS image_count
+			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'image') AS image_count,
+			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'logo') AS logo_count
 		FROM restaurants r
 		ORDER BY r.created_at DESC
-	`).all() as Array<{ data_json: string; image_count: number }>;
-	return rows.map((row) => ({ ...JSON.parse(row.data_json), imageCount: Number(row.image_count) } as RestaurantRecord));
+	`).all() as Array<{ data_json: string; image_count: number; logo_count: number }>;
+	return rows.map((row) => ({ ...JSON.parse(row.data_json), imageCount: Number(row.image_count), logoCount: Number(row.logo_count) } as RestaurantRecord));
 }
 
 export function getRestaurant(id: string): RestaurantRecord | null {
 	const row = database.prepare(`
 		SELECT r.data_json,
-			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'image') AS image_count
+			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'image') AS image_count,
+			(SELECT COUNT(*) FROM media m WHERE m.restaurant_id = r.id AND m.kind = 'logo') AS logo_count
 		FROM restaurants r WHERE r.id = ?
-	`).get(id) as { data_json: string; image_count: number } | undefined;
-	return row ? { ...JSON.parse(row.data_json), imageCount: Number(row.image_count) } as RestaurantRecord : null;
+	`).get(id) as { data_json: string; image_count: number; logo_count: number } | undefined;
+	return row ? { ...JSON.parse(row.data_json), imageCount: Number(row.image_count), logoCount: Number(row.logo_count) } as RestaurantRecord : null;
 }
 
 export function upsertRestaurant(value: unknown): RestaurantRecord {

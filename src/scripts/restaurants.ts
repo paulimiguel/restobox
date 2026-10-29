@@ -52,6 +52,7 @@ type Restaurant = {
 	freeBreakfast?: boolean;
 	healthy?: boolean;
 	imageCount: number;
+	logoCount?: number;
 	createdAt: string;
 };
 
@@ -1083,39 +1084,59 @@ async function deleteAveragePriceOption(value: string) {
 	showToast('Precio promedio eliminado definitivamente');
 }
 
-const emptyFieldOptions: Array<{ id: string; label: string; isEmpty: (restaurant: Restaurant) => boolean }> = [
-	{ id: 'description', label: 'Descripción', isEmpty: (r) => !r.description?.trim() },
-	{ id: 'establishmentType', label: 'Categorías', isEmpty: (r) => getRestaurantEstablishmentTypes(r).length === 0 },
-	{ id: 'cuisine', label: 'Tipo de cocina', isEmpty: (r) => getRestaurantCuisines(r).length === 0 },
-	{ id: 'mealTypes', label: 'Servicios', isEmpty: (r) => !(r.mealTypes ?? []).length },
-	{ id: 'tags', label: 'Etiquetas', isEmpty: (r) => restaurantTags(r).length === 0 },
-	{ id: 'rating', label: 'Rate', isEmpty: (r) => !r.rating?.trim() },
-	{ id: 'score', label: 'Puntuación Google', isEmpty: (r) => !r.score?.trim() },
-	{ id: 'price', label: 'Nivel de precio', isEmpty: (r) => !r.price?.trim() },
-	{ id: 'averagePrice', label: 'Precio promedio', isEmpty: (r) => !r.averagePrice?.trim() },
-	{ id: 'country', label: 'País', isEmpty: (r) => !r.country?.trim() },
-	{ id: 'province', label: 'Provincia', isEmpty: (r) => !r.province?.trim() },
-	{ id: 'city', label: 'Ciudad', isEmpty: (r) => !r.city?.trim() },
-	{ id: 'address', label: 'Dirección', isEmpty: (r) => !r.address?.trim() },
-	{ id: 'neighborhood', label: 'Zona', isEmpty: (r) => !r.neighborhood?.trim() },
-	{ id: 'mobile', label: 'Celular', isEmpty: (r) => !r.mobile?.trim() },
-	{ id: 'phone', label: 'Teléfono fijo', isEmpty: (r) => !r.phone?.trim() },
-	{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
-	{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },
-	{ id: 'linktreeUrl', label: 'Linktree', isEmpty: (r) => !r.linktreeUrl?.trim() },
-	{ id: 'menuUrl', label: 'Menú', isEmpty: (r) => !r.menuUrl?.trim() },
-	{ id: 'instagramUrl', label: 'Instagram', isEmpty: (r) => !r.instagramUrl?.trim() },
-	{ id: 'tiktokUrl', label: 'TikTok', isEmpty: (r) => !r.tiktokUrl?.trim() },
-	{ id: 'facebookUrl', label: 'Facebook', isEmpty: (r) => !r.facebookUrl?.trim() },
-	{ id: 'wokiUrl', label: 'Woki', isEmpty: (r) => !r.wokiUrl?.trim() },
-	{ id: 'tripAdvisorUrl', label: 'TripAdvisor', isEmpty: (r) => !r.tripAdvisorUrl?.trim() },
-	{ id: 'pedidosYaUrl', label: 'Pedidos Ya', isEmpty: (r) => !r.pedidosYaUrl?.trim() },
-	{ id: 'videoUrl', label: 'Video', isEmpty: (r) => !r.videoUrl?.trim() },
-	{ id: 'mapUrl', label: 'Mapa', isEmpty: (r) => !r.mapUrl?.trim() },
-	{ id: 'hours', label: 'Horarios', isEmpty: (r) => !r.hours?.trim() },
-	{ id: 'notes', label: 'Notas', isEmpty: (r) => !r.notes?.trim() },
-	{ id: 'images', label: 'Imágenes', isEmpty: (r) => !r.imageCount },
+type EmptyFieldOption = { id: string; label: string; isEmpty: (restaurant: Restaurant) => boolean };
+type EmptyFieldGroup = { id: string; label: string; options: EmptyFieldOption[] };
+
+const emptyFieldGroups: EmptyFieldGroup[] = [
+	{ id: 'general', label: 'Datos del lugar', options: [
+		{ id: 'address', label: 'Dirección', isEmpty: (r) => !r.address?.trim() },
+		{ id: 'neighborhood', label: 'Zona', isEmpty: (r) => !r.neighborhood?.trim() },
+		{ id: 'mobile', label: 'WhatsApp', isEmpty: (r) => !r.mobile?.trim() },
+		{ id: 'phone', label: 'Teléfono fijo', isEmpty: (r) => !r.phone?.trim() },
+		{ id: 'city', label: 'Ciudad', isEmpty: (r) => !r.city?.trim() },
+		{ id: 'province', label: 'Provincia', isEmpty: (r) => !r.province?.trim() },
+		{ id: 'country', label: 'País', isEmpty: (r) => !r.country?.trim() },
+	] },
+	{ id: 'details', label: 'Características', options: [
+		{ id: 'establishmentType', label: 'Categorías', isEmpty: (r) => getRestaurantEstablishmentTypes(r).length === 0 },
+		{ id: 'storeTypes', label: 'Tipo de tienda', isEmpty: (r) => isStorePlace(r) && !(r.storeTypes ?? []).length },
+		{ id: 'products', label: 'Productos', isEmpty: (r) => isStorePlace(r) && !(r.products ?? []).length },
+		{ id: 'mealTypes', label: 'Servicios', isEmpty: (r) => !isStorePlace(r) && !(r.mealTypes ?? []).length },
+		{ id: 'cuisine', label: 'Tipo de cocina', isEmpty: (r) => !isStorePlace(r) && getRestaurantCuisines(r).length === 0 },
+		{ id: 'price', label: 'Nivel de precio', isEmpty: (r) => !isStorePlace(r) && !r.price?.trim() },
+		{ id: 'averagePrice', label: 'Precio promedio por persona', isEmpty: (r) => !isStorePlace(r) && !r.averagePrice?.trim() },
+		{ id: 'score', label: 'Puntuación Google', isEmpty: (r) => !isStorePlace(r) && !r.score?.trim() },
+		{ id: 'rating', label: 'Rate', isEmpty: (r) => !isStorePlace(r) && !r.rating?.trim() },
+	] },
+	{ id: 'links', label: 'Links', options: [
+		{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },
+		{ id: 'mapUrl', label: 'Ubicación en el mapa', isEmpty: (r) => !r.mapUrl?.trim() },
+		{ id: 'instagramUrl', label: 'Instagram', isEmpty: (r) => !r.instagramUrl?.trim() },
+		{ id: 'facebookUrl', label: 'Facebook', isEmpty: (r) => !r.facebookUrl?.trim() },
+		{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
+		{ id: 'tiktokUrl', label: 'Tik Tok', isEmpty: (r) => !r.tiktokUrl?.trim() },
+		{ id: 'linktreeUrl', label: 'Linktree', isEmpty: (r) => !r.linktreeUrl?.trim() },
+		{ id: 'menuUrl', label: 'Link al menú', isEmpty: (r) => !r.menuUrl?.trim() },
+		{ id: 'tripAdvisorUrl', label: 'Trip Advisor', isEmpty: (r) => !r.tripAdvisorUrl?.trim() },
+		{ id: 'wokiUrl', label: 'Woki', isEmpty: (r) => !r.wokiUrl?.trim() },
+		{ id: 'pedidosYaUrl', label: 'Pedidos Ya', isEmpty: (r) => !r.pedidosYaUrl?.trim() },
+		{ id: 'catalogUrl', label: 'Link al catálogo', isEmpty: (r) => isStorePlace(r) && !r.catalogUrl?.trim() },
+	] },
+	{ id: 'hours', label: 'Horarios', options: [
+		{ id: 'hours', label: 'Días y horarios', isEmpty: (r) => !r.hours?.trim() },
+	] },
+	{ id: 'notes', label: 'Notas', options: [
+		{ id: 'description', label: 'Descripción', isEmpty: (r) => !r.description?.trim() },
+		{ id: 'notes', label: 'Notas', isEmpty: (r) => !r.notes?.trim() },
+		{ id: 'discounts', label: 'Descuentos', isEmpty: (r) => !r.discounts?.trim() },
+	] },
+	{ id: 'images', label: 'Imágenes', options: [
+		{ id: 'images', label: 'Imágenes', isEmpty: (r) => !r.imageCount },
+		{ id: 'logo', label: 'Logo', isEmpty: (r) => !r.logoCount },
+		{ id: 'videoUrl', label: 'Video', isEmpty: (r) => !r.videoUrl?.trim() },
+	] },
 ];
+const emptyFieldOptions = emptyFieldGroups.flatMap((group) => group.options);
 
 function updateDirectoryFilterLabels() {
 	const summary = (values: Set<string>, emptyText: string) => {
@@ -4081,6 +4102,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		freeBreakfast: Boolean(imported.freeBreakfast),
 		healthy: Boolean(imported.healthy),
 		imageCount: 0,
+		logoCount: 0,
 		createdAt: new Date().toISOString(),
 	};
 	restaurants.unshift(restaurant);
@@ -4114,6 +4136,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 				uploadRestaurantMedia(restaurantId, 'logo', importedMedia.logo ? [importedMedia.logo] : []),
 			]);
 			restaurant.imageCount = importedMedia.images.length;
+			restaurant.logoCount = importedMedia.logo ? 1 : 0;
 			await saveRestaurants();
 		}
 	} catch { /* La ficha se conserva aunque una fuente bloquee sus imágenes. */ }
@@ -6515,7 +6538,14 @@ function updateEmptyFieldsApplyState() {
 }
 document.querySelector('#header-empty-fields')?.addEventListener('click', () => {
 	document.querySelector<HTMLDetailsElement>('.actions-dropdown')?.removeAttribute('open');
-	emptyFieldsOptionsList.innerHTML = emptyFieldOptions.map((option) => `<label class="empty-field-option"><input type="checkbox" value="${option.id}" /><span>${safe(option.label)}</span></label>`).join('');
+	emptyFieldsOptionsList.innerHTML = emptyFieldGroups.map((group) => `
+		<section class="empty-fields-group" aria-labelledby="empty-fields-group-${group.id}">
+			<h3 id="empty-fields-group-${group.id}">${safe(group.label)}</h3>
+			<div class="empty-fields-group-options">
+				${group.options.map((option) => `<label class="empty-field-option"><input type="checkbox" value="${option.id}"${selectedEmptyFields.has(option.id) ? ' checked' : ''} /><span>${safe(option.label)}</span></label>`).join('')}
+			</div>
+		</section>
+	`).join('');
 	updateEmptyFieldsApplyState();
 	emptyFieldsDialog.showModal();
 });
@@ -6931,6 +6961,7 @@ form.addEventListener('submit', async (event) => {
 		freeBreakfast: formData.has('freeBreakfast'),
 		healthy: formData.has('healthy'),
 		imageCount: restaurantImages.length,
+		logoCount: restaurantLogo ? 1 : 0,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
 	};
 	backupRestaurants();
