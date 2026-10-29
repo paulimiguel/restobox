@@ -289,6 +289,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .directory-search-row .action-search { min-width: 0; flex: 1 1 auto; }
 .action-search input, .directory-action-menu > summary { width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 14px; }
 .action-search input { padding: 0 68px 0 46px; font-weight: 500; }
+/* El cuadro Buscar ya tiene su botón para borrar: se oculta la cruz que agrega el navegador */
+.action-search input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; appearance: none; }
 .action-search input:focus { border-color: var(--forest); outline: 2px solid color-mix(in srgb, var(--forest) 15%, transparent); }
 .search-inline-action, .search-inline-clear { position: absolute; right: 8px; display: inline-flex; align-items: center; justify-content: center; border: 0; color: var(--muted); background: #f1f3f2; font-weight: 700; text-transform: uppercase; cursor: pointer; }
 .search-inline-action { min-height: 24px; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
