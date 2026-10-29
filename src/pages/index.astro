@@ -9,8 +9,9 @@ const storesMode = Astro.props.stores === true;
 const restaurantsMode = Astro.props.restaurants === true;
 const cafesMode = Astro.props.cafes === true;
 const deliveryMode = Astro.props.delivery === true;
-// /todos: todos los lugares cargados (restaurantes, cafés, tiendas, delivery y take away).
-const everythingMode = Astro.props.everything === true;
+// /todos y la página de inicio: todos los lugares cargados (restaurantes, cafés, tiendas, delivery y take away).
+const everythingMode = Astro.props.everything === true
+	|| (!profileMode && !mapMode && !storesMode && !restaurantsMode && !cafesMode && !deliveryMode);
 // En Entregas el submenú filtra por Delivery o Take away (?tipo=delivery | takeaway); sin filtro muestra todos.
 const deliveryKind = ['delivery', 'takeaway'].includes(Astro.url.searchParams.get('tipo') ?? '') ? (Astro.url.searchParams.get('tipo') as string) : '';
 const placeScope = restaurantsMode ? 'restaurants' : cafesMode ? 'cafes' : deliveryMode ? 'delivery' : everythingMode ? 'everything' : 'all';

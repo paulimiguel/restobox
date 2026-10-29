@@ -200,7 +200,8 @@ function isStorePlace(restaurant: Restaurant) {
 const placeScope = document.body.dataset.placeScope === 'restaurants' || document.body.dataset.placeScope === 'cafes' || document.body.dataset.placeScope === 'delivery' || document.body.dataset.placeScope === 'everything'
 	? document.body.dataset.placeScope
 	: 'all';
-const scopedPlacesMode = placeScope !== 'all';
+// Restaurantes, Cafés y Delivery/Take away son vistas parciales: las vistas de categorías se abren en el inicio, que muestra todo.
+const scopedPlacesMode = placeScope !== 'all' && placeScope !== 'everything';
 // En Entregas, ?tipo=delivery o ?tipo=takeaway deja solo los lugares con ese servicio.
 const deliveryKind = new URLSearchParams(window.location.search).get('tipo');
 function hasEstablishmentKey(restaurant: Restaurant, key: string) {
