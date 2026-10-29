@@ -4478,7 +4478,14 @@ function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string[] }>): SpreadsheetPreviewRow[] {
 	if (rows.length < 2) throw new Error('La planilla debe incluir encabezados y al menos un lugar');
 	const headerRow = rows[0];
-	const columns = headerRow.cells.map((header) => SPREADSHEET_HEADER_ALIASES[normalizeSpreadsheetHeader(header)]);
+	const normalizedHeaders = headerRow.cells.map(normalizeSpreadsheetHeader);
+	const hasDedicatedNameColumn = normalizedHeaders.some((header) => header === 'nombre' || header === 'nombre del lugar');
+	const columns = normalizedHeaders.map((header) => {
+		// En planillas antiguas, "Restaurante" podía ser el encabezado del nombre.
+		// Si ya existe "Nombre", es una columna booleana de clasificación y no debe sobrescribirlo.
+		if (header === 'restaurante' && hasDedicatedNameColumn) return undefined;
+		return SPREADSHEET_HEADER_ALIASES[header];
+	});
 	if (!columns.includes('name')) throw new Error('No se encontró la columna obligatoria “Nombre”');
 	return rows.slice(1).filter(({ cells }) => cells.some((cell) => cell.trim())).map(({ rowNumber, cells }) => {
 		const data = emptySpreadsheetRestaurant();
