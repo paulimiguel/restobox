@@ -1940,3 +1940,13 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Menú: TODOS resaltado como botón con el color del tema (por encima del estado activo y del modo oscuro) */
 :root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px color-mix(in srgb, var(--forest) 28%, transparent); }
 :root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--button-ink); background: var(--forest-dark); }
+
+/* Características al editar (tablet y escritorio): precio y puntuación ocupan dos tercios en dos filas;
+   Sin gluten, Saludable y Desayuno/Merienda libre se apilan en el tercio de la derecha */
+@media (min-width: 641px) {
+	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: row dense; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.price-level-field, label:has(input[name="score"])) { grid-column: 1; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.average-price-field, .rate-field) { grid-column: 2; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > .characteristics-checks { grid-column: 3; grid-row: span 2; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 8px; }
+	#restaurant-form:not(.view-mode) #panel-details.store-mode .form-grid > .characteristics-checks { grid-column: 1 / -1; grid-row: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
