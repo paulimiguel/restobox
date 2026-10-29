@@ -603,7 +603,7 @@ let selectedEstablishments: string[] = [];
 let selectedServices: string[] = [];
 let selectedProducts: string[] = [];
 let searchTerms: string[] = [];
-let searchScope: 'all' | 'name' | 'category' | 'zone' = 'all';
+let searchScope: 'all' | 'name' | 'category' | 'zone' = 'name';
 let quickPlaceType: 'all' | 'restaurant' | 'cafe' | 'store' = 'all';
 // En el mapa se elige un solo tipo de lugar a la vez (restaurantes, cafés, tiendas o todos).
 const mapPlaceTypes = new Set<'restaurant' | 'cafe' | 'store'>();
