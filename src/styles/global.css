@@ -1957,10 +1957,10 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 :root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px color-mix(in srgb, var(--forest) 28%, transparent); }
 :root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--button-ink); background: var(--forest-dark); }
 
-/* Características al editar (tablet y escritorio): nivel de precio, precio promedio, puntuación y Rate en una fila;
+/* Características al editar (tablet y escritorio): nivel de precio y precio promedio en una fila, puntuación y Rate en otra;
    las cuatro casillas en la fila de abajo */
 @media (min-width: 641px) {
-	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > .characteristics-checks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
