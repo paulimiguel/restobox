@@ -946,8 +946,8 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .editing-record input::placeholder, .editing-record textarea::placeholder { color: transparent; opacity: 0; }
 .importing-record input::placeholder, .importing-record textarea::placeholder { color: transparent; opacity: 0; }
 .creating-record input::placeholder, .creating-record textarea::placeholder { color: transparent; opacity: 0; }
-#panel-description textarea { height: 190px; min-height: 130px; overflow-y: auto; }
-#panel-description .notes-field textarea { height: 280px; min-height: 90px; }
+#panel-description textarea { height: clamp(100px, 18vh, 170px); min-height: 90px; overflow-y: auto; }
+#panel-description .notes-field textarea { height: clamp(130px, 26vh, 240px); min-height: 90px; }
 #panel-description .discounts-field textarea { height: 64px; min-height: 64px; }
 /* Descuentos: oculto por ahora. El campo sigue en el formulario, así que los descuentos ya cargados se conservan al guardar. */
 #panel-description .discounts-field { display: none !important; }
@@ -1048,8 +1048,8 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .restaurant-status-option:has(input[name="checked"]:checked) { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .restaurant-status-option:has(input[name="checked"]:checked) svg { color: #b89f12; stroke-width: 2.5; }
 /* Checked (carga finalizada): se pinta de aguamarina cuando está marcado */
-.restaurant-status-option:has(input[name="loadChecked"]:checked) { color: #134e5e; border-color: #6fbcd3; background: #a5d8e8; }
-.restaurant-status-option:has(input[name="loadChecked"]:checked) svg { color: #134e5e; stroke-width: 2.5; }
+.restaurant-status-option:has(input[name="loadChecked"]:checked) { color: #1f5c50; border-color: #93cbbf; background: #bde2da; }
+.restaurant-status-option:has(input[name="loadChecked"]:checked) svg { color: #1f5c50; stroke-width: 2.5; }
 .checked-status-option .checked-icon { color: var(--muted); transition: color .18s; }
 .checked-status-option:has(input:checked) .checked-icon { color: #c9ae1d; }
 .image-field > label { display: flex; align-items: center; justify-content: space-between; }
@@ -1957,15 +1957,32 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 :root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--button-ink); background: var(--forest); box-shadow: 0 2px 7px color-mix(in srgb, var(--forest) 28%, transparent); }
 :root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--button-ink); background: var(--forest-dark); }
 
-/* Características al editar (tablet y escritorio): precio y puntuación ocupan dos tercios en dos filas;
-   Sin gluten, Saludable y Desayuno/Merienda libre se apilan en el tercio de la derecha */
+/* Características al editar (tablet y escritorio): nivel de precio, precio promedio, puntuación y Rate en una fila;
+   las cuatro casillas en la fila de abajo */
 @media (min-width: 641px) {
-	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: row dense; }
-	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.price-level-field, label:has(input[name="score"])) { grid-column: 1; }
-	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.average-price-field, .rate-field) { grid-column: 2; }
-	#restaurant-form:not(.view-mode) #panel-details .form-grid > .characteristics-checks { grid-column: 3; grid-row: span 2; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 8px; }
-	#restaurant-form:not(.view-mode) #panel-details.store-mode .form-grid > .characteristics-checks { grid-column: 1 / -1; grid-row: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > .characteristics-checks { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* Colores de Favorito (rosa pastel) y Visitado (verde lima) */
 :root { --favorite-color: #ec8fb0; --favorite-ink: #a8436b; --favorite-bg: #fde8f0; --visited-color: #84cc16; --visited-ink: #4d7c0f; --visited-bg: #f2fbe0; }
+
+/* Casillas Sí/No del formulario al editar: interruptor on/off (encendido en aguamarina) con un ícono a la izquierda del nombre */
+:root { --toggle-on: #8fd1c8; --toggle-off: #dcdfe2; }
+:root[data-color-mode='dark'] { --toggle-off: #4a5059; }
+#restaurant-form:not(.view-mode) .boolean-check-control::before { content: ''; flex: 0 0 15px; width: 15px; height: 15px; background: var(--muted); -webkit-mask: var(--toggle-icon) center / contain no-repeat; mask: var(--toggle-icon) center / contain no-repeat; }
+#restaurant-form:not(.view-mode) .boolean-check-control > span { order: 1; min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"] { order: 2; flex: 0 0 34px !important; width: 34px !important; height: 20px !important; margin: 0 0 0 auto !important; border-radius: 999px; appearance: none; -webkit-appearance: none; background-color: var(--toggle-off); background-image: radial-gradient(circle, #fff 0 6.5px, transparent 7px); background-repeat: no-repeat; background-size: 18px 18px; background-position: 1px center; box-shadow: inset 0 1px 2px rgba(0,0,0,.12); cursor: pointer; transition: background-color .18s, background-position .18s; }
+#restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"]:checked { background-color: var(--toggle-on); background-position: calc(100% - 1px) center; }
+#restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"]:focus-visible { outline: 2px solid color-mix(in srgb, var(--forest) 35%, transparent); outline-offset: 2px; }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input:checked)::before { background: var(--ink); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="placeRestaurant"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V8l8-4 8 4v12'/%3E%3Cpath d='M8 20v-7h8v7'/%3E%3Cpath d='M3 20h18'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="placeCafe"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Z'/%3E%3Cpath d='M16 10h2a3 3 0 0 1 0 6h-2'/%3E%3Cpath d='M4 21h14'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="placeStore"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8h12l-1 12H7L6 8Z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="delivery"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 17a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0'/%3E%3Cpath d='M15.5 17a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0'/%3E%3Cpath d='M8.5 17H14l2-8h-3'/%3E%3Cpath d='M16 9h2.5L18 14.5'/%3E%3Cpath d='M5 12h5'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="takeAway"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h16l-1.5 12h-13L4 8Z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3Cpath d='M9 13h6'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="daytimeKitchen"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0'/%3E%3Cpath d='M12 2v2'/%3E%3Cpath d='M12 20v2'/%3E%3Cpath d='M4.9 4.9l1.4 1.4'/%3E%3Cpath d='M17.7 17.7l1.4 1.4'/%3E%3Cpath d='M2 12h2'/%3E%3Cpath d='M20 12h2'/%3E%3Cpath d='M4.9 19.1l1.4-1.4'/%3E%3Cpath d='M17.7 6.3l1.4-1.4'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="glutenFree"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21V9'/%3E%3Cpath d='M12 13c-2.2-.8-3.5-2.6-3.5-5 2.2.8 3.5 2.6 3.5 5Z'/%3E%3Cpath d='M12 13c2.2-.8 3.5-2.6 3.5-5-2.2.8-3.5 2.6-3.5 5Z'/%3E%3Cpath d='M12 8c-1.4-.9-2-2.3-1.6-4 1.4.9 2 2.3 1.6 4Z'/%3E%3Cpath d='M4 4l16 16'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="healthy"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 6-14 15-14 0 9-6 15-14 15'/%3E%3Cpath d='M5 19l8-8'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="freeBreakfast"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9Z'/%3E%3Cpath d='M16 11h2a3 3 0 0 1 0 6h-2'/%3E%3Cpath d='M9 3v3'/%3E%3Cpath d='M12 3v3'/%3E%3C/svg%3E"); }
+#restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="hasBranches"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21s-5-4.4-5-9a5 5 0 0 1 10 0c0 4.6-5 9-5 9Z'/%3E%3Cpath d='M9 11.5v.01'/%3E%3Cpath d='M15.5 5A5 5 0 0 1 20 10c0 3.4-2.7 6.8-4 8.3'/%3E%3C/svg%3E"); }
