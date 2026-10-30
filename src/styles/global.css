@@ -863,7 +863,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .icon-button { flex: 0 0 auto; width: 40px; height: 40px; color: var(--button-ink); background: color-mix(in srgb, var(--forest) 72%, white); font-size: 24px; line-height: 1; }
 .icon-button:hover { color: var(--button-ink); background: var(--forest); }
 .form-tabs { display: grid; grid-template-columns: repeat(6, 1fr); padding: 0 27px; border-bottom: 1px solid var(--line); background: #f7f7f7; }
-.form-tab { position: relative; min-height: 49px; padding: 0 12px; border: 0; color: var(--muted); background: transparent; font-size: 12px; font-weight: 600; }
+.form-tab { position: relative; min-height: 49px; padding: 0 12px; border: 0; color: var(--muted); background: transparent; font-size: 14px; font-weight: 600; }
 .form-tab:hover { color: var(--accent-text); }
 .form-tab.active { color: var(--accent-text); }
 .form-tab.active::after { content: ''; position: absolute; right: 8px; bottom: -1px; left: 8px; height: 3px; border-radius: 3px 3px 0 0; background: var(--forest); }
