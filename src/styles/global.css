@@ -1100,6 +1100,11 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .video-url-actions { display: grid; gap: 5px; }
 .video-url-actions input { width: 100%; height: 35px; padding: 0 30px 0 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 10px; }
 .video-url-actions .secondary-button { width: 100%; min-height: 29px; padding: 5px 10px; font-size: 10px; }
+/* Ver video y el ícono para abrir la página original, en la misma fila */
+.video-url-actions { grid-template-columns: minmax(0, 1fr) 34px; }
+.video-url-actions > :not(.secondary-button) { grid-column: 1 / -1; }
+.video-url-actions .open-video-page { padding: 0; }
+.video-url-actions .open-video-page svg { width: 15px; height: 15px; }
 .image-preview { position: relative; aspect-ratio: 1; border: 2px solid transparent; border-radius: 8px; background: #ececec; overflow: hidden; cursor: grab; transition: opacity .18s, border-color .18s, transform .22s ease, box-shadow .22s ease; }
 .image-preview:hover { z-index: 2; border-color: color-mix(in srgb, var(--forest) 45%, transparent); box-shadow: 0 10px 22px rgba(24,36,29,.2); transform: translateY(-3px) scale(1.025); }
 .image-preview:active { cursor: grabbing; }
@@ -1258,7 +1263,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-images .image-preview { border-radius: 6px; }
 .view-mode #panel-images .logo-drop-zone { min-height: 130px; padding: 4px; }
 .view-mode #panel-images .logo-preview { min-height: 115px; }
-.view-mode #panel-images .video-url-actions { grid-template-columns: minmax(0, 1fr); }
+.view-mode #panel-images .video-url-actions { grid-template-columns: minmax(0, 1fr) 34px; }
 .view-mode #panel-images .video-url-actions .clearable-control { display: none; }
 .view-mode #panel-images .video-url-actions .secondary-button { min-height: 34px; }
 .image-field > label small { display: none; }
