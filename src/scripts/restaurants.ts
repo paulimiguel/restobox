@@ -52,6 +52,8 @@ type Restaurant = {
 	takeAway?: boolean;
 	glutenFree?: boolean;
 	freeBreakfast?: boolean;
+	// Daytime kitchen: cafés que también sirven almuerzos.
+	daytimeKitchen?: boolean;
 	// "Checked": la carga del lugar está finalizada (distinto de `checked`, que es "A visitar").
 	loadChecked?: boolean;
 	healthy?: boolean;
@@ -126,6 +128,7 @@ type SpreadsheetRestaurant = {
 	takeAway: boolean;
 	glutenFree: boolean;
 	freeBreakfast: boolean;
+	daytimeKitchen: boolean;
 	loadChecked: boolean;
 	healthy: boolean;
 };
@@ -270,6 +273,7 @@ const storeTypeFilterChips = document.querySelector<HTMLDivElement>('#store-type
 const productFilterChips = document.querySelector<HTMLDivElement>('#product-filter-chips')!;
 const healthyFilterButton = document.querySelector<HTMLButtonElement>('#healthy-filter')!;
 const freeBreakfastFilterButton = document.querySelector<HTMLButtonElement>('#free-breakfast-filter')!;
+const daytimeKitchenFilterButton = document.querySelector<HTMLButtonElement>('#daytime-kitchen-filter')!;
 const loadCheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-checked-filter')!;
 const loadUncheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-unchecked-filter')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
@@ -576,6 +580,7 @@ let selectedStoreTypeFilters = new Set<string>();
 let selectedProductFilters = new Set<string>();
 let healthyFilterActive = false;
 let freeBreakfastFilterActive = false;
+let daytimeKitchenFilterActive = false;
 // Filtro por carga finalizada: solo los Checked, solo los que faltan terminar o todos.
 let loadCheckedFilter: 'all' | 'checked' | 'unchecked' = 'all';
 let selectedTagFilters = new Set<string>();
@@ -1202,6 +1207,7 @@ function updateDirectoryFilterLabels() {
 	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
 	healthyFilterButton.setAttribute('aria-pressed', String(healthyFilterActive));
 	freeBreakfastFilterButton.setAttribute('aria-pressed', String(freeBreakfastFilterActive));
+	daytimeKitchenFilterButton.setAttribute('aria-pressed', String(daytimeKitchenFilterActive));
 	loadCheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'checked'));
 	loadUncheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'unchecked'));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
@@ -3044,7 +3050,7 @@ function render() {
 						restaurant.name, restaurant.address, restaurant.neighborhood, restaurant.city, restaurant.province,
 						...(restaurant.branchList ?? []).flatMap((branch) => [branch.address, branch.zone, branch.city]), ...(restaurant.branchAddresses ?? []),
 						...restaurantEstablishments, ...restaurantMeals, ...restaurantCuisines, ...restaurantTags(restaurant),
-						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '',
+						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '', restaurant.daytimeKitchen ? 'Daytime kitchen' : '',
 					].filter((value): value is string => typeof value === 'string' && value.length > 0)
 		).map(neighborhoodImageKey);
 		const searchHaystack = searchValues.join(' | ');
@@ -3072,6 +3078,7 @@ function render() {
 		const matchesProduct = !selectedProductFilters.size || (restaurant.products ?? []).some((product) => selectedProductFilters.has(product));
 		const matchesHealthy = !healthyFilterActive || Boolean(restaurant.healthy);
 		const matchesFreeBreakfast = !freeBreakfastFilterActive || Boolean(restaurant.freeBreakfast);
+		const matchesDaytimeKitchen = !daytimeKitchenFilterActive || Boolean(restaurant.daytimeKitchen);
 		const matchesLoadChecked = loadCheckedFilter === 'all' || (loadCheckedFilter === 'checked') === Boolean(restaurant.loadChecked);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
@@ -3095,6 +3102,7 @@ function render() {
 			&& matchesHealthy
 			&& matchesGlutenFree
 			&& matchesFreeBreakfast
+			&& matchesDaytimeKitchen
 			&& matchesLoadChecked
 			&& matchesDelivery
 			&& matchesTakeAway;
@@ -3119,6 +3127,7 @@ function render() {
 		|| selectedProductFilters.size > 0
 		|| healthyFilterActive
 		|| freeBreakfastFilterActive
+		|| daytimeKitchenFilterActive
 		|| loadCheckedFilter !== 'all'
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
@@ -3781,6 +3790,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('freeBreakfast') as HTMLInputElement).checked = Boolean(restaurant.freeBreakfast);
+		(form.elements.namedItem('daytimeKitchen') as HTMLInputElement).checked = Boolean(restaurant.daytimeKitchen);
 		(form.elements.namedItem('loadChecked') as HTMLInputElement).checked = Boolean(restaurant.loadChecked);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
 		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, whatsapp: '' })).filter((branch) => branch.address);
@@ -4124,6 +4134,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		takeAway: Boolean(imported.takeAway),
 		glutenFree: Boolean(imported.glutenFree),
 		freeBreakfast: Boolean(imported.freeBreakfast),
+		daytimeKitchen: Boolean(imported.daytimeKitchen),
 		loadChecked: false,
 		healthy: Boolean(imported.healthy),
 		imageCount: 0,
@@ -4212,6 +4223,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(imported.takeAway);
 	(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(imported.glutenFree);
 	(form.elements.namedItem('freeBreakfast') as HTMLInputElement).checked = Boolean(imported.freeBreakfast);
+	(form.elements.namedItem('daytimeKitchen') as HTMLInputElement).checked = Boolean(imported.daytimeKitchen);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(imported.healthy);
 	selectedEstablishments = valuesFromExistingCatalog((imported.establishmentTypes ?? []).filter(Boolean), establishmentTypes);
 	selectedEstablishments.forEach((type) => {
@@ -4449,7 +4461,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'checked (carga finalizada)': 'loadChecked',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'daytime kitchen': 'daytimeKitchen', daytimekitchen: 'daytimeKitchen', 'checked (carga finalizada)': 'loadChecked',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
@@ -4519,7 +4531,7 @@ function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 	return {
 		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '', score: '',
 		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
-		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false, loadChecked: false,
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false, loadChecked: false, daytimeKitchen: false,
 	};
 }
 
@@ -4542,7 +4554,7 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 			const value = cells[index]?.trim() ?? '';
 			if (column === 'establishmentTypes' || column === 'cuisines') data[column] = capitalizedCatalogValues(splitSpreadsheetValues(value));
 			else if (column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
-			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast' || column === 'loadChecked') data[column] = spreadsheetBoolean(value);
+			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast' || column === 'loadChecked' || column === 'daytimeKitchen') data[column] = spreadsheetBoolean(value);
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
@@ -4610,7 +4622,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, loadChecked: data.loadChecked, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, loadChecked: data.loadChecked, daytimeKitchen: data.daytimeKitchen, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -4633,6 +4645,7 @@ function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Resta
 	existing.glutenFree = Boolean(existing.glutenFree || imported.glutenFree);
 	existing.healthy = Boolean(existing.healthy || imported.healthy);
 	existing.freeBreakfast = Boolean(existing.freeBreakfast || imported.freeBreakfast);
+	existing.daytimeKitchen = Boolean(existing.daytimeKitchen || imported.daytimeKitchen);
 	return before !== JSON.stringify(existing);
 }
 
@@ -5833,6 +5846,11 @@ loadUncheckedFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
+daytimeKitchenFilterButton.addEventListener('click', () => {
+	daytimeKitchenFilterActive = !daytimeKitchenFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
 freeBreakfastFilterButton.addEventListener('click', () => {
 	freeBreakfastFilterActive = !freeBreakfastFilterActive;
 	updateDirectoryFilterLabels();
@@ -5867,6 +5885,7 @@ function clearDirectoryFilterSelections() {
 	selectedProductFilters.clear();
 	healthyFilterActive = false;
 	freeBreakfastFilterActive = false;
+	daytimeKitchenFilterActive = false;
 	loadCheckedFilter = 'all';
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
@@ -6827,7 +6846,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'loadChecked'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'loadChecked', 'daytimeKitchen'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -6859,7 +6878,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = mergeUniqueValues(restaurantTags(restaurant), listValues(field)).join(', ');
-			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast' || field === 'loadChecked') restaurant[field] = value(field) === 'true';
+			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast' || field === 'loadChecked' || field === 'daytimeKitchen') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
@@ -7001,6 +7020,7 @@ form.addEventListener('submit', async (event) => {
 		takeAway: formData.has('takeAway'),
 		glutenFree: formData.has('glutenFree'),
 		freeBreakfast: formData.has('freeBreakfast'),
+		daytimeKitchen: formData.has('daytimeKitchen'),
 		loadChecked: formData.has('loadChecked'),
 		healthy: formData.has('healthy'),
 		imageCount: restaurantImages.length,
