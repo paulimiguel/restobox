@@ -394,8 +394,8 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .filter-status-buttons button:hover { color: var(--accent-text); border-color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, white); }
 .filter-status-buttons button[aria-pressed="true"] { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 14px color-mix(in srgb, var(--forest) 24%, transparent); }
 .filter-status-buttons .clear-directory-filters { width: 140px; height: 39px; min-height: 39px; margin-left: auto; white-space: nowrap; }
-#favorite-filter[aria-pressed="true"] svg { color: #ef4444; fill: #ef4444; stroke: #ef4444; }
-#visited-filter[aria-pressed="true"] svg { color: #22a95b; stroke: #22a95b; stroke-width: 2.5; }
+#favorite-filter[aria-pressed="true"] svg { color: var(--favorite-color); fill: var(--favorite-color); stroke: var(--favorite-color); }
+#visited-filter[aria-pressed="true"] svg { color: var(--visited-color); stroke: var(--visited-color); stroke-width: 2.5; }
 #checked-filter[aria-pressed="true"] { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .filter-multiselect { position: relative; }
 .filter-multiselect > summary { display: flex; height: 39px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 11px; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; list-style: none; cursor: pointer; }
@@ -519,9 +519,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status button { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #666d69; background: color-mix(in srgb, var(--sage) 75%, white); cursor: pointer; transition: color .18s, background .18s, transform .18s; }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status button:hover { background: color-mix(in srgb, var(--forest) 28%, white); transform: translateY(-1px); }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .favorite-button.active { color: #ef4444; }
+.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .favorite-button.active { color: var(--favorite-color); }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .favorite-button.active svg { fill: currentColor; }
-.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button.active { color: #22a95b; }
+.restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button.active { color: var(--visited-color); }
 .restaurant-list:is(.view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button.active svg { stroke-width: 2.5; }
 .view-options button { display: flex; align-items: center; gap: 9px; }
 .view-options button svg { width: 16px; flex: 0 0 auto; }
@@ -567,9 +567,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-card-top-actions > button:hover, .restaurant-card-actions-menu > summary:hover, .restaurant-card-actions-menu[open] > summary { color: var(--forest); background: rgba(255,255,255,.94); box-shadow: 0 5px 13px rgba(20,28,24,.2); transform: translateY(-2px); }
 .restaurant-card-top-actions svg { width: 19px; }
 .restaurant-card-top-actions .checked-icon { width: 22px; height: 22px; }
-.restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: #ef4444; }
+.restaurant-card-top-actions .favorite-button:hover, .restaurant-card-top-actions .favorite-button.active { color: var(--favorite-color); }
 .restaurant-card-top-actions .favorite-button.active svg { fill: currentColor; }
-.restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: #22a95b; }
+.restaurant-card-top-actions .visited-button:hover, .restaurant-card-top-actions .visited-button.active { color: var(--visited-color); }
 .restaurant-card-top-actions .to-visit-button:hover, .restaurant-card-top-actions .to-visit-button.active { color: #f7e788; }
 .restaurant-card-top-actions .to-visit-button.active svg { fill: #f7e788; stroke: #f7e788; }
 .restaurant-card-top-actions .visited-button svg { width: 21px; height: 21px; stroke-width: 3.4; }
@@ -644,9 +644,9 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status button { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: #666d69; background: color-mix(in srgb, var(--sage) 75%, white); cursor: pointer; transition: color .18s, background .18s, transform .18s; }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status button:hover { background: color-mix(in srgb, var(--forest) 28%, white); transform: translateY(-1px); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .favorite-button.active { color: #ef4444; }
+.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .favorite-button.active { color: var(--favorite-color); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .favorite-button.active svg { fill: currentColor; }
-.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active { color: #22a95b; }
+.restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active { color: var(--visited-color); }
 .restaurant-list:is(.view-list, .view-detail) .restaurant-card-list-status .visited-button.active svg { stroke-width: 2.5; }
 .restaurant-list:is(.view-list, .view-detail, .view-cuisines, .view-establishments) .restaurant-card-list-status .visited-button svg { width: 21px; height: 21px; }
 .restaurant-list:is(.view-detail, .view-list) .restaurant-card-list-status { display: none !important; }
@@ -1041,10 +1041,10 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .restaurant-status-option svg { width: 18px; color: var(--muted); }
 .restaurant-status-option:has(input[name="visited"]) svg { stroke-width: 2.8; }
 .restaurant-status-option:has(input:checked) { color: var(--accent-text); border-color: var(--forest); background: var(--sage); }
-.restaurant-status-option:has(input[name="favorite"]:checked) { color: #b42318; border-color: #ef4444; background: #fef2f2; }
-.restaurant-status-option:has(input[name="favorite"]:checked) svg { color: #ef4444; fill: currentColor; }
-.restaurant-status-option:has(input[name="visited"]:checked) { color: #15803d; border-color: #22a95b; background: #effaf3; }
-.restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 3; }
+.restaurant-status-option:has(input[name="favorite"]:checked) { color: var(--favorite-ink); border-color: var(--favorite-color); background: var(--favorite-bg); }
+.restaurant-status-option:has(input[name="favorite"]:checked) svg { color: var(--favorite-color); fill: currentColor; }
+.restaurant-status-option:has(input[name="visited"]:checked) { color: var(--visited-ink); border-color: var(--visited-color); background: var(--visited-bg); }
+.restaurant-status-option:has(input[name="visited"]:checked) svg { color: var(--visited-color); stroke-width: 3; }
 .restaurant-status-option:has(input[name="checked"]:checked) { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .restaurant-status-option:has(input[name="checked"]:checked) svg { color: #b89f12; stroke-width: 2.5; }
 /* Checked (carga finalizada): se pinta de aguamarina cuando está marcado */
@@ -1174,9 +1174,9 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-general .lead-data > label, .view-mode #panel-general .lead-contacts > label, .view-mode #panel-general .lead-contacts > .form-field { border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
 .view-mode #panel-general .view-personal-statuses svg { width: 18px; }
 .view-mode #panel-general .view-personal-statuses .checked-icon { width: 20px; height: 20px; }
-.view-mode #panel-general .favorite-status { color: #ef4444; }
+.view-mode #panel-general .favorite-status { color: var(--favorite-color); }
 .view-mode #panel-general .favorite-status svg { fill: currentColor; }
-.view-mode #panel-general .visited-status { color: #22a95b; }
+.view-mode #panel-general .visited-status { color: var(--visited-color); }
 .view-mode #panel-general .visited-status svg { width: 21px; height: 21px; stroke-width: 2.8; }
 .view-mode #panel-general .checked-status { color: #b89f12; }
 .view-mode #panel-general .load-checked-status { color: #2a8fab; }
@@ -1966,3 +1966,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > .characteristics-checks { grid-column: 3; grid-row: span 2; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 8px; }
 	#restaurant-form:not(.view-mode) #panel-details.store-mode .form-grid > .characteristics-checks { grid-column: 1 / -1; grid-row: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Colores de Favorito (rosa pastel) y Visitado (verde lima) */
+:root { --favorite-color: #ec8fb0; --favorite-ink: #a8436b; --favorite-bg: #fde8f0; --visited-color: #84cc16; --visited-ink: #4d7c0f; --visited-bg: #f2fbe0; }
