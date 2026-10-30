@@ -1047,6 +1047,9 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .restaurant-status-option:has(input[name="visited"]:checked) svg { color: #22a95b; stroke-width: 3; }
 .restaurant-status-option:has(input[name="checked"]:checked) { color: #8f7a10; border-color: #e6d25a; background: #fffbe3; }
 .restaurant-status-option:has(input[name="checked"]:checked) svg { color: #b89f12; stroke-width: 2.5; }
+/* Checked (carga finalizada): se pinta de aguamarina cuando está marcado */
+.restaurant-status-option:has(input[name="loadChecked"]:checked) { color: #134e5e; border-color: #6fbcd3; background: #a5d8e8; }
+.restaurant-status-option:has(input[name="loadChecked"]:checked) svg { color: #134e5e; stroke-width: 2.5; }
 .checked-status-option .checked-icon { color: var(--muted); transition: color .18s; }
 .checked-status-option:has(input:checked) .checked-icon { color: #c9ae1d; }
 .image-field > label { display: flex; align-items: center; justify-content: space-between; }
@@ -1115,6 +1118,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .primary-image-column .restaurant-status-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .primary-image-column .restaurant-status-option { justify-content: center; padding-inline: 7px; }
 .primary-image-column .restaurant-status-option:has(input[name="favorite"]) { grid-column: 1 / -1; }
+.primary-image-column .restaurant-status-option:has(input[name="loadChecked"]) { grid-column: 1 / -1; }
 .primary-image-preview { position: relative; display: grid; width: 230px; aspect-ratio: 1; place-items: center; border: 2px solid transparent; border-radius: 0; color: #929892; background: white; overflow: hidden; cursor: pointer; transition: border-color .18s, background .18s; }
 .primary-image-preview.dragging { border-color: var(--forest); background: var(--sage); }
 .primary-image-preview img { width: 100%; height: 100%; object-fit: contain; transition: transform 300ms ease; }
@@ -1170,6 +1174,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-general .visited-status { color: #22a95b; }
 .view-mode #panel-general .visited-status svg { width: 21px; height: 21px; stroke-width: 2.8; }
 .view-mode #panel-general .checked-status { color: #b89f12; }
+.view-mode #panel-general .load-checked-status { color: #2a8fab; }
 .view-mode #panel-general .location-fields label { grid-template-columns: auto minmax(0, 1fr); }
 .view-mode #panel-general .field-label, .view-mode #panel-general label, .view-mode #panel-general .form-field > label { color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-general .required { display: none; }

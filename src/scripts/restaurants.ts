@@ -470,6 +470,7 @@ const placeStoreInput = form.elements.namedItem('placeStore') as HTMLInputElemen
 const viewFavoriteStatus = document.querySelector<HTMLElement>('#view-favorite-status')!;
 const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-status')!;
 const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
+const viewLoadCheckedStatus = document.querySelector<HTMLElement>('#view-load-checked-status')!;
 const formTabs = document.querySelectorAll<HTMLButtonElement>('[data-form-tab]');
 const tabPanels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
 const formScrollNavigation = document.querySelector<HTMLElement>('.form-scroll-navigation')!;
@@ -3810,6 +3811,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
 	viewVisitedStatus.hidden = !(readOnly && restaurant?.visited);
 	viewCheckedStatus.hidden = !(readOnly && restaurant?.checked);
+	viewLoadCheckedStatus.hidden = !(readOnly && restaurant?.loadChecked);
 	loadScheduleFromText(restaurant?.hours ?? '');
 	updateExternalLink(linktreeInput, openLinktree);
 	updateExternalLink(menuUrlInput, openMenuLink);
