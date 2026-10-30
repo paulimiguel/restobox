@@ -40,6 +40,8 @@ type Restaurant = {
 	tripAdvisorUrl: string;
 	pedidosYaUrl?: string;
 	videoUrl?: string;
+	// Enlace al video del Instagram oficial del lugar.
+	officialVideoUrl?: string;
 	mapUrl: string;
 	hours: string;
 	notes: string;
@@ -398,6 +400,9 @@ const primaryImagePreview = document.querySelector<HTMLDivElement>('#primary-ima
 const videoInput = document.querySelector<HTMLInputElement>('#restaurant-video-url')!;
 const viewRestaurantVideoButton = document.querySelector<HTMLButtonElement>('#view-restaurant-video')!;
 const openRestaurantVideoPage = document.querySelector<HTMLAnchorElement>('#open-restaurant-video-page')!;
+const officialVideoInput = document.querySelector<HTMLInputElement>('#official-video-url')!;
+const viewOfficialVideoButton = document.querySelector<HTMLButtonElement>('#view-official-video')!;
+const openOfficialVideoPage = document.querySelector<HTMLAnchorElement>('#open-official-video-page')!;
 const restaurantVideoDialog = document.querySelector<HTMLDialogElement>('#restaurant-video-dialog')!;
 const restaurantVideoFrame = document.querySelector<HTMLIFrameElement>('#restaurant-video-frame')!;
 const restaurantVideoPlayer = document.querySelector<HTMLVideoElement>('#restaurant-video-player')!;
@@ -1141,6 +1146,7 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 		{ id: 'images', label: 'Imágenes', isEmpty: (r) => !r.imageCount },
 		{ id: 'logo', label: 'Logo', isEmpty: (r) => !r.logoCount },
 		{ id: 'videoUrl', label: 'Video', isEmpty: (r) => !r.videoUrl?.trim() },
+		{ id: 'officialVideoUrl', label: 'Video oficial', isEmpty: (r) => !r.officialVideoUrl?.trim() },
 	] },
 ];
 const emptyFieldOptions = emptyFieldGroups.flatMap((group) => group.options);
@@ -2258,21 +2264,26 @@ async function resolvedRestaurantVideo(value: string) {
 	}
 }
 
-function updateRestaurantVideoButton() {
-	const supported = isSupportedRestaurantVideoUrl(videoInput.value);
-	videoInput.setCustomValidity(videoInput.value.trim() && !supported ? 'Ingresá un enlace válido de YouTube, Instagram o TikTok.' : '');
-	viewRestaurantVideoButton.disabled = !supported;
+function updateVideoControls(input: HTMLInputElement, viewButton: HTMLButtonElement, pageLink: HTMLAnchorElement) {
+	const supported = isSupportedRestaurantVideoUrl(input.value);
+	input.setCustomValidity(input.value.trim() && !supported ? 'Ingresá un enlace válido de YouTube, Instagram o TikTok.' : '');
+	viewButton.disabled = !supported;
 	// "Abrir página del video" lleva a la página original (Instagram, YouTube, TikTok o cualquier otra).
 	let pageUrl = '';
 	try {
-		const url = new URL(videoInput.value.trim());
+		const url = new URL(input.value.trim());
 		if (url.protocol === 'https:' || url.protocol === 'http:') pageUrl = url.href;
 	} catch { /* Sin enlace válido no hay página para abrir. */ }
-	if (pageUrl) openRestaurantVideoPage.href = pageUrl;
-	else openRestaurantVideoPage.removeAttribute('href');
-	openRestaurantVideoPage.classList.toggle('disabled', !pageUrl);
-	openRestaurantVideoPage.setAttribute('aria-disabled', String(!pageUrl));
-	openRestaurantVideoPage.tabIndex = pageUrl ? 0 : -1;
+	if (pageUrl) pageLink.href = pageUrl;
+	else pageLink.removeAttribute('href');
+	pageLink.classList.toggle('disabled', !pageUrl);
+	pageLink.setAttribute('aria-disabled', String(!pageUrl));
+	pageLink.tabIndex = pageUrl ? 0 : -1;
+}
+
+function updateRestaurantVideoButton() {
+	updateVideoControls(videoInput, viewRestaurantVideoButton, openRestaurantVideoPage);
+	updateVideoControls(officialVideoInput, viewOfficialVideoButton, openOfficialVideoPage);
 }
 
 function closeRestaurantVideo() {
@@ -2401,7 +2412,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	};
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
-		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl',
+		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl', 'officialVideoUrl',
 		'description', 'notes', 'discounts', 'branches',
 	].forEach(markNamedField);
 
@@ -6121,6 +6132,10 @@ imagePreviews.addEventListener('click', (event) => {
 });
 
 videoInput.addEventListener('input', updateRestaurantVideoButton);
+officialVideoInput.addEventListener('input', updateRestaurantVideoButton);
+viewOfficialVideoButton.addEventListener('click', async () => {
+	if (!await openRestaurantVideo(officialVideoInput.value)) showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
+});
 viewRestaurantVideoButton.addEventListener('click', async () => {
 	if (!await openRestaurantVideo(videoInput.value)) {
 		showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
@@ -6975,6 +6990,7 @@ form.addEventListener('submit', async (event) => {
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(),
 		pedidosYaUrl: data.pedidosYaUrl.trim(),
 		videoUrl: data.videoUrl.trim(),
+		officialVideoUrl: (data.officialVideoUrl ?? '').trim(),
 		mapUrl: data.mapUrl.trim(),
 		hours: data.hours.trim(),
 		notes: data.notes.trim(),

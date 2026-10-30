@@ -1057,10 +1057,10 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .editing-record .image-gallery-column { grid-template-rows: minmax(auto, 1fr) auto; align-content: stretch; }
 .images-logo-row .image-previews { grid-template-columns: repeat(4, 1fr); align-content: start; }
 .image-gallery-actions { display: flex; min-height: 29px; justify-content: flex-end; gap: 6px; margin-top: 2px; }
-.view-restaurant-images, #view-restaurant-video, .open-video-page { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.view-restaurant-images, #view-restaurant-video, #view-official-video, .open-video-page { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .open-video-page { text-decoration: none; }
 .open-video-page.disabled { opacity: .45; pointer-events: none; }
-.view-restaurant-images svg, #view-restaurant-video svg, .open-video-page svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.view-restaurant-images svg, #view-restaurant-video svg, #view-official-video svg, .open-video-page svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .view-restaurant-images[hidden] { display: none; }
 .view-restaurant-images, .insert-image-button, .import-restaurant-images, .import-restaurant-logo, .clear-restaurant-images { min-height: 29px; padding: 5px 10px; font-size: 10px; font-weight: 600; }
 .import-restaurant-images, .import-restaurant-logo { display: none; }
@@ -1133,7 +1133,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode .clear-field-button, .view-mode .selected-option button, .view-mode .select-with-action > button, .view-mode .remove-image, .view-mode #remove-logo, .view-mode .primary-image-edit { display: none; }
 .view-mode .view-empty-field { display: none !important; }
 .view-mode #panel-general .establishment-lead:has(.primary-image-column.view-empty-field) { grid-template-columns: minmax(0, 1fr); }
-.view-mode #panel-images .images-logo-row:has(.logo-field.view-empty-field):has(.video-field.view-empty-field) { grid-template-columns: minmax(0, 1fr); }
+.view-mode #panel-images .images-logo-row:has(.logo-field.view-empty-field):not(:has(.video-field:not(.view-empty-field))) { grid-template-columns: minmax(0, 1fr); }
 .view-mode .select-with-action { grid-template-columns: minmax(0, 1fr); }
 .view-mode input:disabled, .view-mode select:disabled, .view-mode textarea:disabled { color: var(--ink); background: white; opacity: 1; -webkit-text-fill-color: var(--ink); }
 .view-mode .primary-image-preview, .view-mode .logo-drop-zone { cursor: default; pointer-events: none; }
