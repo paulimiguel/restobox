@@ -50,6 +50,8 @@ type Restaurant = {
 	takeAway?: boolean;
 	glutenFree?: boolean;
 	freeBreakfast?: boolean;
+	// "Checked": la carga del lugar está finalizada (distinto de `checked`, que es "A visitar").
+	loadChecked?: boolean;
 	healthy?: boolean;
 	imageCount: number;
 	logoCount?: number;
@@ -122,6 +124,7 @@ type SpreadsheetRestaurant = {
 	takeAway: boolean;
 	glutenFree: boolean;
 	freeBreakfast: boolean;
+	loadChecked: boolean;
 	healthy: boolean;
 };
 
@@ -265,6 +268,8 @@ const storeTypeFilterChips = document.querySelector<HTMLDivElement>('#store-type
 const productFilterChips = document.querySelector<HTMLDivElement>('#product-filter-chips')!;
 const healthyFilterButton = document.querySelector<HTMLButtonElement>('#healthy-filter')!;
 const freeBreakfastFilterButton = document.querySelector<HTMLButtonElement>('#free-breakfast-filter')!;
+const loadCheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-checked-filter')!;
+const loadUncheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-unchecked-filter')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
 const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options');
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
@@ -566,6 +571,8 @@ let selectedStoreTypeFilters = new Set<string>();
 let selectedProductFilters = new Set<string>();
 let healthyFilterActive = false;
 let freeBreakfastFilterActive = false;
+// Filtro por carga finalizada: solo los Checked, solo los que faltan terminar o todos.
+let loadCheckedFilter: 'all' | 'checked' | 'unchecked' = 'all';
 let selectedTagFilters = new Set<string>();
 let selectedCityFilters = new Set<string>();
 let selectedEmptyFields = new Set<string>();
@@ -1189,6 +1196,8 @@ function updateDirectoryFilterLabels() {
 	glutenFreeFilterButton.setAttribute('aria-pressed', String(glutenFreeFilterActive));
 	healthyFilterButton.setAttribute('aria-pressed', String(healthyFilterActive));
 	freeBreakfastFilterButton.setAttribute('aria-pressed', String(freeBreakfastFilterActive));
+	loadCheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'checked'));
+	loadUncheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'unchecked'));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
@@ -3052,6 +3061,7 @@ function render() {
 		const matchesProduct = !selectedProductFilters.size || (restaurant.products ?? []).some((product) => selectedProductFilters.has(product));
 		const matchesHealthy = !healthyFilterActive || Boolean(restaurant.healthy);
 		const matchesFreeBreakfast = !freeBreakfastFilterActive || Boolean(restaurant.freeBreakfast);
+		const matchesLoadChecked = loadCheckedFilter === 'all' || (loadCheckedFilter === 'checked') === Boolean(restaurant.loadChecked);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -3074,6 +3084,7 @@ function render() {
 			&& matchesHealthy
 			&& matchesGlutenFree
 			&& matchesFreeBreakfast
+			&& matchesLoadChecked
 			&& matchesDelivery
 			&& matchesTakeAway;
 	});
@@ -3097,6 +3108,7 @@ function render() {
 		|| selectedProductFilters.size > 0
 		|| healthyFilterActive
 		|| freeBreakfastFilterActive
+		|| loadCheckedFilter !== 'all'
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
 		|| selectedEmptyFields.size > 0
@@ -3758,6 +3770,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('freeBreakfast') as HTMLInputElement).checked = Boolean(restaurant.freeBreakfast);
+		(form.elements.namedItem('loadChecked') as HTMLInputElement).checked = Boolean(restaurant.loadChecked);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
 		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, whatsapp: '' })).filter((branch) => branch.address);
 		const branchList = restaurant.branchList?.length ? restaurant.branchList : legacyBranches;
@@ -4100,6 +4113,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		takeAway: Boolean(imported.takeAway),
 		glutenFree: Boolean(imported.glutenFree),
 		freeBreakfast: Boolean(imported.freeBreakfast),
+		loadChecked: false,
 		healthy: Boolean(imported.healthy),
 		imageCount: 0,
 		logoCount: 0,
@@ -4424,7 +4438,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'checked (carga finalizada)': 'loadChecked',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
@@ -4494,7 +4508,7 @@ function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 	return {
 		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '', score: '',
 		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
-		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false,
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false, loadChecked: false,
 	};
 }
 
@@ -4517,7 +4531,7 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 			const value = cells[index]?.trim() ?? '';
 			if (column === 'establishmentTypes' || column === 'cuisines') data[column] = capitalizedCatalogValues(splitSpreadsheetValues(value));
 			else if (column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
-			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast') data[column] = spreadsheetBoolean(value);
+			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast' || column === 'loadChecked') data[column] = spreadsheetBoolean(value);
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
@@ -4585,7 +4599,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, loadChecked: data.loadChecked, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -5798,6 +5812,16 @@ healthyFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
+loadCheckedFilterButton.addEventListener('click', () => {
+	loadCheckedFilter = loadCheckedFilter === 'checked' ? 'all' : 'checked';
+	updateDirectoryFilterLabels();
+	render();
+});
+loadUncheckedFilterButton.addEventListener('click', () => {
+	loadCheckedFilter = loadCheckedFilter === 'unchecked' ? 'all' : 'unchecked';
+	updateDirectoryFilterLabels();
+	render();
+});
 freeBreakfastFilterButton.addEventListener('click', () => {
 	freeBreakfastFilterActive = !freeBreakfastFilterActive;
 	updateDirectoryFilterLabels();
@@ -5832,6 +5856,7 @@ function clearDirectoryFilterSelections() {
 	selectedProductFilters.clear();
 	healthyFilterActive = false;
 	freeBreakfastFilterActive = false;
+	loadCheckedFilter = 'all';
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
 	selectedEmptyFields.clear();
@@ -6787,7 +6812,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'loadChecked'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -6819,7 +6844,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = mergeUniqueValues(restaurantTags(restaurant), listValues(field)).join(', ');
-			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast') restaurant[field] = value(field) === 'true';
+			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast' || field === 'loadChecked') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
@@ -6960,6 +6985,7 @@ form.addEventListener('submit', async (event) => {
 		takeAway: formData.has('takeAway'),
 		glutenFree: formData.has('glutenFree'),
 		freeBreakfast: formData.has('freeBreakfast'),
+		loadChecked: formData.has('loadChecked'),
 		healthy: formData.has('healthy'),
 		imageCount: restaurantImages.length,
 		logoCount: restaurantLogo ? 1 : 0,
