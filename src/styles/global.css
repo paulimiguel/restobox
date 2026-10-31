@@ -1996,11 +1996,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Ficha (solo lectura): mapa más bajo para que la solapa entre sin desplazarse */
 .view-mode #panel-general .map-preview { height: 110px; margin-top: -3px; }
-/* Ficha, solapa Imágenes: "Ver imágenes" a la derecha de la última imagen de abajo */
-@media (min-width: 641px) {
-	.view-mode #panel-images .image-gallery-column { grid-template-columns: minmax(0, max-content) auto; align-items: end; column-gap: 10px; }
-	.view-mode #panel-images .image-gallery-actions { margin-top: 0; }
-}
 
 /* Al editar: "Entregas" a la izquierda de Delivery y Take away, en una sola fila más baja */
 #restaurant-form:not(.view-mode) .place-kind-options.delivery-options { grid-template-columns: auto repeat(2, minmax(0, 1fr)); align-items: center; column-gap: 12px; padding-block: 6px; }
@@ -2034,3 +2029,11 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Ficha, Características: el ícono de cada opción a la izquierda (en lugar del tilde) */
 .view-mode #panel-details .characteristics-checks > .boolean-check-control::before { content: ''; flex: 0 0 16px; width: 16px; height: 16px; background: var(--ink); -webkit-mask: var(--toggle-icon) center / contain no-repeat; mask: var(--toggle-icon) center / contain no-repeat; }
+
+/* Ficha, solapa Imágenes: botones de video, abrir e imágenes en 11px y con el color del texto; "Imágenes" va debajo de los videos */
+.images-view-field { display: none; }
+.view-mode #panel-images .images-view-field:not([hidden]) { display: grid; gap: 5px; }
+.view-mode #panel-images .images-view-field .field-label { color: #414a44; font-size: 13px; font-weight: 600; }
+.view-mode #panel-images .image-gallery-actions { display: none; }
+.view-mode #panel-images :is(.video-url-actions .secondary-button, .images-view-field .secondary-button) { min-height: 34px; color: var(--ink); font-size: 11px; }
+.view-mode #panel-images .images-view-field .secondary-button { width: 100%; }

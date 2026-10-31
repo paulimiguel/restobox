@@ -3571,6 +3571,7 @@ function renderImagePreviews() {
 	updateImportRestaurantImagesButton();
 	clearRestaurantImagesButton.hidden = restaurantImages.length === 0;
 	viewRestaurantImagesButton.hidden = restaurantImages.length === 0;
+	document.querySelector<HTMLElement>('.images-view-field')!.hidden = restaurantImages.length === 0;
 	updateDirtyState();
 }
 
@@ -6092,6 +6093,8 @@ insertImageButton.addEventListener('click', () => {
 importRestaurantImagesButton.addEventListener('click', () => void importImagesForEditingRestaurant());
 importRestaurantLogoButton.addEventListener('click', () => void importLogoForEditingRestaurant());
 viewRestaurantImagesButton.addEventListener('click', () => openImageCarousel(0));
+// En la ficha, "Ver imágenes" está en la columna lateral, debajo de los videos.
+document.querySelector('#view-images-sidebar')?.addEventListener('click', () => openImageCarousel(0));
 clearRestaurantImagesButton.addEventListener('click', () => {
 	if (!restaurantImages.length) return;
 	const imageCount = restaurantImages.length;
