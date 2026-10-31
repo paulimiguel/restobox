@@ -2063,3 +2063,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.view-mode #panel-general .lead-contacts .whatsapp-general-field .url-with-action { width: auto; grid-template-columns: minmax(0, max-content) 34px; }
 	.view-mode #panel-general .map-preview { height: 160px; }
 }
+
+/* Ficha: Rate en el renglón de abajo de Puntuación Google */
+.view-mode #panel-details .form-grid > :is(label:has(input[name="score"]), .rate-field) { grid-column: 1 / -1; }
