@@ -286,6 +286,8 @@ const establishmentFilterChips = document.querySelector<HTMLDivElement>('#establ
 const mealFilterChips = document.querySelector<HTMLDivElement>('#meal-filter-chips')!;
 const cuisineFilterChips = document.querySelector<HTMLDivElement>('#cuisine-filter-chips')!;
 const neighborhoodFilterChips = document.querySelector<HTMLDivElement>('#neighborhood-filter-chips')!;
+const priceFilterLabel = document.querySelector<HTMLElement>('#price-filter-label')!;
+const priceFilterChips = document.querySelector<HTMLDivElement>('#price-filter-chips')!;
 const tagFilterChips = document.querySelector<HTMLDivElement>('#tag-filter-chips');
 const cityFilterChips = document.querySelector<HTMLDivElement>('#city-filter-chips');
 const favoriteFilterButton = document.querySelector<HTMLButtonElement>('#favorite-filter')!;
@@ -575,6 +577,8 @@ let selectedEstablishmentFilters = new Set<string>();
 let selectedMealFilters = new Set<string>();
 let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
+// Filtro por nivel de precio ($ a $$).
+const selectedPriceFilters = new Set<string>();
 let selectedStoreTypeFilters = new Set<string>();
 let selectedProductFilters = new Set<string>();
 let healthyFilterActive = false;
@@ -1163,6 +1167,7 @@ function updateDirectoryFilterLabels() {
 	mealFilterLabel.textContent = summary(selectedMealFilters, 'Todos los servicios');
 	cuisineFilterLabel.textContent = summary(selectedCuisineFilters, 'Todos los tipos de cocina');
 	neighborhoodFilterLabel.textContent = summary(selectedNeighborhoodFilters, 'Todas las zonas');
+	priceFilterLabel.textContent = summary(selectedPriceFilters, 'Todos los niveles');
 	storeTypeFilterLabel.textContent = summary(selectedStoreTypeFilters, 'Todos los tipos de tienda');
 	productFilterLabel.textContent = summary(selectedProductFilters, 'Todos los productos');
 	if (tagFilterLabel) tagFilterLabel.textContent = summary(selectedTagFilters, 'Todas las etiquetas');
@@ -1177,6 +1182,7 @@ function updateDirectoryFilterLabels() {
 		.concat([...selectedMealFilters].map((value) => ({ value, group: 'meal' })))
 		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
 		.concat([...selectedNeighborhoodFilters].map((value) => ({ value, group: 'neighborhood' })))
+		.concat([...selectedPriceFilters].map((value) => ({ value, group: 'price' })))
 		.concat([...selectedStoreTypeFilters].map((value) => ({ value, group: 'storeType' })))
 		.concat([...selectedProductFilters].map((value) => ({ value, group: 'product' })))
 		.concat([...selectedEmptyFields].map((value) => ({ value, group: 'empty', label: `Sin ${(emptyFieldOptions.find((option) => option.id === value)?.label ?? value).toLocaleLowerCase('es')}` })))
@@ -1186,6 +1192,7 @@ function updateDirectoryFilterLabels() {
 	directoryActiveFilters.hidden = !hasVisibleCatalogFilters;
 	clearActiveDirectoryFiltersButton.hidden = !hasVisibleCatalogFilters;
 	neighborhoodFilterChips.innerHTML = chips(selectedNeighborhoodFilters, 'neighborhood');
+	priceFilterChips.innerHTML = chips(selectedPriceFilters, 'price');
 	storeTypeFilterChips.innerHTML = chips(selectedStoreTypeFilters, 'storeType');
 	productFilterChips.innerHTML = chips(selectedProductFilters, 'product');
 	if (tagFilterChips) tagFilterChips.innerHTML = chips(selectedTagFilters, 'tag');
@@ -1194,6 +1201,7 @@ function updateDirectoryFilterLabels() {
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-meal-filter]').forEach((input) => { input.checked = selectedMealFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-cuisine-filter]').forEach((input) => { input.checked = selectedCuisineFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-neighborhood-filter]').forEach((input) => { input.checked = selectedNeighborhoodFilters.has(input.value); });
+	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-price-filter]').forEach((input) => { input.checked = selectedPriceFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-store-type-filter]').forEach((input) => { input.checked = selectedStoreTypeFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-product-filter]').forEach((input) => { input.checked = selectedProductFilters.has(input.value); });
 	directoryFilterPanel.querySelectorAll<HTMLInputElement>('[data-tag-filter]').forEach((input) => { input.checked = selectedTagFilters.has(input.value); });
@@ -3064,6 +3072,7 @@ function render() {
 		const matchesMeal = !selectedMealFilters.size || [...selectedMealFilters].some((value) => restaurantMeals.includes(value));
 		const matchesCuisine = !selectedCuisineFilters.size || [...selectedCuisineFilters].some((value) => restaurantCuisines.includes(value));
 		const matchesNeighborhood = !selectedNeighborhoodFilters.size || selectedNeighborhoodFilters.has(restaurant.neighborhood ?? '');
+		const matchesPrice = !selectedPriceFilters.size || selectedPriceFilters.has(restaurant.price ?? '');
 		const matchesTags = !selectedTagFilters.size || [...selectedTagFilters].some((tag) => restaurantTagValues.includes(tag.toLocaleLowerCase('es')));
 		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
@@ -3096,6 +3105,7 @@ function render() {
 			&& matchesHealthy
 			&& matchesGlutenFree
 			&& matchesFreeBreakfast
+			&& matchesPrice
 			&& matchesDaytimeKitchen
 			&& matchesDelivery
 			&& matchesTakeAway;
@@ -3116,6 +3126,7 @@ function render() {
 		|| selectedMealFilters.size > 0
 		|| selectedCuisineFilters.size > 0
 		|| selectedNeighborhoodFilters.size > 0
+		|| selectedPriceFilters.size > 0
 		|| selectedStoreTypeFilters.size > 0
 		|| selectedProductFilters.size > 0
 		|| healthyFilterActive
@@ -5758,6 +5769,8 @@ directoryFilterPanel.addEventListener('change', (event) => {
 				? selectedCuisineFilters
 				: input.hasAttribute('data-neighborhood-filter')
 					? selectedNeighborhoodFilters
+					: input.hasAttribute('data-price-filter')
+					? selectedPriceFilters
 					: input.hasAttribute('data-store-type-filter')
 					? selectedStoreTypeFilters
 					: input.hasAttribute('data-product-filter')
@@ -5793,6 +5806,8 @@ function removeDirectoryFilter(group: string | undefined, value: string) {
 				? selectedCuisineFilters
 				: group === 'neighborhood'
 					? selectedNeighborhoodFilters
+					: group === 'price'
+					? selectedPriceFilters
 					: group === 'storeType'
 					? selectedStoreTypeFilters
 					: group === 'product'
@@ -5865,6 +5880,7 @@ function clearDirectoryFilterSelections() {
 	selectedMealFilters.clear();
 	selectedCuisineFilters.clear();
 	selectedNeighborhoodFilters.clear();
+	selectedPriceFilters.clear();
 	selectedStoreTypeFilters.clear();
 	selectedProductFilters.clear();
 	healthyFilterActive = false;

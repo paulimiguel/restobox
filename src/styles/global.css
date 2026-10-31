@@ -390,6 +390,10 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .filter-status-buttons { display: flex; min-height: 39px; grid-column: 1 / -1; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
 .filter-status-buttons button { display: inline-flex; width: 140px; height: 39px; flex: 0 0 140px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: white; font-size: 11px; font-weight: 650; transition: color .16s, border-color .16s, background .16s, box-shadow .16s; }
 .filter-status-buttons button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+/* Escritorio y tablet: cada botón mide lo que su texto, en una sola línea */
+@media (min-width: 641px) {
+	.directory-filter-panel .filter-status-buttons button:not(.clear-directory-filters) { width: auto; flex: 0 0 auto; padding-inline: 14px; white-space: nowrap; }
+}
 .filter-status-buttons button .checked-icon { width: 20px; height: 20px; }
 .filter-status-buttons button:hover { color: var(--accent-text); border-color: var(--accent-text); background: color-mix(in srgb, var(--sage) 55%, white); }
 .filter-status-buttons button[aria-pressed="true"] { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 14px color-mix(in srgb, var(--forest) 24%, transparent); }
