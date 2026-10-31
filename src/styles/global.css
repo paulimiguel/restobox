@@ -2010,3 +2010,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .view-mode #panel-general .view-personal-statuses { border-bottom: 0; }
 .view-mode #panel-general .establishment-lead { padding-bottom: 6px; }
 .view-mode #panel-general .location-fields { margin-top: -6px; }
+
+/* Opciones de las listas desplegables de Categorías, Servicios, Tipo de cocina y similares en 12px */
+#restaurant-dialog #restaurant-form .tab-panel .tag-dropdown-option > label { font-size: 12px; }
