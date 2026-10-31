@@ -1788,7 +1788,10 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 /* Panel de filtros más compacto: categorías, servicios, cocina y zona en una sola fila */
 @media (min-width: 901px) {
 	.directory-filter-panel { gap: 10px; padding: 12px 16px; }
-	.directory-filter-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; }
+	.directory-filter-fields { display: flex; flex-wrap: wrap; gap: 10px 12px; }
+	/* Todos los filtros visibles en una fila, repartiendo el ancho; los botones rápidos van en la fila de abajo */
+	.directory-filter-fields > .filter-control { flex: 1 1 150px; min-width: 0; }
+	.directory-filter-fields > .filter-status-buttons { flex: 1 1 100%; }
 	.directory-filter-panel .filter-control { gap: 4px; }
 	.directory-filter-panel .filter-multiselect > summary { height: 34px; font-size: 12px; }
 	.directory-filter-panel .filter-status-buttons { min-height: 34px; gap: 6px; }
