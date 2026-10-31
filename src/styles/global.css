@@ -2040,3 +2040,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .view-mode #panel-images .image-gallery-actions { display: none; }
 .view-mode #panel-images :is(.video-url-actions .secondary-button, .images-view-field .secondary-button) { min-height: 34px; color: var(--ink); font-size: 11px; }
 .view-mode #panel-images .images-view-field .secondary-button { width: 100%; }
+
+/* Ficha, solapa Imágenes: logo más grande, ocupando el ancho de la columna y centrado */
+.view-mode #panel-images .logo-drop-zone { min-height: 0; padding: 0; justify-items: center; }
+.view-mode #panel-images .logo-preview { width: 100%; height: auto; min-height: 0; aspect-ratio: 1; }
+.view-mode #panel-images .logo-preview img { width: 100%; height: 100%; }
