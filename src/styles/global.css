@@ -2062,7 +2062,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.view-mode #panel-general .lead-contacts > .whatsapp-general-field { grid-column: 1; grid-template-columns: auto minmax(0, 1fr); }
 	.view-mode #panel-general .lead-contacts > label.phone-field { grid-column: 2; grid-template-columns: auto minmax(0, 1fr); }
 	.view-mode #panel-general .lead-contacts .whatsapp-general-field .url-with-action { width: auto; grid-template-columns: minmax(0, max-content) 34px; }
-	.view-mode #panel-general .map-preview { height: 160px; }
+	.view-mode #panel-general .map-preview { height: 140px; }
 }
 
 /* Ficha: Rate en el renglón de abajo de Puntuación Google */
