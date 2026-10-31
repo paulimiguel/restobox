@@ -1990,3 +1990,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Textos del lugar en 13px, al editar y en la ficha (campos, etiquetas, valores, interruptores y estados) */
 #restaurant-dialog #restaurant-form .tab-panel :is(label, .field-label, .place-kind-title, .boolean-check-control, .restaurant-status-option, .selected-option, .view-personal-statuses strong, input:not([type="checkbox"]), select, textarea) { font-size: 13px; }
 #restaurant-form:not(.view-mode) .characteristics-checks > .boolean-check-control > span { white-space: normal; line-height: 1.15; }
+
+/* Opciones elegidas debajo de Categorías, Servicios, Tipo de cocina y similares: sin negrita */
+#restaurant-form .selected-option { font-weight: 400; }
