@@ -2071,5 +2071,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Solapa Imágenes: el título "Logo" con el mismo estilo que "Imágenes"; al editar, a la misma altura */
 #restaurant-dialog #restaurant-form .logo-field > span { color: #505852; font-size: 13px; font-weight: 600; }
 @media (min-width: 641px) {
-	#restaurant-form:not(.view-mode) #panel-images .image-sidebar { margin-top: -24px; }
+	#restaurant-form:not(.view-mode) #panel-images .image-sidebar { margin-top: 0; }
 }
+
+/* Al editar, la solapa Imágenes no muestra los títulos "Imágenes" y "Logo" */
+#restaurant-form:not(.view-mode) #panel-images :is(.image-field > label, .logo-field > span) { display: none; }
