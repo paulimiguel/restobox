@@ -2056,7 +2056,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Ficha (tablet y escritorio): WhatsApp y Teléfono fijo en la misma fila; con esa fila de menos, el mapa es más alto */
 @media (min-width: 641px) {
-	.view-mode #panel-general .lead-contacts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+	/* La segunda columna (Teléfono fijo) empieza donde empiezan Café y Take away: título de 135px y separaciones de 14px */
+	.view-mode #panel-general .lead-contacts { grid-template-columns: calc(149px + (100% - 163px) / 2) minmax(0, 1fr); column-gap: 14px; }
 	.view-mode #panel-general .lead-contacts > * { grid-column: 1 / -1; }
 	.view-mode #panel-general .lead-contacts > .whatsapp-general-field { grid-column: 1; grid-template-columns: auto minmax(0, 1fr); }
 	.view-mode #panel-general .lead-contacts > label.phone-field { grid-column: 2; grid-template-columns: auto minmax(0, 1fr); }
