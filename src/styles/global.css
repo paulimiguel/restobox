@@ -1995,7 +1995,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-dialog #restaurant-form .selected-option { font-size: 12px; font-weight: 400; }
 
 /* Ficha (solo lectura): mapa más bajo para que la solapa entre sin desplazarse */
-.view-mode #panel-general .map-preview { height: 110px; margin-top: -8px; }
+.view-mode #panel-general .map-preview { height: 110px; margin-top: -3px; }
 /* Ficha, solapa Imágenes: "Ver imágenes" a la derecha de la última imagen de abajo */
 @media (min-width: 641px) {
 	.view-mode #panel-images .image-gallery-column { grid-template-columns: minmax(0, max-content) auto; align-items: end; column-gap: 10px; }
