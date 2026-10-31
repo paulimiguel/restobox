@@ -2081,4 +2081,5 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-form:not(.view-mode) #panel-images .logo-drop-zone { height: 170px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
 #restaurant-form:not(.view-mode) #panel-images .logo-preview { height: 100%; min-height: 0; }
 #restaurant-form:not(.view-mode) #panel-images .logo-preview img { width: auto; height: 138px; max-width: 88%; object-fit: contain; }
-#restaurant-form:not(.view-mode) #panel-images .video-url-actions .secondary-button { color: var(--ink); font-size: 11px; }
+/* Botones de la solapa Imágenes al editar (videos, debajo de las imágenes e Importar logo): mismo color que el texto y 11px */
+#restaurant-form:not(.view-mode) #panel-images :is(.video-url-actions .secondary-button, .image-gallery-actions .secondary-button, .import-restaurant-logo) { color: var(--ink); font-size: 11px; }
