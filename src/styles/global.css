@@ -1988,14 +1988,14 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-form:not(.view-mode) .boolean-check-control:has(input[name="hasBranches"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21s-5-4.4-5-9a5 5 0 0 1 10 0c0 4.6-5 9-5 9Z'/%3E%3Cpath d='M9 11.5v.01'/%3E%3Cpath d='M15.5 5A5 5 0 0 1 20 10c0 3.4-2.7 6.8-4 8.3'/%3E%3C/svg%3E"); }
 
 /* Textos del lugar en 13px, al editar y en la ficha (campos, etiquetas, valores, interruptores y estados) */
-#restaurant-dialog #restaurant-form .tab-panel :is(label, .field-label, .place-kind-title, .boolean-check-control, .restaurant-status-option, .selected-option, .view-personal-statuses strong, input:not([type="checkbox"]), select, textarea) { font-size: 13px; }
+#restaurant-dialog #restaurant-form .tab-panel :is(label, .field-label, .place-kind-title, .boolean-check-control, .restaurant-status-option, .view-personal-statuses strong, input:not([type="checkbox"]), select, textarea) { font-size: 13px; }
 #restaurant-form:not(.view-mode) .characteristics-checks > .boolean-check-control > span { white-space: normal; line-height: 1.15; }
 
 /* Opciones elegidas debajo de Categorías, Servicios, Tipo de cocina y similares: sin negrita */
-#restaurant-form .selected-option { font-weight: 400; }
+#restaurant-dialog #restaurant-form .selected-option { font-size: 12px; font-weight: 400; }
 
 /* Ficha (solo lectura): mapa más bajo para que la solapa entre sin desplazarse */
-.view-mode #panel-general .map-preview { height: 110px; }
+.view-mode #panel-general .map-preview { height: 110px; margin-top: -8px; }
 /* Ficha, solapa Imágenes: "Ver imágenes" a la derecha de la última imagen de abajo */
 @media (min-width: 641px) {
 	.view-mode #panel-images .image-gallery-column { grid-template-columns: minmax(0, max-content) auto; align-items: end; column-gap: 10px; }
