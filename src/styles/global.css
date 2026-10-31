@@ -2005,3 +2005,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Al editar: "Entregas" a la izquierda de Delivery y Take away, en una sola fila más baja */
 #restaurant-form:not(.view-mode) .place-kind-options.delivery-options { grid-template-columns: auto repeat(2, minmax(0, 1fr)); align-items: center; column-gap: 12px; padding-block: 6px; }
 #restaurant-form:not(.view-mode) .place-kind-options.delivery-options .place-kind-title { grid-column: auto; }
+
+/* Ficha: sin la línea debajo de Favorito, Visitado, A visitar y Checked, y menos espacio hasta Ciudad, Provincia y País */
+.view-mode #panel-general .view-personal-statuses { border-bottom: 0; }
+.view-mode #panel-general .establishment-lead { padding-bottom: 6px; }
+.view-mode #panel-general .location-fields { margin-top: -6px; }
