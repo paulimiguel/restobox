@@ -1206,7 +1206,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-details .characteristics-checks > .boolean-check-control input { display: none; }
 .view-mode #panel-details .characteristics-checks > .boolean-check-control::before { content: '✓'; color: #22a95b; font-size: 18px; font-weight: 800; line-height: 1; }
 .view-mode #panel-details .form-field > label { display: block; min-height: 0; align-self: center; color: #414a44; font-size: 13px; font-weight: 600; line-height: 1.35; }
-.view-mode #panel-details .select-with-action { display: none; }
+.view-mode #panel-details .select-with-action:not(:has(.tag-input-box)) { display: none; }
 .view-mode #panel-details .cuisine-combobox { display: none; }
 .view-mode #panel-details :is(.price-level-field, .average-price-field) { grid-column: 1 / -1; }
 .view-mode #panel-details .average-price-combobox { display: block; }
@@ -2017,3 +2017,20 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Ficha: en Tipo de lugar y Entregas, el ícono de cada opción a la izquierda del texto (en lugar de la casilla) */
 .view-mode #panel-general .place-kind-options .boolean-check-control input { display: none; }
 .view-mode #panel-general .place-kind-options .boolean-check-control::before { content: ''; flex: 0 0 16px; width: 16px; height: 16px; background: var(--ink); -webkit-mask: var(--toggle-icon) center / contain no-repeat; mask: var(--toggle-icon) center / contain no-repeat; }
+
+/* Categorías, Servicios y Tipo de cocina: las opciones elegidas van dentro del recuadro, antes del campo para escribir */
+#panel-details .cuisine-select-actions:has(.tag-input-box) { align-items: start; }
+.tag-input-box { display: flex; min-width: 0; min-height: 40px; flex-wrap: wrap; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 7px; background: white; cursor: text; }
+.tag-input-box:focus-within { border-color: var(--forest); outline: 2px solid color-mix(in srgb, var(--forest) 15%, transparent); }
+.tag-input-box > .selected-options { display: contents; }
+#panel-details .tag-input-box > input { flex: 1 1 160px; min-width: 120px; height: 30px !important; padding: 0 4px !important; border: 0 !important; outline: none; background: transparent !important; box-shadow: none !important; }
+#panel-details .cuisine-type-field .cuisine-select-actions { grid-template-columns: minmax(0, 1fr) 39px; }
+#panel-details :is(.establishment-type-field, .meal-type-field, .cuisine-type-field) .cuisine-select-actions > button { width: 39px; height: 39px; }
+:root[data-color-mode='dark'] .tag-input-box { background: #1d242d; border-color: #59606a; }
+/* En la ficha esas opciones se siguen viendo como texto, sin el recuadro ni el campo */
+.view-mode #panel-details .cuisine-combobox:has(.tag-input-box), .view-mode #panel-details .select-with-action:has(.tag-input-box) { display: contents; }
+.view-mode #panel-details .tag-input-box { min-height: 0; align-self: center; gap: 0; padding: 0; border: 0; outline: 0; background: transparent; cursor: default; }
+.view-mode #panel-details .tag-input-box > input, .view-mode #panel-details .cuisine-combobox > .cuisine-dropdown { display: none; }
+
+/* Ficha, Características: el ícono de cada opción a la izquierda (en lugar del tilde) */
+.view-mode #panel-details .characteristics-checks > .boolean-check-control::before { content: ''; flex: 0 0 16px; width: 16px; height: 16px; background: var(--ink); -webkit-mask: var(--toggle-icon) center / contain no-repeat; mask: var(--toggle-icon) center / contain no-repeat; }

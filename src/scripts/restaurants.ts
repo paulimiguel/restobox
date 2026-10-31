@@ -5966,6 +5966,27 @@ function renderCuisineManagementList() {
 		</div>`).join('') : '<div class="option-management-item"><span>No hay tipos de cocina</span></div>';
 }
 
+// Categorías y Servicios tienen el mismo botón que Tipo de cocina para desplegar la lista de opciones.
+document.querySelector<HTMLButtonElement>('#open-establishment-options')?.addEventListener('click', () => {
+	if (establishmentOptions.hidden) {
+		openEstablishmentDropdown();
+		establishmentSelect.focus();
+	} else {
+		closeEstablishmentDropdown();
+	}
+});
+document.querySelector<HTMLButtonElement>('#open-service-options')?.addEventListener('click', () => {
+	if (serviceOptions.hidden) {
+		openServiceDropdown();
+		serviceSelect.focus();
+	} else {
+		closeServiceDropdown();
+	}
+});
+// Las opciones elegidas se muestran dentro del recuadro: un clic en el espacio libre lleva al campo para escribir.
+document.querySelectorAll<HTMLElement>('.tag-input-box').forEach((box) => box.addEventListener('click', (event) => {
+	if (event.target === box || (event.target as HTMLElement).classList.contains('selected-options')) box.querySelector('input')?.focus();
+}));
 manageCuisinesButton.addEventListener('click', () => {
 	if (cuisineOptions.hidden) {
 		openCuisineDropdown();
