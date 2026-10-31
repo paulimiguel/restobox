@@ -136,6 +136,13 @@ const userInitials = userDisplayName
 								<button type="button" id="header-delete-places"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 								<button type="button" id="header-print-directory"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 								<button type="button" id="header-empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
+								<details class="show-submenu checked-submenu">
+									<summary><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Checked</span><svg class="chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+									<div class="show-submenu-panel">
+										<button type="button" data-load-checked-view="checked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Ver checked</button>
+										<button type="button" data-load-checked-view="unchecked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Ver unchecked</button>
+									</div>
+								</details>
 							</div>
 						</details>
 
@@ -286,6 +293,13 @@ const userInitials = userDisplayName
 									<button type="button" data-mobile-menu-action="delete"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>Eliminar</button>
 									<button type="button" data-mobile-menu-action="print"><svg viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button>
 									<button type="button" data-mobile-menu-action="empty-fields"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4M9 11h4"/></svg>Buscar campos vacíos</button>
+									<details class="mobile-menu-section mobile-submenu">
+										<summary><span>Checked</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary>
+										<div class="mobile-menu-options">
+											<button type="button" data-load-checked-view="checked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Ver checked</button>
+											<button type="button" data-load-checked-view="unchecked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Ver unchecked</button>
+										</div>
+									</details>
 								</div>
 							</details>
 						</nav>

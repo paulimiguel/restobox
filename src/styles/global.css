@@ -2086,3 +2086,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Al editar: "Ver imágenes" a la derecha de los botones de debajo de las imágenes */
 .image-gallery-actions > .view-restaurant-images { order: 1; }
+
+/* Acciones > Checked: el título del submenú con el ícono separado como las otras opciones */
+.checked-submenu > summary > span { display: inline-flex; align-items: center; gap: 10px; }
+.checked-submenu > summary > span > svg { width: 16px; height: 16px; }

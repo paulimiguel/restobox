@@ -579,6 +579,8 @@ let selectedCuisineFilters = new Set<string>();
 let selectedNeighborhoodFilters = new Set<string>();
 // Filtro por nivel de precio ($ a $$).
 const selectedPriceFilters = new Set<string>();
+// Acciones > Checked: ver solo los lugares con la carga finalizada (checked) o los que faltan terminar (unchecked).
+let loadCheckedView: 'all' | 'checked' | 'unchecked' = 'all';
 let selectedStoreTypeFilters = new Set<string>();
 let selectedProductFilters = new Set<string>();
 let healthyFilterActive = false;
@@ -1183,6 +1185,7 @@ function updateDirectoryFilterLabels() {
 		.concat([...selectedCuisineFilters].map((value) => ({ value, group: 'cuisine' })))
 		.concat([...selectedNeighborhoodFilters].map((value) => ({ value, group: 'neighborhood' })))
 		.concat([...selectedPriceFilters].map((value) => ({ value, group: 'price' })))
+		.concat(loadCheckedView === 'all' ? [] : [{ value: loadCheckedView, group: 'loadChecked', label: loadCheckedView === 'checked' ? 'Checked' : 'Unchecked' }])
 		.concat([...selectedStoreTypeFilters].map((value) => ({ value, group: 'storeType' })))
 		.concat([...selectedProductFilters].map((value) => ({ value, group: 'product' })))
 		.concat([...selectedEmptyFields].map((value) => ({ value, group: 'empty', label: `Sin ${(emptyFieldOptions.find((option) => option.id === value)?.label ?? value).toLocaleLowerCase('es')}` })))
@@ -3073,6 +3076,7 @@ function render() {
 		const matchesCuisine = !selectedCuisineFilters.size || [...selectedCuisineFilters].some((value) => restaurantCuisines.includes(value));
 		const matchesNeighborhood = !selectedNeighborhoodFilters.size || selectedNeighborhoodFilters.has(restaurant.neighborhood ?? '');
 		const matchesPrice = !selectedPriceFilters.size || selectedPriceFilters.has(restaurant.price ?? '');
+		const matchesLoadChecked = loadCheckedView === 'all' || (loadCheckedView === 'checked') === Boolean(restaurant.loadChecked);
 		const matchesTags = !selectedTagFilters.size || [...selectedTagFilters].some((tag) => restaurantTagValues.includes(tag.toLocaleLowerCase('es')));
 		const matchesCity = !selectedCityFilters.size || selectedCityFilters.has(restaurant.city ?? '');
 		const matchesFavorite = !favoriteFilterActive || Boolean(restaurant.favorite);
@@ -3106,6 +3110,7 @@ function render() {
 			&& matchesGlutenFree
 			&& matchesFreeBreakfast
 			&& matchesPrice
+			&& matchesLoadChecked
 			&& matchesDaytimeKitchen
 			&& matchesDelivery
 			&& matchesTakeAway;
@@ -3127,6 +3132,7 @@ function render() {
 		|| selectedCuisineFilters.size > 0
 		|| selectedNeighborhoodFilters.size > 0
 		|| selectedPriceFilters.size > 0
+		|| loadCheckedView !== 'all'
 		|| selectedStoreTypeFilters.size > 0
 		|| selectedProductFilters.size > 0
 		|| healthyFilterActive
@@ -5792,6 +5798,12 @@ directoryFilterPanel.addEventListener('click', (event) => {
 	removeDirectoryFilter(button.dataset.removeFilter, value);
 });
 function removeDirectoryFilter(group: string | undefined, value: string) {
+	if (group === 'loadChecked') {
+		loadCheckedView = 'all';
+		updateDirectoryFilterLabels();
+		render();
+		return;
+	}
 	if (group === 'empty') {
 		selectedEmptyFields.delete(value);
 		updateDirectoryFilterLabels();
@@ -5881,6 +5893,7 @@ function clearDirectoryFilterSelections() {
 	selectedCuisineFilters.clear();
 	selectedNeighborhoodFilters.clear();
 	selectedPriceFilters.clear();
+	loadCheckedView = 'all';
 	selectedStoreTypeFilters.clear();
 	selectedProductFilters.clear();
 	healthyFilterActive = false;
@@ -6487,6 +6500,19 @@ function applyUrlIntent() {
 		document.querySelector<HTMLElement>('#open-profile-dialog')?.click();
 	}
 }
+
+document.addEventListener('click', (event) => {
+	const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-load-checked-view]');
+	const view = button?.dataset.loadCheckedView;
+	if (!button || (view !== 'checked' && view !== 'unchecked')) return;
+	loadCheckedView = view;
+	showingCatalog = null;
+	document.querySelectorAll<HTMLDetailsElement>('.top-dropdown[open], .show-submenu[open]').forEach((details) => details.removeAttribute('open'));
+	closeMobileMenu({ restoreFocus: false });
+	updateDirectoryFilterLabels();
+	render();
+	document.querySelector('#directorio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 document.querySelector('#header-directory')?.addEventListener('click', () => {
 	if (profileMode || mapMode || storesMode) {
