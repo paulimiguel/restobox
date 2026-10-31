@@ -2076,3 +2076,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Al editar, la solapa Imágenes no muestra los títulos "Imágenes" y "Logo" */
 #restaurant-form:not(.view-mode) #panel-images :is(.image-field > label, .logo-field > span) { display: none; }
+
+/* Al editar, solapa Imágenes: logo más chico (así suben los botones de abajo) y botones de video con el color del texto */
+#restaurant-form:not(.view-mode) #panel-images .logo-drop-zone { height: 170px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
+#restaurant-form:not(.view-mode) #panel-images .logo-preview { height: 100%; min-height: 0; }
+#restaurant-form:not(.view-mode) #panel-images .logo-preview img { width: auto; height: 138px; max-width: 88%; object-fit: contain; }
+#restaurant-form:not(.view-mode) #panel-images .video-url-actions .secondary-button { color: var(--ink); font-size: 11px; }
