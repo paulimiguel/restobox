@@ -274,8 +274,6 @@ const productFilterChips = document.querySelector<HTMLDivElement>('#product-filt
 const healthyFilterButton = document.querySelector<HTMLButtonElement>('#healthy-filter')!;
 const freeBreakfastFilterButton = document.querySelector<HTMLButtonElement>('#free-breakfast-filter')!;
 const daytimeKitchenFilterButton = document.querySelector<HTMLButtonElement>('#daytime-kitchen-filter')!;
-const loadCheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-checked-filter')!;
-const loadUncheckedFilterButton = document.querySelector<HTMLButtonElement>('#load-unchecked-filter')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
 const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options');
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
@@ -582,8 +580,6 @@ let selectedProductFilters = new Set<string>();
 let healthyFilterActive = false;
 let freeBreakfastFilterActive = false;
 let daytimeKitchenFilterActive = false;
-// Filtro por carga finalizada: solo los Checked, solo los que faltan terminar o todos.
-let loadCheckedFilter: 'all' | 'checked' | 'unchecked' = 'all';
 let selectedTagFilters = new Set<string>();
 let selectedCityFilters = new Set<string>();
 let selectedEmptyFields = new Set<string>();
@@ -1209,8 +1205,6 @@ function updateDirectoryFilterLabels() {
 	healthyFilterButton.setAttribute('aria-pressed', String(healthyFilterActive));
 	freeBreakfastFilterButton.setAttribute('aria-pressed', String(freeBreakfastFilterActive));
 	daytimeKitchenFilterButton.setAttribute('aria-pressed', String(daytimeKitchenFilterActive));
-	loadCheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'checked'));
-	loadUncheckedFilterButton.setAttribute('aria-pressed', String(loadCheckedFilter === 'unchecked'));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
@@ -3080,7 +3074,6 @@ function render() {
 		const matchesHealthy = !healthyFilterActive || Boolean(restaurant.healthy);
 		const matchesFreeBreakfast = !freeBreakfastFilterActive || Boolean(restaurant.freeBreakfast);
 		const matchesDaytimeKitchen = !daytimeKitchenFilterActive || Boolean(restaurant.daytimeKitchen);
-		const matchesLoadChecked = loadCheckedFilter === 'all' || (loadCheckedFilter === 'checked') === Boolean(restaurant.loadChecked);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -3104,7 +3097,6 @@ function render() {
 			&& matchesGlutenFree
 			&& matchesFreeBreakfast
 			&& matchesDaytimeKitchen
-			&& matchesLoadChecked
 			&& matchesDelivery
 			&& matchesTakeAway;
 	});
@@ -3129,7 +3121,6 @@ function render() {
 		|| healthyFilterActive
 		|| freeBreakfastFilterActive
 		|| daytimeKitchenFilterActive
-		|| loadCheckedFilter !== 'all'
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
 		|| selectedEmptyFields.size > 0
@@ -5839,16 +5830,6 @@ healthyFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
-loadCheckedFilterButton.addEventListener('click', () => {
-	loadCheckedFilter = loadCheckedFilter === 'checked' ? 'all' : 'checked';
-	updateDirectoryFilterLabels();
-	render();
-});
-loadUncheckedFilterButton.addEventListener('click', () => {
-	loadCheckedFilter = loadCheckedFilter === 'unchecked' ? 'all' : 'unchecked';
-	updateDirectoryFilterLabels();
-	render();
-});
 daytimeKitchenFilterButton.addEventListener('click', () => {
 	daytimeKitchenFilterActive = !daytimeKitchenFilterActive;
 	updateDirectoryFilterLabels();
@@ -5889,7 +5870,6 @@ function clearDirectoryFilterSelections() {
 	healthyFilterActive = false;
 	freeBreakfastFilterActive = false;
 	daytimeKitchenFilterActive = false;
-	loadCheckedFilter = 'all';
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
 	selectedEmptyFields.clear();
