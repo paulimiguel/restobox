@@ -2067,3 +2067,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Ficha: Rate en el renglón de abajo de Puntuación Google */
 .view-mode #panel-details .form-grid > :is(label:has(input[name="score"]), .rate-field) { grid-column: 1 / -1; }
+
+/* Solapa Imágenes: el título "Logo" con el mismo estilo que "Imágenes"; al editar, a la misma altura */
+#restaurant-dialog #restaurant-form .logo-field > span { color: #505852; font-size: 13px; font-weight: 600; }
+@media (min-width: 641px) {
+	#restaurant-form:not(.view-mode) #panel-images .image-sidebar { margin-top: -24px; }
+}
