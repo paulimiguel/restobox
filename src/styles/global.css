@@ -1971,7 +1971,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 :root { --toggle-on: #8fd1c8; --toggle-off: #dcdfe2; }
 :root[data-color-mode='dark'] { --toggle-off: #4a5059; }
 #restaurant-form:not(.view-mode) .boolean-check-control::before { content: ''; flex: 0 0 15px; width: 15px; height: 15px; background: var(--muted); -webkit-mask: var(--toggle-icon) center / contain no-repeat; mask: var(--toggle-icon) center / contain no-repeat; }
-#restaurant-form:not(.view-mode) .boolean-check-control > span { order: 1; min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#restaurant-form:not(.view-mode) .boolean-check-control > span { order: 1; font-weight: 400; min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"] { order: 2; flex: 0 0 34px !important; width: 34px !important; height: 20px !important; margin: 0 0 0 auto !important; border-radius: 999px; appearance: none; -webkit-appearance: none; background-color: var(--toggle-off); background-image: radial-gradient(circle, #fff 0 6.5px, transparent 7px); background-repeat: no-repeat; background-size: 18px 18px; background-position: 1px center; box-shadow: inset 0 1px 2px rgba(0,0,0,.12); cursor: pointer; transition: background-color .18s, background-position .18s; }
 #restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"]:checked { background-color: var(--toggle-on); background-position: calc(100% - 1px) center; }
 #restaurant-form:not(.view-mode) .boolean-check-control input[type="checkbox"]:focus-visible { outline: 2px solid color-mix(in srgb, var(--forest) 35%, transparent); outline-offset: 2px; }
