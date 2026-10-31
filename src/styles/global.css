@@ -1264,7 +1264,8 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-images .logo-drop-zone { border-color: transparent; background: transparent; }
 .view-mode #panel-images .image-preview { cursor: zoom-in; }
 .view-mode #panel-images .form-grid { padding: 8px 22px 10px; }
-.view-mode #panel-images .images-logo-row { grid-template-columns: minmax(0, 1fr) 180px; gap: 8px; }
+/* Ficha: imágenes y columna del logo juntas y centradas; la columna del logo, más ancha */
+.view-mode #panel-images .images-logo-row { grid-template-columns: minmax(0, max-content) 230px; justify-content: center; gap: 8px 32px; }
 .view-mode #panel-images .image-previews-shell { min-height: 0; padding: 0; }
 .view-mode #panel-images .images-logo-row .image-previews { grid-template-columns: repeat(4, minmax(0, 145px)); justify-content: start; gap: 5px; }
 .view-mode #panel-images .image-preview { border-radius: 6px; }
