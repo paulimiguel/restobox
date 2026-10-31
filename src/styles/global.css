@@ -1161,7 +1161,7 @@ textarea.note-bullets-input::placeholder { -webkit-text-fill-color: initial !imp
 .view-mode #panel-general .place-kind-options .boolean-check-control { display: inline-flex; min-height: 0; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; font-size: 13px; font-weight: 600; }
 .view-mode #panel-general .place-kind-options .boolean-check-control:not(:has(input:checked)) { display: none; }
 .view-mode #panel-general .place-kind-options:not(:has(input:checked)) { display: none; }
-.view-mode #panel-general .view-personal-statuses { display: flex; min-height: 37px; order: 3; align-items: center; gap: 18px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-general .view-personal-statuses { display: flex; min-height: 37px; order: 3; align-items: center; flex-wrap: wrap; gap: 8px 34px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
 .view-mode #panel-general .view-personal-statuses:not(:has(strong:not([hidden]))) { display: none; }
 .view-mode #panel-general .view-personal-statuses strong { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; }
 .view-mode #panel-general .view-personal-statuses strong[hidden] { display: none; }
