@@ -2083,3 +2083,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-form:not(.view-mode) #panel-images .logo-preview img { width: auto; height: 138px; max-width: 88%; object-fit: contain; }
 /* Botones de la solapa Imágenes al editar (videos, debajo de las imágenes e Importar logo): mismo color que el texto y 11px */
 #restaurant-form:not(.view-mode) #panel-images :is(.video-url-actions .secondary-button, .image-gallery-actions .secondary-button, .import-restaurant-logo) { color: var(--ink); font-size: 11px; }
+
+/* Al editar: "Ver imágenes" a la derecha de los botones de debajo de las imágenes */
+.image-gallery-actions > .view-restaurant-images { order: 1; }
