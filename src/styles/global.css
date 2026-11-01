@@ -2046,7 +2046,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .view-mode #panel-images .images-view-field:not([hidden]) { display: grid; gap: 5px; }
 .view-mode #panel-images .images-view-field .field-label { color: #414a44; font-size: 13px; font-weight: 600; }
 .view-mode #panel-images .image-gallery-actions { display: none; }
-.view-mode #panel-images :is(.video-url-actions .secondary-button, .images-view-field .secondary-button) { min-height: 34px; color: var(--ink); font-size: 11px; }
+.view-mode #panel-images :is(.video-url-actions .secondary-button, .images-view-field .secondary-button) { min-height: 34px; font-size: 11px; }
 .view-mode #panel-images .images-view-field .secondary-button { width: 100%; }
 
 /* Ficha, solapa Imágenes: logo más grande, ocupando el ancho de la columna y centrado */
@@ -2081,8 +2081,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-form:not(.view-mode) #panel-images .logo-drop-zone { height: 170px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
 #restaurant-form:not(.view-mode) #panel-images .logo-preview { height: 100%; min-height: 0; }
 #restaurant-form:not(.view-mode) #panel-images .logo-preview img { width: auto; height: 138px; max-width: 88%; object-fit: contain; }
-/* Botones de la solapa Imágenes al editar (videos, debajo de las imágenes e Importar logo): mismo color que el texto y 11px */
-#restaurant-form:not(.view-mode) #panel-images :is(.video-url-actions .secondary-button, .image-gallery-actions .secondary-button, .import-restaurant-logo) { color: var(--ink); font-size: 11px; }
+/* Botones de la solapa Imágenes al editar (videos, debajo de las imágenes e Importar logo): 11px */
+#restaurant-form:not(.view-mode) #panel-images :is(.video-url-actions .secondary-button, .image-gallery-actions .secondary-button, .import-restaurant-logo) { font-size: 11px; }
 
 /* Al editar: "Ver imágenes" a la derecha de los botones de debajo de las imágenes */
 .image-gallery-actions > .view-restaurant-images { order: 1; }
@@ -2091,5 +2091,3 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .checked-submenu > summary > span { display: inline-flex; align-items: center; gap: 10px; }
 .checked-submenu > summary > span > svg { width: 16px; height: 16px; }
 
-/* Botones secundarios dentro del lugar (Pegar/Borrar horarios, Editar descripción y notas, imágenes, etc.): texto gris oscuro como Ver video */
-#restaurant-dialog #restaurant-form .tab-panel .secondary-button { color: var(--ink); }
