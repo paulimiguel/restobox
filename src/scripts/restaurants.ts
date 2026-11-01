@@ -467,6 +467,31 @@ const openPedidosYa = document.querySelector<HTMLAnchorElement>('#open-pedidosya
 const placeRestaurantInput = form.elements.namedItem('placeRestaurant') as HTMLInputElement;
 const placeCafeInput = form.elements.namedItem('placeCafe') as HTMLInputElement;
 const placeStoreInput = form.elements.namedItem('placeStore') as HTMLInputElement;
+const daytimeKitchenInput = form.elements.namedItem('daytimeKitchen') as HTMLInputElement;
+// Daytime kitchen y la categoría "Cafetería con opción de almuerzo" van juntas: si un lugar tiene una, se le asigna la otra.
+const DAYTIME_KITCHEN_CATEGORY = 'Cafetería con opción de almuerzo';
+function isDaytimeKitchenCategory(type: string) {
+	return neighborhoodImageKey(type) === neighborhoodImageKey(DAYTIME_KITCHEN_CATEGORY);
+}
+function daytimeKitchenCategoryName() {
+	return establishmentTypes.find(isDaytimeKitchenCategory) ?? DAYTIME_KITCHEN_CATEGORY;
+}
+function syncDaytimeKitchen(restaurant: Restaurant) {
+	const types = getRestaurantEstablishmentTypes(restaurant);
+	const hasCategory = types.some(isDaytimeKitchenCategory);
+	if (!restaurant.daytimeKitchen && !hasCategory) return false;
+	let changed = false;
+	if (!restaurant.daytimeKitchen) {
+		restaurant.daytimeKitchen = true;
+		changed = true;
+	}
+	if (!hasCategory) {
+		restaurant.establishmentTypes = [...types, daytimeKitchenCategoryName()];
+		restaurant.establishmentType = restaurant.establishmentTypes[0];
+		changed = true;
+	}
+	return changed;
+}
 const viewFavoriteStatus = document.querySelector<HTMLElement>('#view-favorite-status')!;
 const viewVisitedStatus = document.querySelector<HTMLElement>('#view-visited-status')!;
 const viewCheckedStatus = document.querySelector<HTMLElement>('#view-checked-status')!;
@@ -669,6 +694,7 @@ function loadRestaurants(): Restaurant[] {
 
 function saveRestaurants(): Promise<boolean> {
 	if (!serverPersistenceReady) return Promise.resolve(true);
+	restaurants.forEach(syncDaytimeKitchen);
 	const snapshot = structuredClone(restaurants);
 	persistenceQueue = persistenceQueue.then(async () => {
 		const current = new Map(snapshot.map((restaurant) => [restaurant.id, JSON.stringify(restaurant)]));
@@ -1488,6 +1514,7 @@ function renderSelectedEstablishments() {
 	placeRestaurantInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'restaurante');
 	placeCafeInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'cafe');
 	placeStoreInput.checked = selectedEstablishments.some((type) => neighborhoodImageKey(type) === 'tienda');
+	daytimeKitchenInput.checked = selectedEstablishments.some(isDaytimeKitchenCategory);
 	panelDetails.classList.toggle('store-mode', placeStoreInput.checked);
 	document.querySelector<HTMLElement>('#panel-links')?.classList.toggle('store-mode', placeStoreInput.checked);
 	// Si es solo una tienda (ni restaurante ni café), no se piden Woki, TripAdvisor ni menú.
@@ -3800,7 +3827,11 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('takeAway') as HTMLInputElement).checked = Boolean(restaurant.takeAway);
 		(form.elements.namedItem('glutenFree') as HTMLInputElement).checked = Boolean(restaurant.glutenFree);
 		(form.elements.namedItem('freeBreakfast') as HTMLInputElement).checked = Boolean(restaurant.freeBreakfast);
-		(form.elements.namedItem('daytimeKitchen') as HTMLInputElement).checked = Boolean(restaurant.daytimeKitchen);
+		if (restaurant.daytimeKitchen && !selectedEstablishments.some(isDaytimeKitchenCategory)) {
+			selectedEstablishments.push(daytimeKitchenCategoryName());
+			renderSelectedEstablishments();
+		}
+		daytimeKitchenInput.checked = Boolean(restaurant.daytimeKitchen) || selectedEstablishments.some(isDaytimeKitchenCategory);
 		(form.elements.namedItem('loadChecked') as HTMLInputElement).checked = Boolean(restaurant.loadChecked);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
 		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, whatsapp: '' })).filter((branch) => branch.address);
@@ -5383,6 +5414,22 @@ setupSelectedOptionReordering(selectedEstablishmentsContainer, () => selectedEst
 setupSelectedOptionReordering(selectedServicesContainer, () => selectedServices, (items) => { selectedServices = items; }, renderSelectedServices, renderServiceOptions);
 placeRestaurantInput.addEventListener('change', () => setPlaceKindSelection('restaurant', placeRestaurantInput.checked));
 placeCafeInput.addEventListener('change', () => setPlaceKindSelection('cafe', placeCafeInput.checked));
+daytimeKitchenInput.addEventListener('change', () => {
+	selectedEstablishments = selectedEstablishments.filter((type) => !isDaytimeKitchenCategory(type));
+	if (daytimeKitchenInput.checked) {
+		const category = daytimeKitchenCategoryName();
+		if (!establishmentTypes.some(isDaytimeKitchenCategory)) {
+			establishmentTypes.push(category);
+			establishmentTypes.sort((a, b) => a.localeCompare(b, 'es'));
+			removedEstablishmentTypes = removedEstablishmentTypes.filter((type) => !isDaytimeKitchenCategory(type));
+			saveEstablishmentSettings();
+		}
+		selectedEstablishments.push(category);
+	}
+	renderSelectedEstablishments();
+	renderEstablishmentOptions(true);
+	updateDirtyState();
+});
 placeStoreInput.addEventListener('change', () => setPlaceKindSelection('store', placeStoreInput.checked));
 establishmentSelect.addEventListener('focus', openEstablishmentDropdown);
 establishmentSelect.addEventListener('click', openEstablishmentDropdown);
@@ -6905,6 +6952,11 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	}
 	backupRestaurants();
 	for (const restaurant of restaurants.filter((item) => printSelectedIds.has(item.id))) {
+		// "Daytime kitchen: No" también quita la categoría asociada, para que no se vuelva a activar al guardar.
+		if (value('daytimeKitchen') === 'false') {
+			restaurant.establishmentTypes = getRestaurantEstablishmentTypes(restaurant).filter((type) => !isDaytimeKitchenCategory(type));
+			restaurant.establishmentType = restaurant.establishmentTypes[0] ?? '';
+		}
 		for (const field of enabled) {
 			if (field === 'neighborhood') restaurant.neighborhood = ensureNeighborhoodOption(value(field));
 			else if (field === 'city' || field === 'province' || field === 'country') restaurant[field] = ensureLocationOption(field, value(field));
@@ -7509,6 +7561,8 @@ async function initializeServerPersistence() {
 		persistedRestaurants = new Map(restaurants.map((restaurant) => [restaurant.id, JSON.stringify(restaurant)]));
 		serverPersistenceReady = true;
 		if (!applyServerCatalogs(serverSettings.catalogs)) persistCatalogSettings();
+		// Lugares que tienen Daytime kitchen o la categoría "Cafetería con opción de almuerzo", pero no las dos: se completan y se guardan.
+		if (restaurants.map(syncDaytimeKitchen).some(Boolean)) void saveRestaurants();
 		const removedCuisineNames = new Set(removedCuisines.map((item) => item.toLocaleLowerCase('es')));
 		cuisines = [...new Set([...cuisines, ...restaurants.flatMap(getRestaurantCuisines)])].filter((item) => !removedCuisineNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedTagNames = new Set(removedTags.map((item) => item.toLocaleLowerCase('es')));
