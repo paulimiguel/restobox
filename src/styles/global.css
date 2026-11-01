@@ -2090,3 +2090,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Acciones > Checked: el título del submenú con el ícono separado como las otras opciones */
 .checked-submenu > summary > span { display: inline-flex; align-items: center; gap: 10px; }
 .checked-submenu > summary > span > svg { width: 16px; height: 16px; }
+
+/* Botones secundarios dentro del lugar (Pegar/Borrar horarios, Editar descripción y notas, imágenes, etc.): texto gris oscuro como Ver video */
+#restaurant-dialog #restaurant-form .tab-panel .secondary-button { color: var(--ink); }
