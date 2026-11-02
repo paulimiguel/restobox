@@ -37,6 +37,7 @@ type Restaurant = {
 	instagramUrl: string;
 	facebookUrl: string;
 	wokiUrl: string;
+	stregaUrl?: string;
 	tripAdvisorUrl: string;
 	pedidosYaUrl?: string;
 	videoUrl?: string;
@@ -429,6 +430,7 @@ const instagramInput = document.querySelector<HTMLInputElement>('#instagram-url'
 const tiktokInput = document.querySelector<HTMLInputElement>('#tiktok-url')!;
 const facebookInput = document.querySelector<HTMLInputElement>('#facebook-url')!;
 const wokiInput = document.querySelector<HTMLInputElement>('#woki-url')!;
+const stregaInput = document.querySelector<HTMLInputElement>('#strega-url')!;
 const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-url')!;
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
 const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp-number-general')!;
@@ -460,6 +462,7 @@ const openInstagram = document.querySelector<HTMLAnchorElement>('#open-instagram
 const openTiktok = document.querySelector<HTMLAnchorElement>('#open-tiktok')!;
 const openFacebook = document.querySelector<HTMLAnchorElement>('#open-facebook')!;
 const openWoki = document.querySelector<HTMLAnchorElement>('#open-woki')!;
+const openStrega = document.querySelector<HTMLAnchorElement>('#open-strega')!;
 const openTripAdvisor = document.querySelector<HTMLAnchorElement>('#open-tripadvisor')!;
 const openWhatsAppWeb = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web')!;
 const openWhatsAppWebGeneral = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web-general')!;
@@ -1166,6 +1169,7 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 		{ id: 'menuUrl', label: 'Link al menú', isEmpty: (r) => !r.menuUrl?.trim() },
 		{ id: 'tripAdvisorUrl', label: 'Trip Advisor', isEmpty: (r) => !r.tripAdvisorUrl?.trim() },
 		{ id: 'wokiUrl', label: 'Woki', isEmpty: (r) => !r.wokiUrl?.trim() },
+		{ id: 'stregaUrl', label: 'Strega', isEmpty: (r) => !r.stregaUrl?.trim() },
 		{ id: 'pedidosYaUrl', label: 'Pedidos Ya', isEmpty: (r) => !r.pedidosYaUrl?.trim() },
 		{ id: 'catalogUrl', label: 'Link al catálogo', isEmpty: (r) => isStorePlace(r) && !r.catalogUrl?.trim() },
 	] },
@@ -2451,7 +2455,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	};
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
-		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'videoUrl', 'officialVideoUrl',
+		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'stregaUrl', 'videoUrl', 'officialVideoUrl',
 		'description', 'notes', 'discounts', 'branches',
 	].forEach(markNamedField);
 
@@ -3863,6 +3867,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	updateExternalLink(tiktokInput, openTiktok);
 	updateExternalLink(facebookInput, openFacebook);
 	updateExternalLink(wokiInput, openWoki);
+	updateExternalLink(stregaInput, openStrega);
 	updateExternalLink(tripAdvisorInput, openTripAdvisor);
 	updateExternalLink(pedidosYaInput, openPedidosYa);
 	updateRestaurantVideoButton();
@@ -4164,6 +4169,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		tiktokUrl: imported.tiktokUrl?.trim() ?? '',
 		facebookUrl: imported.facebookUrl?.trim() ?? '',
 		wokiUrl: imported.wokiUrl?.trim() ?? '',
+		stregaUrl: imported.stregaUrl?.trim() ?? '',
 		tripAdvisorUrl: imported.tripAdvisorUrl?.trim() ?? '',
 		pedidosYaUrl: imported.pedidosYaUrl?.trim() ?? '',
 		mapUrl: importedGoogleMapsLocation(imported),
@@ -4254,6 +4260,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('tiktokUrl', imported.tiktokUrl);
 	setImportedField('facebookUrl', imported.facebookUrl);
 	setImportedField('wokiUrl', imported.wokiUrl);
+	setImportedField('stregaUrl', imported.stregaUrl);
 	setImportedField('tripAdvisorUrl', imported.tripAdvisorUrl);
 	setImportedField('pedidosYaUrl', imported.pedidosYaUrl);
 	setImportedField('linktreeUrl', imported.linktreeUrl);
@@ -4307,6 +4314,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	updateExternalLink(tiktokInput, openTiktok);
 	updateExternalLink(facebookInput, openFacebook);
 	updateExternalLink(wokiInput, openWoki);
+	updateExternalLink(stregaInput, openStrega);
 	updateExternalLink(tripAdvisorInput, openTripAdvisor);
 	updateExternalLink(pedidosYaInput, openPedidosYa);
 	updateWhatsAppWebLink();
@@ -5670,6 +5678,35 @@ instagramInput.addEventListener('input', () => updateExternalLink(instagramInput
 tiktokInput.addEventListener('input', () => updateExternalLink(tiktokInput, openTiktok));
 facebookInput.addEventListener('input', () => updateExternalLink(facebookInput, openFacebook));
 wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki));
+stregaInput.addEventListener('input', () => updateExternalLink(stregaInput, openStrega));
+// Busca el lugar en Strega por nombre y ciudad, y completa el link si lo encuentra.
+document.querySelector<HTMLButtonElement>('#search-strega')?.addEventListener('click', async (event) => {
+	const button = event.currentTarget as HTMLButtonElement;
+	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+	if (!name) {
+		showToast('Ingresá el nombre del lugar para buscarlo en Strega');
+		return;
+	}
+	const city = (form.elements.namedItem('city') as HTMLInputElement | null)?.value.trim() ?? '';
+	button.disabled = true;
+	showToast('Buscando en Strega…');
+	try {
+		const response = await fetch(`/api/strega?${new URLSearchParams({ name, city })}`);
+		requireActiveSession(response);
+		const result = await response.json() as { url?: string };
+		if (result.url) {
+			stregaInput.value = result.url;
+			stregaInput.dispatchEvent(new Event('input', { bubbles: true }));
+			showToast('Link de Strega encontrado');
+		} else {
+			showToast(`No se encontró “${name}”${city ? ` en ${city}` : ''} en Strega`);
+		}
+	} catch {
+		showToast('No se pudo buscar en Strega');
+	} finally {
+		button.disabled = false;
+	}
+});
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 pedidosYaInput.addEventListener('input', () => updateExternalLink(pedidosYaInput, openPedidosYa));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
@@ -7106,6 +7143,7 @@ form.addEventListener('submit', async (event) => {
 		tiktokUrl: data.tiktokUrl.trim(),
 		facebookUrl: data.facebookUrl.trim(),
 		wokiUrl: data.wokiUrl.trim(),
+		stregaUrl: (data.stregaUrl ?? '').trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(),
 		pedidosYaUrl: data.pedidosYaUrl.trim(),
 		videoUrl: data.videoUrl.trim(),

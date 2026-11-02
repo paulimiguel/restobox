@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { getSettings } from '../../lib/server/database';
+import { findStregaUrl } from '../../lib/server/strega';
 
 export const prerender = false;
 
@@ -846,6 +847,8 @@ export const POST: APIRoute = async ({ request }) => {
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 
+		// La búsqueda en Strega es lenta: arranca ya y se espera al final.
+		const stregaRequest = findStregaUrl(place.displayName?.text || name, component(place, 'locality', 'administrative_area_level_2'));
 		const websiteUri = place.websiteUri?.trim() ?? '';
 		// Muchos lugares cargan su Instagram, Facebook o Linktree como sitio web en Google.
 		const websiteIsSocial = (['instagram', 'facebook', 'tiktok', 'linktree'] as LinkKind[]).some((kind) => linkPatterns[kind].test(websiteUri));
@@ -937,7 +940,7 @@ export const POST: APIRoute = async ({ request }) => {
 			website,
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: googleMapsSearchUrl(place, name),
-			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
+			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl, stregaUrl: await stregaRequest,
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen,
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],

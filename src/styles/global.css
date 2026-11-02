@@ -885,6 +885,11 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details .form-grid input:not([type="checkbox"]), #panel-details .form-grid select { height: 40px; }
 #panel-details .select-with-action, #panel-details .url-with-action { grid-template-columns: minmax(0, 1fr) 39px; gap: 6px; }
 #panel-links .url-with-action { grid-template-columns: minmax(0, 1fr) 37px; gap: 6px; }
+#panel-links .strega-field .url-with-action { grid-template-columns: minmax(0, 1fr) 37px 37px; }
+#panel-links #search-strega { display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 7px; color: var(--accent-text); background: white; cursor: pointer; }
+#panel-links #search-strega svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; }
+#panel-links #search-strega:disabled { opacity: .5; cursor: progress; }
+.view-mode #panel-links #search-strega { display: none; }
 #panel-links .form-grid { row-gap: 9px; padding-block: 8px 14px; }
 .editing-record #panel-links .form-grid { padding-block: 14px 8px; }
 #panel-links .form-field { gap: 5px; }
