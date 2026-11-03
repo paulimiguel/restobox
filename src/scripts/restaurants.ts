@@ -5679,34 +5679,6 @@ tiktokInput.addEventListener('input', () => updateExternalLink(tiktokInput, open
 facebookInput.addEventListener('input', () => updateExternalLink(facebookInput, openFacebook));
 wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki));
 stregaInput.addEventListener('input', () => updateExternalLink(stregaInput, openStrega));
-// Busca el lugar en Strega por nombre y ciudad, y completa el link si lo encuentra.
-document.querySelector<HTMLButtonElement>('#search-strega')?.addEventListener('click', async (event) => {
-	const button = event.currentTarget as HTMLButtonElement;
-	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
-	if (!name) {
-		showToast('Ingresá el nombre del lugar para buscarlo en Strega');
-		return;
-	}
-	const city = (form.elements.namedItem('city') as HTMLInputElement | null)?.value.trim() ?? '';
-	button.disabled = true;
-	showToast('Buscando en Strega…');
-	try {
-		const response = await fetch(`/api/strega?${new URLSearchParams({ name, city })}`);
-		requireActiveSession(response);
-		const result = await response.json() as { url?: string };
-		if (result.url) {
-			stregaInput.value = result.url;
-			stregaInput.dispatchEvent(new Event('input', { bubbles: true }));
-			showToast('Link de Strega encontrado');
-		} else {
-			showToast(`No se encontró “${name}”${city ? ` en ${city}` : ''} en Strega`);
-		}
-	} catch {
-		showToast('No se pudo buscar en Strega');
-	} finally {
-		button.disabled = false;
-	}
-});
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 pedidosYaInput.addEventListener('input', () => updateExternalLink(pedidosYaInput, openPedidosYa));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
