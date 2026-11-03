@@ -2129,3 +2129,10 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .view-mode #panel-description .description-field .long-text-field-heading { display: none; }
 /* Al editar no se muestra el botón "Editar descripción" (se escribe directo en el recuadro) */
 #panel-description .description-field .long-text-field-heading { display: none; }
+
+/* Descripción: títulos en negrita (sin viñeta). Se engrosa el trazo en vez de usar font-weight,
+   para que el texto ocupe lo mismo que en el campo y el cursor quede alineado. */
+.note-bullets-mirror .note-heading { color: var(--ink); -webkit-text-stroke: .5px currentColor; }
+/* Botón "Importar descripción": solo al editar, debajo del recuadro */
+#panel-description .description-import-field { justify-items: start; }
+.view-mode #panel-description .description-import-field { display: none; }

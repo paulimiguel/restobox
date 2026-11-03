@@ -148,8 +148,12 @@ export async function readStregaPlace(url: string): Promise<StregaPlace | null> 
 		const descriptionStart = html.indexOf('<!-- Description -->');
 		const descriptionEnd = html.indexOf('<!-- Map Section -->', descriptionStart);
 		const review = descriptionStart >= 0 ? cheerio.load(html.slice(descriptionStart, descriptionEnd > 0 ? descriptionEnd : undefined)) : $;
-		const description = review('p').toArray().map((paragraph) => review(paragraph).text().replace(/\s+/g, ' ').trim())
-			.filter((text) => text.length > 20).join('\n') || business?.description?.trim() || '';
+		// Los subtítulos de la reseña van como "## Título" (en FoodieBox se muestran en negrita, sin viñeta).
+		const description = review('h2, h3, h4, p').toArray().flatMap((element) => {
+			const text = review(element).text().replace(/\s+/g, ' ').trim();
+			if (element.tagName === 'p') return text.length > 20 ? [text] : [];
+			return text ? [`## ${text}`] : [];
+		}).join('\n') || business?.description?.trim() || '';
 		// "Fragata Argentina 2033, B1629 Pilar, Provincia de Buenos Aires, Argentina": calle y altura, ciudad y provincia.
 		const fullAddress = business?.address?.streetAddress?.trim() ?? '';
 		const addressParts = fullAddress.split(',').map((part) => part.trim()).filter(Boolean);

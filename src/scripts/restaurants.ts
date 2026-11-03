@@ -1983,11 +1983,18 @@ const NOTES_BULLET = '• ';
 // Campos que se escriben con viñetas: cada renglón es una viñeta.
 const bulletInputs = () => [descriptionInput, notesInput];
 
+// Títulos: renglones sin viñeta que se ven en negrita. Se marcan con un carácter invisible al principio
+// (un textarea no admite formato); se crean escribiendo "# " al principio del renglón, y así llegan de Strega ("## Título").
+const NOTES_HEADING = '⁣';
+
 function notesWithBullets(value: string) {
 	const normalized = value.replace(/\r\n?/g, '\n');
 	if (!normalized) return '';
 	return normalized.split('\n').map((line) => {
+		if (line.startsWith(NOTES_HEADING)) return `${NOTES_HEADING}${line.slice(NOTES_HEADING.length).replace(/^\s*•\s?/, '').trimStart()}`;
 		const content = line.replace(/^\s*•\s?/, '').trimStart();
+		const heading = content.match(/^#{1,6}\s+(.*)$/);
+		if (heading) return `${NOTES_HEADING}${heading[1]}`;
 		return `${NOTES_BULLET}${content}`;
 	}).join('\n');
 }
@@ -2031,11 +2038,20 @@ function mirrorNoteBullets(input: HTMLTextAreaElement) {
 		mirror.style.padding = `${style.paddingTop} ${(parseFloat(style.paddingRight) || 0) + scrollbar}px ${style.paddingBottom} ${style.paddingLeft}`;
 		if (renderedValue !== input.value) {
 			renderedValue = input.value;
-			mirror.replaceChildren(...renderedValue.split('•').flatMap((part, index) => {
-				const bullet = document.createElement('span');
-				bullet.className = 'note-bullet';
-				bullet.textContent = '•';
-				return index ? [bullet, document.createTextNode(part)] : [document.createTextNode(part)];
+			mirror.replaceChildren(...renderedValue.split('\n').flatMap((line, lineIndex) => {
+				const lineNodes: Node[] = lineIndex ? [document.createTextNode('\n')] : [];
+				if (line.startsWith(NOTES_HEADING)) {
+					const heading = document.createElement('span');
+					heading.className = 'note-heading';
+					heading.textContent = line;
+					return [...lineNodes, heading];
+				}
+				return [...lineNodes, ...line.split('•').flatMap((part, index) => {
+					const bullet = document.createElement('span');
+					bullet.className = 'note-bullet';
+					bullet.textContent = '•';
+					return index ? [bullet, document.createTextNode(part)] : [document.createTextNode(part)];
+				})];
 			}));
 		}
 		mirror.scrollTop = input.scrollTop;
@@ -5082,6 +5098,43 @@ longTextEditorForm.addEventListener('submit', (event) => {
 	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
 	longTextEditorDialog.close();
 });
+// Botón "Importar descripción" (al editar): trae la reseña de Strega del lugar, con los subtítulos en negrita
+// y un párrafo por viñeta. Usa el link de Strega del lugar o, si no lo tiene, lo busca por nombre.
+const importStregaDescriptionButton = document.querySelector<HTMLButtonElement>('#import-strega-description')!;
+importStregaDescriptionButton.addEventListener('click', async () => {
+	const stregaUrlInput = form.elements.namedItem('stregaUrl') as HTMLInputElement;
+	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+	if (!stregaUrlInput.value.trim() && name.length < 2) {
+		showToast('Cargá el nombre del lugar o su link de Strega');
+		return;
+	}
+	if (descriptionInput.value.trim() && !window.confirm('¿Reemplazar la descripción actual por la de Strega?')) return;
+	const label = importStregaDescriptionButton.textContent;
+	importStregaDescriptionButton.disabled = true;
+	importStregaDescriptionButton.textContent = 'Buscando en Strega…';
+	try {
+		const response = requireActiveSession(await fetch('/api/strega-description', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ stregaUrl: stregaUrlInput.value, name, city: cityInput.value, neighborhood: neighborhoodInput.value }),
+		}));
+		const result = await response.json() as { description?: string; url?: string; error?: string };
+		if (!response.ok || !result.description) throw new Error(result.error || 'No se pudo importar la descripción');
+		descriptionInput.value = notesWithBullets(result.description);
+		descriptionInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
+		if (!stregaUrlInput.value.trim() && result.url) {
+			stregaUrlInput.value = result.url;
+			stregaUrlInput.dispatchEvent(new Event('input', { bubbles: true }));
+		}
+		showToast('Descripción importada de Strega');
+	} catch (error) {
+		showToast(error instanceof Error ? error.message : 'No se pudo importar la descripción');
+	} finally {
+		importStregaDescriptionButton.disabled = false;
+		importStregaDescriptionButton.textContent = label;
+	}
+});
+
 descriptionInput.addEventListener('paste', pasteTextWithoutLinks);
 notesInput.addEventListener('paste', pasteTextWithoutLinks);
 longTextEditorValue.addEventListener('paste', pasteTextWithoutLinks);
