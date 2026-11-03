@@ -818,6 +818,9 @@ const userInitials = userDisplayName
 							</div>
 							<textarea id="restaurant-description" name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea>
 						</div>
+						<div class="form-field description-summary-field wide">
+							<button id="summarize-description" class="secondary-button description-summary-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>Resumen</button>
+						</div>
 						<div class="form-field notes-field long-text-field wide">
 							<div class="long-text-field-heading">
 								<label for="restaurant-notes">Notas</label>
@@ -923,6 +926,20 @@ const userInitials = userDisplayName
 			</form>
 		</dialog>
 
+		<dialog id="description-summary-dialog" class="mini-dialog description-summary-dialog">
+			<form method="dialog">
+				<div class="profile-dialog-heading">
+					<h2>Resumen</h2>
+					<button class="profile-close-button" value="close" aria-label="Cerrar" title="Cerrar">×</button>
+				</div>
+				<p id="description-summary-status" class="description-summary-status">Generando el resumen…</p>
+				<ul id="description-summary-text" class="description-summary-text" hidden></ul>
+				<div class="mini-dialog-actions">
+					<button id="copy-description-summary" class="secondary-button" type="button" hidden>Copiar</button>
+					<button class="primary-button" value="close">Cerrar</button>
+				</div>
+			</form>
+		</dialog>
 		<dialog id="branches-dialog" class="mini-dialog branches-dialog">
 			<form id="branches-form">
 				<div class="profile-dialog-heading">
