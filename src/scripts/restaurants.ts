@@ -484,6 +484,13 @@ function isDaytimeKitchenCategory(type: string) {
 function daytimeKitchenCategoryName() {
 	return establishmentTypes.find(isDaytimeKitchenCategory) ?? DAYTIME_KITCHEN_CATEGORY;
 }
+function moveNotesToDescription(restaurant: Restaurant) {
+	const notes = restaurant.notes?.trim() ?? '';
+	if (!notes) return false;
+	restaurant.description = [restaurant.description?.trim() ?? '', notes].filter(Boolean).join('\n');
+	restaurant.notes = '';
+	return true;
+}
 function syncDaytimeKitchen(restaurant: Restaurant) {
 	const types = getRestaurantEstablishmentTypes(restaurant);
 	const hasCategory = types.some(isDaytimeKitchenCategory);
@@ -7616,6 +7623,8 @@ async function initializeServerPersistence() {
 		if (!applyServerCatalogs(serverSettings.catalogs)) persistCatalogSettings();
 		// Lugares que tienen Daytime kitchen o la categoría "Cafetería con opción de almuerzo", pero no las dos: se completan y se guardan.
 		if (restaurants.map(syncDaytimeKitchen).some(Boolean)) void saveRestaurants();
+		// Las notas están ocultas: las que haya cargadas pasan al final de la descripción (cada renglón, una viñeta) y se guardan.
+		if (restaurants.map(moveNotesToDescription).some(Boolean)) void saveRestaurants();
 		const removedCuisineNames = new Set(removedCuisines.map((item) => item.toLocaleLowerCase('es')));
 		cuisines = [...new Set([...cuisines, ...restaurants.flatMap(getRestaurantCuisines)])].filter((item) => !removedCuisineNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedTagNames = new Set(removedTags.map((item) => item.toLocaleLowerCase('es')));
