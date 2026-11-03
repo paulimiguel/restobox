@@ -1,11 +1,9 @@
 // Strega (strega.com.ar): guía de restaurantes, bares y cafés de Argentina.
-// Al importar un lugar se busca su ficha con la búsqueda pública del WordPress de Strega
-// (/wp-json/wp/v2/businesses?search=…) y se leen sus datos: descripción, dirección, horarios,
+// Al importar un lugar se busca su ficha (desde el navegador, ver stregaCandidatesFrom) y se leen sus datos: descripción, dirección, horarios,
 // categorías, servicios (reservas, delivery, take away, desayuno, almuerzo…), teléfono, web e Instagram
 // y el link a Google Maps.
 import * as cheerio from 'cheerio';
 
-const STREGA_BUSINESSES_API = 'https://www.strega.com.ar/wp-json/wp/v2/businesses';
 const HEADERS = { 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' };
 
 type StregaBusiness = { link?: string; title?: { rendered?: string }; class_list?: string[] | Record<string, string> };
@@ -37,29 +35,20 @@ const decodeEntities = (value: string) => value
 	.replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
 	.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
-// Busca por nombre. Es lenta (12 a 15 segundos), por eso conviene arrancarla junto con la búsqueda en Google.
-export async function searchStrega(name: string): Promise<StregaCandidate[]> {
-	// La búsqueda de Strega distingue tildes ("Café" no encuentra "Cafe"): se busca sin tildes.
-	const search = name.normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-	if (comparable(search).length < 2) return [];
-	try {
-		const parameters = new URLSearchParams({ search, orderby: 'relevance', per_page: '10', _fields: 'link,title,class_list' });
-		const response = await fetch(`${STREGA_BUSINESSES_API}?${parameters}`, {
-			signal: AbortSignal.timeout(25_000),
-			headers: { ...HEADERS, accept: 'application/json' },
-		});
-		if (!response.ok) return [];
-		const businesses = await response.json() as StregaBusiness[];
-		if (!Array.isArray(businesses)) return [];
-		return businesses.flatMap((business) => {
-			const link = business.link ?? '';
-			if (!/^https:\/\/www\.strega\.com\.ar\//.test(link)) return [];
-			const classes = Array.isArray(business.class_list) ? business.class_list : Object.values(business.class_list ?? {});
-			return [{ link, title: decodeEntities(business.title?.rendered ?? ''), classes }];
-		});
-	} catch {
-		return [];
-	}
+// Strega no deja buscar desde el servidor (su búsqueda responde 403 a la IP del VPS), pero sí desde el navegador:
+// el navegador busca en /wp-json/wp/v2/businesses?search=… y manda los resultados; acá se validan
+// (solo links de www.strega.com.ar, que después se leen desde el servidor).
+export function stregaCandidatesFrom(value: unknown): StregaCandidate[] {
+	if (!Array.isArray(value)) return [];
+	return value.slice(0, 30).flatMap((item) => {
+		const business = (item ?? {}) as StregaBusiness & { title?: { rendered?: string } | string; classes?: unknown };
+		const link = typeof business.link === 'string' ? business.link.trim() : '';
+		if (!/^https:\/\/www\.strega\.com\.ar\/[\w%./-]+$/.test(link)) return [];
+		const rawTitle = typeof business.title === 'string' ? business.title : business.title?.rendered ?? '';
+		const rawClasses = business.classes ?? business.class_list;
+		const classes = (Array.isArray(rawClasses) ? rawClasses : Object.values(rawClasses ?? {})).filter((value): value is string => typeof value === 'string');
+		return [{ link, title: decodeEntities(String(rawTitle)), classes }];
+	});
 }
 
 // Elige la ficha que corresponde al lugar: el nombre tiene que coincidir (o estar contenido) y,
@@ -80,13 +69,9 @@ export function pickStregaCandidate(candidates: StregaCandidate[], names: string
 	return pool.sort((a, b) => b.score - a.score)[0]?.candidate ?? null;
 }
 
-// Toma el resultado de una búsqueda ya iniciada y, si no hay coincidencia, prueba una vez más con el nombre
-// que dio Google (por ejemplo, si se escribió "Bruder Pilar" y Google lo llama "Brüder").
-export async function findStregaPlace(search: Promise<StregaCandidate[]>, names: string[], places: string[] = []) {
-	const searched = names[0] ?? '';
-	let match = pickStregaCandidate(await search, names, places);
-	const otherName = names.find((value) => comparable(value) !== comparable(searched) && comparable(value).length >= 2);
-	if (!match && otherName) match = pickStregaCandidate(await searchStrega(otherName), names, places);
+// Elige entre los resultados que mandó el navegador y lee esa ficha.
+export async function findStregaPlace(candidates: StregaCandidate[], names: string[], places: string[] = []) {
+	const match = pickStregaCandidate(candidates, names, places);
 	return match ? readStregaPlace(match.link) : null;
 }
 

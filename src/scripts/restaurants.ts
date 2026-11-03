@@ -1873,6 +1873,9 @@ async function shareRestaurant(restaurant: Restaurant) {
 document.querySelector('#close-share')?.addEventListener('click', () => shareDialog.close());
 
 function showToast(message: string) {
+	// Una ventana abierta (la ficha del lugar, por ejemplo) tapa todo lo demás: el aviso va adentro de la de más arriba.
+	const host = [...document.querySelectorAll<HTMLDialogElement>('dialog[open]')].at(-1) ?? document.body;
+	if (toast.parentElement !== host) host.append(toast);
 	toast.textContent = message;
 	toast.classList.add('visible');
 	window.clearTimeout(toastTimer);
@@ -4152,13 +4155,9 @@ async function fetchImportedRestaurant(url: string) {
 			? `${sourceUrl.origin}/${username}/`
 			: sourceUrl.href;
 		try {
-			const googleResponse = await fetch('/api/search-google-place', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ name: result.name.trim(), instagramUrl }),
-			});
-			if (googleResponse.ok) {
-				const googleResult = await googleResponse.json() as ImportedRestaurant;
+			const google = await searchPlaceWithStrega({ name: result.name.trim(), instagramUrl });
+			if (google.ok) {
+				const googleResult = google.result;
 				let googleWebsite = googleResult.website?.trim() ?? '';
 				try {
 					if (googleWebsite && /(?:^|\.)instagram\.com$/i.test(new URL(googleWebsite).hostname)) googleWebsite = '';
@@ -4449,9 +4448,8 @@ nameImportForm.addEventListener('submit', async (event) => {
 	nameImportProgress.textContent = names.length > 1 ? `Preparando ${names.length} búsquedas…` : 'Buscando el lugar y enriqueciendo sus datos…';
 	try {
 		if (names.length === 1) {
-			const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: names[0] }) });
-			const result = await response.json() as ImportedRestaurant & { error?: string };
-			if (!response.ok) throw new Error(result.error || 'No se pudo buscar el lugar');
+			const { ok, result } = await searchPlaceWithStrega({ name: names[0] });
+			if (!ok) throw new Error(result.error || 'No se pudo buscar el lugar');
 			nameImportDialog.close();
 			await applyImportedRestaurant(result);
 			showToast(`Datos encontrados${result.sources?.length ? ` en ${result.sources.join(', ')}` : ''}. Revisalos antes de guardar.`);
@@ -4467,9 +4465,8 @@ nameImportForm.addEventListener('submit', async (event) => {
 			searchNameImport.textContent = `Importando ${index + 1} de ${names.length}…`;
 			nameImportProgress.textContent = `${index + 1} de ${names.length} · ${name}`;
 			try {
-				const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-				const result = await response.json() as ImportedRestaurant & { error?: string };
-				if (!response.ok) throw new Error(result.error || 'No se pudo buscar');
+				const { ok, result } = await searchPlaceWithStrega({ name });
+				if (!ok) throw new Error(result.error || 'No se pudo buscar');
 				const normalizedGoogleUrl = result.googleUrl?.replace(/\/$/, '').toLocaleLowerCase('es');
 				const duplicate = restaurants.some((restaurant) =>
 					(Boolean(normalizedGoogleUrl) && restaurant.googleUrl?.replace(/\/$/, '').toLocaleLowerCase('es') === normalizedGoogleUrl)
@@ -5098,6 +5095,53 @@ longTextEditorForm.addEventListener('submit', (event) => {
 	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
 	longTextEditorDialog.close();
 });
+// Strega no deja buscar desde el servidor (responde 403 a su IP), pero su búsqueda pública acepta pedidos
+// desde el navegador. El navegador busca y el servidor elige la ficha que corresponde y la lee. Tarda de 10 a 15 segundos.
+type StregaSearchResult = { link: string; title: string; classes: string[] };
+async function searchStregaInBrowser(name: string): Promise<StregaSearchResult[]> {
+	// La búsqueda de Strega distingue tildes ("Café" no encuentra "Cafe"): se busca sin tildes.
+	const search = name.split(',')[0].normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+	if (search.length < 2) return [];
+	try {
+		const parameters = new URLSearchParams({ search, orderby: 'relevance', per_page: '10', _fields: 'link,title,class_list' });
+		const response = await fetch(`https://www.strega.com.ar/wp-json/wp/v2/businesses?${parameters}`, { credentials: 'omit', signal: AbortSignal.timeout(30_000) });
+		if (!response.ok) return [];
+		const businesses = await response.json() as Array<{ link?: string; title?: { rendered?: string }; class_list?: string[] | Record<string, string> }>;
+		return Array.isArray(businesses) ? businesses.map((business) => ({
+			link: business.link ?? '',
+			title: business.title?.rendered ?? '',
+			classes: Array.isArray(business.class_list) ? business.class_list : Object.values(business.class_list ?? {}),
+		})) : [];
+	} catch {
+		return [];
+	}
+}
+
+// Importación de un lugar: Google y las demás fuentes en el servidor y, al mismo tiempo, la búsqueda en Strega
+// desde el navegador. Si el lugar está en Strega, sus datos tienen prioridad (el servidor los combina).
+async function searchPlaceWithStrega(body: { name: string; instagramUrl?: string }) {
+	const stregaSearch = searchStregaInBrowser(body.name);
+	const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+	requireActiveSession(response);
+	let result = await response.json() as ImportedRestaurant & { error?: string };
+	let ok = response.ok;
+	const candidates = await stregaSearch;
+	if (candidates.length) {
+		try {
+			const stregaResponse = await fetch('/api/search-google-place', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: body.name, mode: 'strega', result: ok ? result : null, candidates }),
+			});
+			if (stregaResponse.ok) {
+				result = await stregaResponse.json() as ImportedRestaurant & { error?: string };
+				ok = true;
+			}
+		} catch { /* Si Strega falla, se conserva lo que se encontró en las otras fuentes. */ }
+	}
+	return { ok, result };
+}
+
 // Botón "Importar descripción" (al editar): trae la reseña de Strega del lugar, con los subtítulos en negrita
 // y un párrafo por viñeta. Usa el link de Strega del lugar o, si no lo tiene, lo busca por nombre.
 const importStregaDescriptionButton = document.querySelector<HTMLButtonElement>('#import-strega-description')!;
@@ -5113,10 +5157,13 @@ importStregaDescriptionButton.addEventListener('click', async () => {
 	importStregaDescriptionButton.disabled = true;
 	importStregaDescriptionButton.textContent = 'Buscando en Strega…';
 	try {
+		const stregaUrl = stregaUrlInput.value.trim();
+		const candidates = stregaUrl ? [] : await searchStregaInBrowser(name);
+		if (!stregaUrl && !candidates.length) throw new Error(`No se encontró “${name}” en Strega`);
 		const response = requireActiveSession(await fetch('/api/strega-description', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ stregaUrl: stregaUrlInput.value, name, city: cityInput.value, neighborhood: neighborhoodInput.value }),
+			body: JSON.stringify({ stregaUrl, name, city: cityInput.value, neighborhood: neighborhoodInput.value, candidates }),
 		}));
 		const result = await response.json() as { description?: string; url?: string; error?: string };
 		if (!response.ok || !result.description) throw new Error(result.error || 'No se pudo importar la descripción');

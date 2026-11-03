@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { getSettings } from '../../lib/server/database';
-import { findStregaPlace, searchStrega, type StregaPlace } from '../../lib/server/strega';
+import { findStregaPlace, stregaCandidatesFrom, type StregaPlace } from '../../lib/server/strega';
 
 export const prerender = false;
 
@@ -877,9 +877,19 @@ function resultFromStrega(strega: StregaPlace): RestaurantSearchResult {
 
 export const POST: APIRoute = async ({ request }) => {
 	try {
-		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string; mode?: string };
+		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string; mode?: string; result?: RestaurantSearchResult | null; candidates?: unknown };
 		const name = body.name?.trim() ?? '';
 		if (name.length < 2) return json({ error: 'Ingresá el nombre del lugar que querés buscar' }, 400);
+		// Segundo paso de la importación: el navegador buscó el lugar en Strega (desde el servidor no se puede)
+		// y manda los resultados junto con lo que ya se encontró; si la ficha corresponde, sus datos tienen prioridad.
+		if (body.mode === 'strega') {
+			const found = body.result && typeof body.result === 'object' ? body.result : null;
+			const strega = await findStregaPlace(stregaCandidatesFrom(body.candidates), [requestedPlaceName(name), String(found?.name ?? '')], [String(found?.city ?? ''), String(found?.neighborhood ?? '')]);
+			if (!strega) return json({ error: `No se encontró “${name}” en Strega` }, 404);
+			// Lo que se encuentra en la web sin Google ni Woki es una suposición: si está en Strega, se usa solo Strega.
+			if (!found || found.sources?.includes('Fuentes públicas')) return json(await addRequestedSocialImages(resultFromStrega(strega), {}));
+			return json(withStrega(found, strega));
+		}
 		if (body.mode === 'logo') {
 			const logoResult = await addRequestedSocialImages({ name, imageUrls: [], sources: [] }, body, true);
 			return logoResult.logoUrl
@@ -887,15 +897,9 @@ export const POST: APIRoute = async ({ request }) => {
 				: json({ error: 'No se pudo obtener la foto de perfil de Instagram' }, 404);
 		}
 		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body, body.mode === 'images');
-		// Strega se busca primero (en paralelo, porque tarda): si el lugar tiene ficha, sus datos tienen prioridad.
-		const withoutStrega = body.mode === 'images';
-		const stregaSearch = withoutStrega ? Promise.resolve([]) : searchStrega(requestedPlaceName(name));
 		const publicFallback = async () => {
 			const fallback = await fallbackWithoutGoogle(name);
-			const strega = withoutStrega ? null : await findStregaPlace(stregaSearch, [requestedPlaceName(name), String(fallback?.name ?? '')], [String(fallback?.city ?? '')]);
-			// Lo que se encuentra en la web sin Google ni Woki es una suposición: si está en Strega, se usa solo Strega.
-			if (strega && (!fallback || fallback.sources.includes('Fuentes públicas'))) return enrichResult(resultFromStrega(strega));
-			const enriched = await enrichResult(withStrega(fallback ?? { name, imageUrls: [], sources: [] }, strega));
+			const enriched = await enrichResult(fallback ?? { name, imageUrls: [], sources: [] });
 			return fallback || enriched.imageUrls?.length ? enriched : null;
 		};
 		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -933,10 +937,6 @@ export const POST: APIRoute = async ({ request }) => {
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 
-		// La ficha de Strega se termina de buscar mientras se leen el sitio, Woki y Facebook.
-		const stregaRequest: Promise<StregaPlace | null> = withoutStrega ? Promise.resolve(null) : findStregaPlace(stregaSearch, [requestedPlaceName(name), place.displayName?.text ?? ''], [
-			component(place, 'locality'), component(place, 'administrative_area_level_2'), component(place, 'neighborhood', 'sublocality_level_1', 'sublocality'),
-		]);
 		const websiteUri = place.websiteUri?.trim() ?? '';
 		// Muchos lugares cargan su Instagram, Facebook o Linktree como sitio web en Google.
 		const websiteIsSocial = (['instagram', 'facebook', 'tiktok', 'linktree'] as LinkKind[]).some((kind) => linkPatterns[kind].test(websiteUri));
@@ -947,8 +947,7 @@ export const POST: APIRoute = async ({ request }) => {
 		let facebookUrl = pickLink('facebook', siteLinks);
 		const [wokiPage, firstFacebookPage] = await Promise.all([pageDataOrEmpty(wokiUrl), pageDataOrEmpty(facebookUrl)]);
 		// Si el sitio no enlaza el Instagram o el Facebook, se busca en Woki y en el propio Facebook.
-		const strega = await stregaRequest;
-		const instagramUrl = strega?.instagramUrl ? normalizeInstagramUrl(strega.instagramUrl) : normalizeInstagramUrl(pickLink('instagram', siteLinks, firstFacebookPage.links, wokiPage.links));
+		const instagramUrl = normalizeInstagramUrl(pickLink('instagram', siteLinks, firstFacebookPage.links, wokiPage.links));
 		if (!facebookUrl) facebookUrl = pickLink('facebook', wokiPage.links);
 		const [instagramPage, facebookPage] = await Promise.all([
 			pageDataOrEmpty(instagramUrl),
@@ -1018,7 +1017,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const wokiImageUrls = unique([wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...wokiPage.images]);
 		const imageUrls = unique([...googleImageUrls, ...wokiImageUrls, ...officialPage.images, ...facebookPage.images]).slice(0, 12);
 
-		return json(await enrichResult(withStrega({
+		return json(await enrichResult({
 			name: place.displayName?.text?.trim() || name, description, notes,
 			establishmentTypes: placeTypes.length ? placeTypes : ['Restaurante'], cuisines, mealTypes, tags,
 			rating: place.rating ? String(Math.min(5, Math.max(1, Math.round(place.rating)))) : '', score: place.rating ? String(place.rating) : '',
@@ -1033,6 +1032,6 @@ export const POST: APIRoute = async ({ request }) => {
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen, reservations: Boolean(place.reservable), outdoorDining: Boolean(place.outdoorSeating),
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
-		}, strega)));
+		}));
 	} catch (error) { return json({ error: error instanceof Error ? error.message : 'No se pudo buscar el lugar en Google' }, 500); }
 };
