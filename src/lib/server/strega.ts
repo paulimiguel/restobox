@@ -142,9 +142,14 @@ export async function readStregaPlace(url: string): Promise<StregaPlace | null> 
 			.find((link) => link.depth === 4 && /^restaurantes en /i.test(link.text))?.text.replace(/^restaurantes en /i, '') ?? '';
 		const whatsappUrl = links.find((link) => /wa\.me\/|api\.whatsapp\.com|whatsapp\.com\/send/i.test(link)) ?? '';
 		const mapCid = ($('iframe[src*="maps.google"]').attr('src') ?? '').match(/[?&]cid=(\d+)/)?.[1] ?? '';
-		// Descripción: el primer párrafo de la reseña (el resto son opiniones y detalles largos).
-		const description = $('article p').toArray().map((paragraph) => $(paragraph).text().replace(/\s+/g, ' ').trim())
-			.find((text) => text.length > 60) ?? business?.description?.trim() ?? '';
+		// Descripción: la reseña completa, un párrafo por renglón (en FoodieBox cada renglón es una viñeta).
+		// Solo la sección <!-- Description -->: más abajo están los resúmenes de otros lugares ("Negocios relacionados").
+		const html = $.html();
+		const descriptionStart = html.indexOf('<!-- Description -->');
+		const descriptionEnd = html.indexOf('<!-- Map Section -->', descriptionStart);
+		const review = descriptionStart >= 0 ? cheerio.load(html.slice(descriptionStart, descriptionEnd > 0 ? descriptionEnd : undefined)) : $;
+		const description = review('p').toArray().map((paragraph) => review(paragraph).text().replace(/\s+/g, ' ').trim())
+			.filter((text) => text.length > 20).join('\n') || business?.description?.trim() || '';
 		// "Fragata Argentina 2033, B1629 Pilar, Provincia de Buenos Aires, Argentina": calle y altura, ciudad y provincia.
 		const fullAddress = business?.address?.streetAddress?.trim() ?? '';
 		const addressParts = fullAddress.split(',').map((part) => part.trim()).filter(Boolean);

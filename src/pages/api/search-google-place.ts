@@ -836,7 +836,9 @@ function withStrega(result: RestaurantSearchResult, strega: StregaPlace | null):
 	const isMobile = /^\+?54\s*9/.test(strega.phone);
 	return {
 		...result,
+		// Con reseña de Strega, la descripción sale solo de ahí (sin los puntos del resumen de Google).
 		description: strega.description || result.description,
+		notes: strega.description ? '' : result.notes,
 		address: strega.address || result.address,
 		neighborhood: strega.neighborhood || result.neighborhood,
 		city: strega.city || result.city,

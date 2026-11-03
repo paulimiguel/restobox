@@ -1973,6 +1973,8 @@ function loadScheduleFromText(value: string) {
 }
 
 const NOTES_BULLET = '• ';
+// Campos que se escriben con viñetas: cada renglón es una viñeta.
+const bulletInputs = () => [descriptionInput, notesInput];
 
 function notesWithBullets(value: string) {
 	const normalized = value.replace(/\r\n?/g, '\n');
@@ -1993,7 +1995,7 @@ function normalizeNotesBullets(input = notesInput) {
 	const formattedEnd = notesWithBullets(original.slice(0, selectionEnd)).length;
 	input.value = formatted;
 	input.setSelectionRange(formattedStart, formattedEnd);
-	if (input === notesInput) updateClearButton(notesInput);
+	if (bulletInputs().includes(input)) updateClearButton(input);
 }
 
 // Las viñetas de las notas son texto ("• "), y un textarea no permite colorear solo una parte:
@@ -2052,8 +2054,14 @@ function mirrorNoteBullets(input: HTMLTextAreaElement) {
 	window.addEventListener('resize', scheduleRefresh);
 	refresh();
 }
+mirrorNoteBullets(descriptionInput);
 mirrorNoteBullets(notesInput);
 mirrorNoteBullets(longTextEditorValue);
+
+// Texto pegado en un campo con viñetas: un renglón por párrafo, sin renglones vacíos ni las viñetas o guiones que ya traía.
+function bulletParagraphs(text: string) {
+	return text.split('\n').map((line) => line.replace(/^\s*(?:[•·◦▪▫‣⁃●○■□*-]|\d+[.)])\s+/, '').trim()).filter(Boolean).join('\n');
+}
 
 function pasteTextWithoutLinks(event: ClipboardEvent) {
 	const input = event.currentTarget as HTMLTextAreaElement;
@@ -2066,6 +2074,8 @@ function pasteTextWithoutLinks(event: ClipboardEvent) {
 		const parsed = new DOMParser().parseFromString(html, 'text/html');
 		text = (parsed.body.innerText || parsed.body.textContent || text).replace(/\r\n?/g, '\n');
 	}
+	const bulleted = bulletInputs().includes(input) || (input === longTextEditorValue && longTextEditorTarget !== null && bulletInputs().includes(longTextEditorTarget));
+	if (bulleted) text = bulletParagraphs(text);
 	input.setRangeText(text, input.selectionStart, input.selectionEnd, 'end');
 	input.dispatchEvent(new InputEvent('input', {
 		bubbles: true,
@@ -2079,7 +2089,7 @@ function openLongTextEditor(target: HTMLTextAreaElement, title: string) {
 	longTextEditorTarget = target;
 	longTextEditorTitle.textContent = title;
 	longTextEditorValue.value = target.value;
-	if (target === notesInput) normalizeNotesBullets(longTextEditorValue);
+	if (bulletInputs().includes(target)) normalizeNotesBullets(longTextEditorValue);
 	longTextEditorDialog.showModal();
 	window.setTimeout(() => longTextEditorValue.focus(), 30);
 }
@@ -3866,6 +3876,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		countryInput.value = ensureLocationOption('country', DEFAULT_COUNTRY);
 	}
 	updateBranchesButton();
+	normalizeNotesBullets(descriptionInput);
 	normalizeNotesBullets();
 	updatePersonalRate();
 	viewFavoriteStatus.hidden = !(readOnly && restaurant?.favorite);
@@ -4253,9 +4264,8 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 		if (field) field.value = '';
 	});
 	setImportedField('name', imported.name);
-	setImportedField('description', imported.description);
-	setImportedField('notes', imported.notes);
-	normalizeNotesBullets();
+	setImportedField('description', [imported.description, imported.notes].map((text) => text?.trim()).filter(Boolean).join('\n'));
+	normalizeNotesBullets(descriptionInput);
 	selectedTags = valuesFromExistingCatalog(imported.tags?.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [], tagCatalog);
 	selectedTags.forEach((tag) => {
 		if (!tagCatalog.some((item) => item.toLocaleLowerCase('es') === tag.toLocaleLowerCase('es'))) tagCatalog.push(tag);
@@ -5039,7 +5049,8 @@ pasteLongTextButton.addEventListener('click', async () => {
 		}
 		const start = longTextEditorValue.selectionStart ?? longTextEditorValue.value.length;
 		const end = longTextEditorValue.selectionEnd ?? start;
-		longTextEditorValue.setRangeText(clipboardText.replace(/\r\n?/g, '\n'), start, end, 'end');
+		const pasted = clipboardText.replace(/\r\n?/g, '\n');
+		longTextEditorValue.setRangeText(longTextEditorTarget && bulletInputs().includes(longTextEditorTarget) ? bulletParagraphs(pasted) : pasted, start, end, 'end');
 		longTextEditorValue.dispatchEvent(new InputEvent('input', {
 			bubbles: true,
 			inputType: 'insertFromPaste',
@@ -5058,7 +5069,7 @@ longTextEditorDialog.addEventListener('close', () => {
 longTextEditorForm.addEventListener('submit', (event) => {
 	event.preventDefault();
 	if (!longTextEditorTarget) return;
-	longTextEditorTarget.value = longTextEditorTarget === notesInput
+	longTextEditorTarget.value = bulletInputs().includes(longTextEditorTarget)
 		? notesWithBullets(longTextEditorValue.value)
 		: longTextEditorValue.value;
 	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
@@ -5068,10 +5079,10 @@ descriptionInput.addEventListener('paste', pasteTextWithoutLinks);
 notesInput.addEventListener('paste', pasteTextWithoutLinks);
 longTextEditorValue.addEventListener('paste', pasteTextWithoutLinks);
 longTextEditorValue.addEventListener('input', (event) => {
-	if (longTextEditorTarget === notesInput && !(event as InputEvent).isComposing) normalizeNotesBullets(longTextEditorValue);
+	if (longTextEditorTarget && bulletInputs().includes(longTextEditorTarget) && !(event as InputEvent).isComposing) normalizeNotesBullets(longTextEditorValue);
 });
 longTextEditorValue.addEventListener('compositionend', () => {
-	if (longTextEditorTarget === notesInput) normalizeNotesBullets(longTextEditorValue);
+	if (longTextEditorTarget && bulletInputs().includes(longTextEditorTarget)) normalizeNotesBullets(longTextEditorValue);
 });
 cancelNeighborhoodEditor.addEventListener('click', () => neighborhoodEditorDialog.close());
 neighborhoodEditorDialog.addEventListener('close', () => {
@@ -5147,10 +5158,12 @@ neighborhoodEditorForm.addEventListener('submit', async (event) => {
 	const label = capitalizeFirstLetter(catalogCardMeta[kind].singular);
 	showToast(associated.length ? `${label} actualizado en ${associated.length} ${associated.length === 1 ? 'lugar' : 'lugares'}` : `${label} actualizado`);
 });
-notesInput.addEventListener('input', (event) => {
-	if (!(event as InputEvent).isComposing) normalizeNotesBullets();
+bulletInputs().forEach((input) => {
+	input.addEventListener('input', (event) => {
+		if (!(event as InputEvent).isComposing) normalizeNotesBullets(input);
+	});
+	input.addEventListener('compositionend', () => normalizeNotesBullets(input));
 });
-notesInput.addEventListener('compositionend', () => normalizeNotesBullets());
 form.addEventListener('input', updateDirtyState);
 form.addEventListener('change', updateDirtyState);
 function commitCuisineInput(createIfMissing: boolean) {

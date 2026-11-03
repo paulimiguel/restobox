@@ -2113,3 +2113,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .characteristics-checks > .boolean-check-control:has(input[name="glutenFree"]) { order: 4; }
 .characteristics-checks > .boolean-check-control:has(input[name="healthy"]) { order: 5; }
 .characteristics-checks > .boolean-check-control:has(input[name="reservations"]) { order: 6; }
+
+/* Solapa Descripción: la descripción usa viñetas (como las notas) y ocupa el lugar de las notas, que por ahora están ocultas
+   (el campo sigue en el formulario, así que las notas ya cargadas se conservan al guardar) */
+.description-field { position: relative; gap: 7px; }
+#panel-description .notes-field { display: none !important; }
+#panel-description .description-field textarea { height: clamp(240px, 48vh, 460px); min-height: 120px; }
