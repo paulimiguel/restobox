@@ -616,6 +616,7 @@ h1 em { color: var(--accent-text); font-weight: 400; }
 .tripadvisor-brand-icon { display: block; width: 22px; height: 16px; color: inherit; background: currentColor; -webkit-mask: url('/icons/tripadvisor.png') center / contain no-repeat; mask: url('/icons/tripadvisor.png') center / contain no-repeat; transition: transform .2s; }
 .external-link-button .woki-brand-icon { width: 16px; height: 16px; }
 .external-link-button .tripadvisor-brand-icon { width: 20px; height: 15px; }
+.strega-brand-icon { display: block; width: 16px; height: 20px; color: inherit; background: currentColor; -webkit-mask: url('/icons/strega.png') center / contain no-repeat; mask: url('/icons/strega.png') center / contain no-repeat; }
 .pedidosya-brand-icon { display: block; width: 16px; height: 16px; color: inherit; background: currentColor; opacity: .68; -webkit-mask: var(--pedidosya-logo) center / contain no-repeat; mask: var(--pedidosya-logo) center / contain no-repeat; transition: opacity .2s, transform .2s; }
 .external-link-button:hover .pedidosya-brand-icon { opacity: 1; transform: scale(1.08); }
 .restaurant-list.view-columns-5 .restaurant-card-footer :is(.woki-brand-icon, .website-brand-icon, .linktree-brand-icon) { width: 18px; height: 18px; }
