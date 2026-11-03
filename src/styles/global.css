@@ -2127,3 +2127,5 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #restaurant-form:not(.view-mode) #panel-description .description-field textarea { height: clamp(340px, 62vh, 620px); }
 .view-mode #panel-description .description-field { grid-template-columns: minmax(0, 1fr); border-bottom: 0; }
 .view-mode #panel-description .description-field .long-text-field-heading { display: none; }
+/* Al editar no se muestra el botón "Editar descripción" (se escribe directo en el recuadro) */
+#panel-description .description-field .long-text-field-heading { display: none; }
