@@ -2129,14 +2129,3 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .view-mode #panel-description .description-field .long-text-field-heading { display: none; }
 /* Al editar no se muestra el botón "Editar descripción" (se escribe directo en el recuadro) */
 #panel-description .description-field .long-text-field-heading { display: none; }
-
-/* Botón "Resumen" debajo de la descripción y su ventana (resumen hecho con IA) */
-#panel-description .description-summary-field { justify-items: start; }
-.view-mode #panel-description .description-summary-field { padding-top: 12px; }
-.description-summary-button { display: inline-flex; align-items: center; gap: 7px; }
-.description-summary-button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-.description-summary-dialog { width: min(520px, calc(100% - 30px)); }
-.description-summary-status { margin: 0; color: var(--muted); font-size: 13px; }
-.description-summary-text { display: grid; gap: 8px; max-height: min(55vh, 420px); margin: 0; padding: 0; overflow-y: auto; list-style: none; color: var(--ink); font-size: 13px; line-height: 1.5; }
-.description-summary-text li { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 4px; }
-.description-summary-text .note-bullet { color: var(--forest); }

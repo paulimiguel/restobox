@@ -5082,69 +5082,6 @@ longTextEditorForm.addEventListener('submit', (event) => {
 	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
 	longTextEditorDialog.close();
 });
-// Botón "Resumen": un resumen de la descripción hecho con IA, en una ventana chica.
-// Se guarda por texto, así que volver a abrirlo con la misma descripción no lo pide de nuevo.
-const descriptionSummaryDialog = document.querySelector<HTMLDialogElement>('#description-summary-dialog')!;
-const descriptionSummaryStatus = document.querySelector<HTMLParagraphElement>('#description-summary-status')!;
-const descriptionSummaryText = document.querySelector<HTMLUListElement>('#description-summary-text')!;
-const copyDescriptionSummaryButton = document.querySelector<HTMLButtonElement>('#copy-description-summary')!;
-const descriptionSummaries = new Map<string, string>();
-let descriptionSummaryRequest = 0;
-function showDescriptionSummary(summary: string) {
-	const lines = summary.split('\n').map((line) => line.replace(/^\s*(?:[•·*-]|\d+[.)])\s*/, '').trim()).filter(Boolean);
-	descriptionSummaryText.replaceChildren(...lines.map((line) => {
-		const item = document.createElement('li');
-		const bullet = document.createElement('span');
-		bullet.className = 'note-bullet';
-		bullet.textContent = '•';
-		item.append(bullet, document.createTextNode(line));
-		return item;
-	}));
-	descriptionSummaryText.hidden = false;
-	descriptionSummaryStatus.hidden = true;
-	copyDescriptionSummaryButton.hidden = false;
-}
-document.querySelector<HTMLButtonElement>('#summarize-description')!.addEventListener('click', async () => {
-	const description = descriptionInput.value.split('\n').map((line) => line.replace(/^\s*•\s?/, '').trim()).filter(Boolean).join('\n');
-	if (description.length < 40) {
-		showToast('Primero cargá una descripción para poder resumirla');
-		return;
-	}
-	const request = ++descriptionSummaryRequest;
-	descriptionSummaryText.hidden = true;
-	copyDescriptionSummaryButton.hidden = true;
-	descriptionSummaryStatus.hidden = false;
-	descriptionSummaryStatus.textContent = 'Generando el resumen…';
-	descriptionSummaryDialog.showModal();
-	const cached = descriptionSummaries.get(description);
-	if (cached) {
-		showDescriptionSummary(cached);
-		return;
-	}
-	try {
-		const response = requireActiveSession(await fetch('/api/summarize-description', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ name: (form.elements.namedItem('name') as HTMLInputElement).value, description }),
-		}));
-		const result = await response.json() as { summary?: string; error?: string };
-		if (!response.ok || !result.summary) throw new Error(result.error || 'No se pudo generar el resumen');
-		descriptionSummaries.set(description, result.summary);
-		if (request === descriptionSummaryRequest) showDescriptionSummary(result.summary);
-	} catch (error) {
-		if (request === descriptionSummaryRequest) descriptionSummaryStatus.textContent = error instanceof Error ? error.message : 'No se pudo generar el resumen';
-	}
-});
-copyDescriptionSummaryButton.addEventListener('click', async () => {
-	const text = [...descriptionSummaryText.children].map((item) => `• ${item.textContent?.replace(/^•/, '').trim()}`).join('\n');
-	try {
-		await navigator.clipboard.writeText(text);
-		showToast('Resumen copiado');
-	} catch {
-		showToast('El navegador no permitió copiar el resumen');
-	}
-});
-
 descriptionInput.addEventListener('paste', pasteTextWithoutLinks);
 notesInput.addEventListener('paste', pasteTextWithoutLinks);
 longTextEditorValue.addEventListener('paste', pasteTextWithoutLinks);
