@@ -2092,3 +2092,5 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .checked-submenu > summary > span { display: inline-flex; align-items: center; gap: 10px; }
 .checked-submenu > summary > span > svg { width: 16px; height: 16px; }
 
+/* Links: TikTok no se muestra (el campo sigue en el formulario para conservar los datos cargados); Strega ocupa su lugar */
+#panel-links .tiktok-field { display: none !important; }

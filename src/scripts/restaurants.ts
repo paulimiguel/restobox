@@ -1164,7 +1164,6 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 		{ id: 'instagramUrl', label: 'Instagram', isEmpty: (r) => !r.instagramUrl?.trim() },
 		{ id: 'facebookUrl', label: 'Facebook', isEmpty: (r) => !r.facebookUrl?.trim() },
 		{ id: 'website', label: 'Sitio web', isEmpty: (r) => !r.website?.trim() },
-		{ id: 'tiktokUrl', label: 'Tik Tok', isEmpty: (r) => !r.tiktokUrl?.trim() },
 		{ id: 'linktreeUrl', label: 'Linktree', isEmpty: (r) => !r.linktreeUrl?.trim() },
 		{ id: 'menuUrl', label: 'Link al menú', isEmpty: (r) => !r.menuUrl?.trim() },
 		{ id: 'tripAdvisorUrl', label: 'Trip Advisor', isEmpty: (r) => !r.tripAdvisorUrl?.trim() },
