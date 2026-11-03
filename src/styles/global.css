@@ -2119,3 +2119,11 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .description-field { position: relative; gap: 7px; }
 #panel-description .notes-field { display: none !important; }
 #panel-description .description-field textarea { height: clamp(240px, 48vh, 460px); min-height: 120px; }
+
+/* Solapa Descripción: sin el título "Descripción" (ya lo dice la solapa); al editar, el recuadro es más alto
+   y el botón "Editar descripción" queda a la derecha */
+#panel-description .description-field .long-text-field-heading > label { display: none; }
+#panel-description .description-field .long-text-field-heading { justify-content: flex-end; }
+#restaurant-form:not(.view-mode) #panel-description .description-field textarea { height: clamp(340px, 62vh, 620px); }
+.view-mode #panel-description .description-field { grid-template-columns: minmax(0, 1fr); border-bottom: 0; }
+.view-mode #panel-description .description-field .long-text-field-heading { display: none; }
