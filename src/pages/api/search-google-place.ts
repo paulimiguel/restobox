@@ -21,7 +21,7 @@ type GooglePlace = {
 	photos?: Array<{ name?: string }>; delivery?: boolean; takeout?: boolean;
 	servesBreakfast?: boolean; servesBrunch?: boolean; servesLunch?: boolean; servesDinner?: boolean;
 	servesBeer?: boolean; servesWine?: boolean; servesCocktails?: boolean; servesDessert?: boolean; servesCoffee?: boolean;
-	servesVegetarianFood?: boolean; outdoorSeating?: boolean; liveMusic?: boolean; goodForChildren?: boolean;
+	servesVegetarianFood?: boolean; outdoorSeating?: boolean; reservable?: boolean; liveMusic?: boolean; goodForChildren?: boolean;
 	allowsDogs?: boolean; goodForGroups?: boolean; goodForWatchingSports?: boolean;
 };
 type PublicPageData = { links: string[]; images: string[]; description: string; keywords: string[]; text: string };
@@ -822,7 +822,7 @@ export const POST: APIRoute = async ({ request }) => {
 			'websiteUri', 'googleMapsUri', 'googleMapsLinks', 'regularOpeningHours', 'rating', 'priceLevel', 'priceRange',
 			'types', 'primaryType', 'editorialSummary', 'generativeSummary', 'reviewSummary', 'photos', 'delivery', 'takeout',
 			'servesBreakfast', 'servesBrunch', 'servesLunch', 'servesDinner', 'servesBeer', 'servesWine',
-			'servesCocktails', 'servesDessert', 'servesCoffee', 'servesVegetarianFood', 'outdoorSeating', 'liveMusic',
+			'servesCocktails', 'servesDessert', 'servesCoffee', 'servesVegetarianFood', 'outdoorSeating', 'reservable', 'liveMusic',
 			'goodForChildren', 'allowsDogs', 'goodForGroups', 'goodForWatchingSports',
 		].map((field) => `places.${field}`).join(',');
 		let response: Response;
@@ -938,7 +938,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: googleMapsSearchUrl(place, name),
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen,
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen, reservations: Boolean(place.reservable), outdoorDining: Boolean(place.outdoorSeating),
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));
