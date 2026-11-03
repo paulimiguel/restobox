@@ -5095,26 +5095,36 @@ longTextEditorForm.addEventListener('submit', (event) => {
 	longTextEditorTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
 	longTextEditorDialog.close();
 });
-// Strega no deja buscar desde el servidor (responde 403 a su IP), pero su búsqueda pública acepta pedidos
-// desde el navegador. El navegador busca y el servidor elige la ficha que corresponde y la lee. Tarda de 10 a 15 segundos.
-type StregaSearchResult = { link: string; title: string; classes: string[] };
-async function searchStregaInBrowser(name: string): Promise<StregaSearchResult[]> {
-	// La búsqueda de Strega distingue tildes ("Café" no encuentra "Cafe"): se busca sin tildes.
-	const search = name.split(',')[0].normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-	if (search.length < 2) return [];
+// Strega no deja buscar ni leer la mayoría de sus fichas desde el servidor (responde 403 a su IP), pero su API
+// pública acepta pedidos desde el navegador. El navegador consulta la API (con la reseña de cada ficha) y el servidor
+// elige la que corresponde. Buscar por nombre tarda de 10 a 15 segundos.
+type StregaSearchResult = { link: string; title: string; classes: string[]; content: string };
+async function queryStregaInBrowser(parameters: Record<string, string>): Promise<StregaSearchResult[]> {
 	try {
-		const parameters = new URLSearchParams({ search, orderby: 'relevance', per_page: '10', _fields: 'link,title,class_list' });
-		const response = await fetch(`https://www.strega.com.ar/wp-json/wp/v2/businesses?${parameters}`, { credentials: 'omit', signal: AbortSignal.timeout(30_000) });
+		const query = new URLSearchParams({ ...parameters, _fields: 'link,title,class_list,content' });
+		const response = await fetch(`https://www.strega.com.ar/wp-json/wp/v2/businesses?${query}`, { credentials: 'omit', signal: AbortSignal.timeout(30_000) });
 		if (!response.ok) return [];
-		const businesses = await response.json() as Array<{ link?: string; title?: { rendered?: string }; class_list?: string[] | Record<string, string> }>;
+		const businesses = await response.json() as Array<{ link?: string; title?: { rendered?: string }; class_list?: string[] | Record<string, string>; content?: { rendered?: string } }>;
 		return Array.isArray(businesses) ? businesses.map((business) => ({
 			link: business.link ?? '',
 			title: business.title?.rendered ?? '',
 			classes: Array.isArray(business.class_list) ? business.class_list : Object.values(business.class_list ?? {}),
+			content: business.content?.rendered ?? '',
 		})) : [];
 	} catch {
 		return [];
 	}
+}
+function searchStregaInBrowser(name: string) {
+	// La búsqueda de Strega distingue tildes ("Café" no encuentra "Cafe"): se busca sin tildes.
+	const search = name.split(',')[0].normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+	return search.length < 2 ? Promise.resolve([]) : queryStregaInBrowser({ search, orderby: 'relevance', per_page: '10' });
+}
+// La ficha de un link de Strega (https://www.strega.com.ar/bar/bruder-pilar/ → slug "bruder-pilar").
+function stregaFichaInBrowser(stregaUrl: string) {
+	let slug = '';
+	try { slug = new URL(stregaUrl).pathname.split('/').filter(Boolean).at(-1) ?? ''; } catch { /* Link inválido. */ }
+	return slug ? queryStregaInBrowser({ slug }) : Promise.resolve([]);
 }
 
 // Importación de un lugar: Google y las demás fuentes en el servidor y, al mismo tiempo, la búsqueda en Strega
@@ -5158,8 +5168,8 @@ importStregaDescriptionButton.addEventListener('click', async () => {
 	importStregaDescriptionButton.textContent = 'Buscando en Strega…';
 	try {
 		const stregaUrl = stregaUrlInput.value.trim();
-		const candidates = stregaUrl ? [] : await searchStregaInBrowser(name);
-		if (!stregaUrl && !candidates.length) throw new Error(`No se encontró “${name}” en Strega`);
+		const candidates = stregaUrl ? await stregaFichaInBrowser(stregaUrl) : await searchStregaInBrowser(name);
+		if (!candidates.length) throw new Error(stregaUrl ? 'Strega no devolvió la ficha del link cargado' : `No se encontró “${name}” en Strega`);
 		const response = requireActiveSession(await fetch('/api/strega-description', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },

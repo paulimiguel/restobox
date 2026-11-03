@@ -7,7 +7,8 @@ import * as cheerio from 'cheerio';
 const HEADERS = { 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' };
 
 type StregaBusiness = { link?: string; title?: { rendered?: string }; class_list?: string[] | Record<string, string> };
-export type StregaCandidate = { link: string; title: string; classes: string[] };
+// content: la reseña en HTML, tal como la devuelve la API de Strega (content.rendered).
+export type StregaCandidate = { link: string; title: string; classes: string[]; content: string };
 
 export type StregaPlace = {
 	url: string;
@@ -41,13 +42,14 @@ const decodeEntities = (value: string) => value
 export function stregaCandidatesFrom(value: unknown): StregaCandidate[] {
 	if (!Array.isArray(value)) return [];
 	return value.slice(0, 30).flatMap((item) => {
-		const business = (item ?? {}) as StregaBusiness & { title?: { rendered?: string } | string; classes?: unknown };
+		const business = (item ?? {}) as StregaBusiness & { title?: { rendered?: string } | string; classes?: unknown; content?: { rendered?: string } | string };
 		const link = typeof business.link === 'string' ? business.link.trim() : '';
 		if (!/^https:\/\/www\.strega\.com\.ar\/[\w%./-]+$/.test(link)) return [];
 		const rawTitle = typeof business.title === 'string' ? business.title : business.title?.rendered ?? '';
 		const rawClasses = business.classes ?? business.class_list;
 		const classes = (Array.isArray(rawClasses) ? rawClasses : Object.values(rawClasses ?? {})).filter((value): value is string => typeof value === 'string');
-		return [{ link, title: decodeEntities(String(rawTitle)), classes }];
+		const rawContent = typeof business.content === 'string' ? business.content : business.content?.rendered ?? '';
+		return [{ link, title: decodeEntities(String(rawTitle)), classes, content: String(rawContent).slice(0, 300_000) }];
 	});
 }
 
@@ -72,7 +74,21 @@ export function pickStregaCandidate(candidates: StregaCandidate[], names: string
 // Elige entre los resultados que mandó el navegador y lee esa ficha.
 export async function findStregaPlace(candidates: StregaCandidate[], names: string[], places: string[] = []) {
 	const match = pickStregaCandidate(candidates, names, places);
-	return match ? readStregaPlace(match.link) : null;
+	return match ? stregaPlaceFor(match) : null;
+}
+
+// Datos de una ficha: completos si el servidor puede leer la página; si Strega la bloquea, los que trajo su API
+// (la reseña y las categorías: la dirección, los horarios y los servicios solo están en la página).
+export async function stregaPlaceFor(candidate: StregaCandidate): Promise<StregaPlace | null> {
+	const place = await readStregaPlace(candidate.link);
+	const description = candidate.content ? descriptionFromHtml(candidate.content) : '';
+	if (place) return { ...place, description: place.description || description };
+	if (!description && !candidate.title) return null;
+	const categories = candidate.classes.filter((value) => value.startsWith('business_category-')).map((value) => value.slice('business_category-'.length).replaceAll('-', ' '));
+	return {
+		url: candidate.link, name: candidate.title, description, address: '', neighborhood: '', city: '', province: '', phone: '',
+		website: '', instagramUrl: '', whatsappUrl: '', mapUrl: '', hours: '', categories, services: [],
+	};
 }
 
 // Strega usa los nombres de los días en castellano; se guardan como en Google ("lunes: 18:00–01:00").
@@ -104,6 +120,17 @@ function sectionTexts($: cheerio.CheerioAPI, name: string) {
 		.filter(Boolean);
 }
 
+// Reseña de Strega como texto: un párrafo por renglón y los subtítulos como "## Título"
+// (en FoodieBox cada renglón es una viñeta y los subtítulos se muestran en negrita).
+export function descriptionFromHtml(html: string) {
+	const review = cheerio.load(html);
+	return review('h2, h3, h4, p').toArray().flatMap((element) => {
+		const text = review(element).text().replace(/\s+/g, ' ').trim();
+		if (element.tagName === 'p') return text.length > 20 ? [text] : [];
+		return text ? [`## ${text}`] : [];
+	}).join('\n');
+}
+
 export async function readStregaPlace(url: string): Promise<StregaPlace | null> {
 	try {
 		const response = await fetch(url, { signal: AbortSignal.timeout(20_000), headers: { ...HEADERS, accept: 'text/html' } });
@@ -115,7 +142,9 @@ export async function readStregaPlace(url: string): Promise<StregaPlace | null> 
 		};
 		const business = $('script[type="application/ld+json"]').toArray()
 			.flatMap((script) => { try { return [JSON.parse($(script).text()) as LocalBusiness]; } catch { return []; } })
-			.find((item) => item['@type'] && item['@type'] !== 'BreadcrumbList');
+			.find((item) => item['@type'] && item['@type'] !== 'BreadcrumbList' && Boolean(item.address));
+		// Desde el servidor, Strega solo deja ver las fichas que tiene en caché; las demás responden "403 Access Denied".
+		if (!business) return null;
 		const links = $('a[href]').toArray().map((link) => $(link).attr('href') ?? '');
 		const websiteLink = links.find((link, index) => /pagina web|sitio web/i.test($('a[href]').eq(index).text())) ?? business?.url ?? '';
 		const instagramUrl = [websiteLink, ...links].find((link) => /instagram\.com\/[\w.]+/i.test(link)) ?? '';
@@ -132,13 +161,7 @@ export async function readStregaPlace(url: string): Promise<StregaPlace | null> 
 		const html = $.html();
 		const descriptionStart = html.indexOf('<!-- Description -->');
 		const descriptionEnd = html.indexOf('<!-- Map Section -->', descriptionStart);
-		const review = descriptionStart >= 0 ? cheerio.load(html.slice(descriptionStart, descriptionEnd > 0 ? descriptionEnd : undefined)) : $;
-		// Los subtítulos de la reseña van como "## Título" (en FoodieBox se muestran en negrita, sin viñeta).
-		const description = review('h2, h3, h4, p').toArray().flatMap((element) => {
-			const text = review(element).text().replace(/\s+/g, ' ').trim();
-			if (element.tagName === 'p') return text.length > 20 ? [text] : [];
-			return text ? [`## ${text}`] : [];
-		}).join('\n') || business?.description?.trim() || '';
+		const description = descriptionFromHtml(descriptionStart >= 0 ? html.slice(descriptionStart, descriptionEnd > 0 ? descriptionEnd : undefined) : html) || business?.description?.trim() || '';
 		// "Fragata Argentina 2033, B1629 Pilar, Provincia de Buenos Aires, Argentina": calle y altura, ciudad y provincia.
 		const fullAddress = business?.address?.streetAddress?.trim() ?? '';
 		const addressParts = fullAddress.split(',').map((part) => part.trim()).filter(Boolean);
