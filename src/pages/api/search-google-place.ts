@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { getSettings } from '../../lib/server/database';
+import { findStregaPlace, searchStrega, type StregaPlace } from '../../lib/server/strega';
 
 export const prerender = false;
 
@@ -794,6 +795,84 @@ function googleMapsSearchUrl(place: GooglePlace, name: string) {
 	return url.href;
 }
 
+// Strega primero: si el lugar tiene ficha en Strega, sus datos reemplazan a los de Google, Woki o Instagram;
+// lo que Strega no tiene queda como venía. Los servicios (reservas, delivery, desayuno…) se suman:
+// que Strega no los muestre no quiere decir que el lugar no los tenga.
+const stregaMainCategories = ['Bar', 'Bodegón', 'Café', 'Casa de té', 'Cervecería', 'Comida rápida', 'Heladería', 'Pub', 'Restaurante', 'Vermutería'];
+function stregaCategories(categories: string[]) {
+	const text = normalized(categories.join(' | '));
+	const found: Array<[string, boolean]> = [
+		['Bar', /\bbar\b|cocteleria|wine bar/.test(text)],
+		['Bodegón', /bodegon/.test(text)],
+		['Café', /\bcafe\b|cafeteria|coffee/.test(text)],
+		['Casa de té', /casa de te\b|teteria/.test(text)],
+		['Cervecería', /cerveceria/.test(text)],
+		['Comida rápida', /comida rapida/.test(text)],
+		['Heladería', /heladeria/.test(text)],
+		['Pub', /\bpub\b/.test(text)],
+		['Restaurante', /restaurante|parrilla|pizzeria|hamburgueseria|bodegon|trattoria/.test(text)],
+		['Vermutería', /vermuteria/.test(text)],
+	];
+	return found.filter(([, present]) => present).map(([category]) => category);
+}
+
+function withStrega(result: RestaurantSearchResult, strega: StregaPlace | null): RestaurantSearchResult {
+	if (!strega) return result;
+	const services = normalized(strega.services.join(' | '));
+	const has = (pattern: RegExp) => pattern.test(services);
+	const delivery = Boolean(result.delivery) || has(/entrega a domicilio|delivery/);
+	const takeAway = Boolean(result.takeAway) || has(/para llevar|take ?away/);
+	const mainCategories = stregaCategories(strega.categories);
+	const currentCategories = (result.establishmentTypes as string[] | undefined) ?? [];
+	const establishmentTypes = mainCategories.length
+		? unique([...mainCategories, ...currentCategories.filter((category) => !stregaMainCategories.includes(category)), ...(delivery ? ['Delivery'] : []), ...(takeAway ? ['Take away'] : [])])
+		: currentCategories;
+	const meals: Array<[string, RegExp]> = [['Desayuno', /sirve desayuno/], ['Brunch', /sirve brunch/], ['Almuerzo', /sirve almuerzo/], ['Cena', /sirve cena/]];
+	const mealOrder = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Drunch', 'Cena', 'After-dinner', 'Tragos', 'Tienda', 'Eventos'];
+	const mealTypes = unique([...((result.mealTypes as string[] | undefined) ?? []), ...meals.filter(([, pattern]) => has(pattern)).map(([meal]) => meal)])
+		.sort((a, b) => mealOrder.indexOf(a) - mealOrder.indexOf(b));
+	// WhatsApp: el link de la ficha o, si el teléfono es un celular (+54 9…), ese número.
+	const whatsapp = whatsappFromLink(strega.whatsappUrl) || mobileFromGooglePhone(strega.phone);
+	const isMobile = /^\+?54\s*9/.test(strega.phone);
+	return {
+		...result,
+		description: strega.description || result.description,
+		address: strega.address || result.address,
+		neighborhood: strega.neighborhood || result.neighborhood,
+		city: strega.city || result.city,
+		province: strega.province || result.province,
+		country: result.country || 'Argentina',
+		phone: result.phone || (!isMobile ? strega.phone : ''),
+		mobile: whatsapp || result.mobile,
+		website: strega.website || result.website,
+		instagramUrl: strega.instagramUrl ? normalizeInstagramUrl(strega.instagramUrl) : result.instagramUrl,
+		mapUrl: strega.mapUrl || result.mapUrl,
+		hours: strega.hours || result.hours,
+		stregaUrl: strega.url,
+		establishmentTypes: establishmentTypes.length ? establishmentTypes : ['Restaurante'],
+		mealTypes,
+		delivery, takeAway,
+		reservations: Boolean(result.reservations) || has(/se puede reservar|reservas?\b/),
+		outdoorDining: Boolean(result.outdoorDining) || has(/aire libre/),
+		sources: ['Strega', ...(result.sources ?? [])],
+	};
+}
+
+// Lugar que no está en Google ni en las otras fuentes, pero sí en Strega.
+function resultFromStrega(strega: StregaPlace): RestaurantSearchResult {
+	// Strega a veces tiene el nombre todo en mayúsculas o todo en minúsculas ("BRÜDER PILAR", "sandra cocina").
+	const lower = strega.name.toLocaleLowerCase('es');
+	const name = strega.name === lower || strega.name === strega.name.toLocaleUpperCase('es')
+		? lower.replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase('es'))
+		: strega.name;
+	return withStrega({
+		name, description: '', notes: '', establishmentTypes: [], cuisines: [], mealTypes: [], tags: '',
+		price: '', averagePrice: '', rating: '', score: '', country: 'Argentina', province: '', city: '', neighborhood: '', address: '',
+		phone: '', mobile: '', website: '', googleUrl: googleSearchUrl(name, strega.address, strega.city, strega.province), mapUrl: '', hours: '',
+		instagramUrl: '', delivery: false, takeAway: false, imageUrls: [], sources: [],
+	}, strega);
+}
+
 export const POST: APIRoute = async ({ request }) => {
 	try {
 		const body = await request.json() as { name?: string; instagramUrl?: string; facebookUrl?: string; mode?: string };
@@ -806,10 +885,16 @@ export const POST: APIRoute = async ({ request }) => {
 				: json({ error: 'No se pudo obtener la foto de perfil de Instagram' }, 404);
 		}
 		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body, body.mode === 'images');
+		// Strega se busca primero (en paralelo, porque tarda): si el lugar tiene ficha, sus datos tienen prioridad.
+		const withoutStrega = body.mode === 'images';
+		const stregaSearch = withoutStrega ? Promise.resolve([]) : searchStrega(requestedPlaceName(name));
 		const publicFallback = async () => {
 			const fallback = await fallbackWithoutGoogle(name);
-			const enriched = await enrichResult(fallback ?? { name, imageUrls: [], sources: [] });
-			return fallback || enriched.imageUrls.length ? enriched : null;
+			const strega = withoutStrega ? null : await findStregaPlace(stregaSearch, [requestedPlaceName(name), String(fallback?.name ?? '')], [String(fallback?.city ?? '')]);
+			// Lo que se encuentra en la web sin Google ni Woki es una suposición: si está en Strega, se usa solo Strega.
+			if (strega && (!fallback || fallback.sources.includes('Fuentes públicas'))) return enrichResult(resultFromStrega(strega));
+			const enriched = await enrichResult(withStrega(fallback ?? { name, imageUrls: [], sources: [] }, strega));
+			return fallback || enriched.imageUrls?.length ? enriched : null;
 		};
 		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 		if (!apiKey) {
@@ -846,6 +931,10 @@ export const POST: APIRoute = async ({ request }) => {
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
 
+		// La ficha de Strega se termina de buscar mientras se leen el sitio, Woki y Facebook.
+		const stregaRequest: Promise<StregaPlace | null> = withoutStrega ? Promise.resolve(null) : findStregaPlace(stregaSearch, [requestedPlaceName(name), place.displayName?.text ?? ''], [
+			component(place, 'locality'), component(place, 'administrative_area_level_2'), component(place, 'neighborhood', 'sublocality_level_1', 'sublocality'),
+		]);
 		const websiteUri = place.websiteUri?.trim() ?? '';
 		// Muchos lugares cargan su Instagram, Facebook o Linktree como sitio web en Google.
 		const websiteIsSocial = (['instagram', 'facebook', 'tiktok', 'linktree'] as LinkKind[]).some((kind) => linkPatterns[kind].test(websiteUri));
@@ -856,7 +945,8 @@ export const POST: APIRoute = async ({ request }) => {
 		let facebookUrl = pickLink('facebook', siteLinks);
 		const [wokiPage, firstFacebookPage] = await Promise.all([pageDataOrEmpty(wokiUrl), pageDataOrEmpty(facebookUrl)]);
 		// Si el sitio no enlaza el Instagram o el Facebook, se busca en Woki y en el propio Facebook.
-		const instagramUrl = normalizeInstagramUrl(pickLink('instagram', siteLinks, firstFacebookPage.links, wokiPage.links));
+		const strega = await stregaRequest;
+		const instagramUrl = strega?.instagramUrl ? normalizeInstagramUrl(strega.instagramUrl) : normalizeInstagramUrl(pickLink('instagram', siteLinks, firstFacebookPage.links, wokiPage.links));
 		if (!facebookUrl) facebookUrl = pickLink('facebook', wokiPage.links);
 		const [instagramPage, facebookPage] = await Promise.all([
 			pageDataOrEmpty(instagramUrl),
@@ -926,7 +1016,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const wokiImageUrls = unique([wokiMatch?.bannerImageUrl || '', wokiMatch?.squareImageUrl || '', ...wokiPage.images]);
 		const imageUrls = unique([...googleImageUrls, ...wokiImageUrls, ...officialPage.images, ...facebookPage.images]).slice(0, 12);
 
-		return json(await enrichResult({
+		return json(await enrichResult(withStrega({
 			name: place.displayName?.text?.trim() || name, description, notes,
 			establishmentTypes: placeTypes.length ? placeTypes : ['Restaurante'], cuisines, mealTypes, tags,
 			rating: place.rating ? String(Math.min(5, Math.max(1, Math.round(place.rating)))) : '', score: place.rating ? String(place.rating) : '',
@@ -941,6 +1031,6 @@ export const POST: APIRoute = async ({ request }) => {
 			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen, reservations: Boolean(place.reservable), outdoorDining: Boolean(place.outdoorSeating),
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
-		}));
+		}, strega)));
 	} catch (error) { return json({ error: error instanceof Error ? error.message : 'No se pudo buscar el lugar en Google' }, 500); }
 };
