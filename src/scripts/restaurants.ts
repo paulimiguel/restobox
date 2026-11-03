@@ -1993,13 +1993,26 @@ const NOTES_HEADING = '⁣';
 function notesWithBullets(value: string) {
 	const normalized = value.replace(/\r\n?/g, '\n');
 	if (!normalized) return '';
-	return normalized.split('\n').map((line) => {
-		if (line.startsWith(NOTES_HEADING)) return `${NOTES_HEADING}${line.slice(NOTES_HEADING.length).replace(/^\s*•\s?/, '').trimStart()}`;
+	const lines: string[] = [];
+	normalized.split('\n').forEach((line) => {
+		// Un renglón vacío queda vacío (la viñeta aparece al escribir en él).
+		if (!line) {
+			lines.push('');
+			return;
+		}
 		const content = line.replace(/^\s*•\s?/, '').trimStart();
-		const heading = content.match(/^#{1,6}\s+(.*)$/);
-		if (heading) return `${NOTES_HEADING}${heading[1]}`;
-		return `${NOTES_BULLET}${content}`;
-	}).join('\n');
+		const heading = line.startsWith(NOTES_HEADING)
+			? `${NOTES_HEADING}${line.slice(NOTES_HEADING.length).replace(/^\s*•\s?/, '').trimStart()}`
+			: content.match(/^#{1,6}\s+(.*)$/) ? `${NOTES_HEADING}${content.replace(/^#{1,6}\s+/, '')}` : '';
+		if (!heading) {
+			lines.push(`${NOTES_BULLET}${content}`);
+			return;
+		}
+		// Cada título lleva un renglón en blanco arriba (salvo el primero del texto).
+		if (lines.length && lines.at(-1) !== '') lines.push('');
+		lines.push(heading);
+	});
+	return lines.join('\n');
 }
 
 function normalizeNotesBullets(input = notesInput) {
