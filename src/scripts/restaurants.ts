@@ -3661,6 +3661,11 @@ function moveCarouselImage(direction: number) {
 	renderCarouselImage();
 }
 
+// Las imágenes que se suben desde el explorador o el cuadro de imágenes se ordenan por nombre (orden natural: foto2 antes que foto10).
+function sortFilesByName(files: File[]) {
+	return [...files].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' }));
+}
+
 function addImageFiles(files: File[], placeFirst = false) {
 	const images = files.filter((file) => file.type.startsWith('image/'));
 	const available = MAX_IMAGES - restaurantImages.length;
@@ -6130,7 +6135,7 @@ removeLogoButton.addEventListener('click', (event) => {
 });
 
 imageInput.addEventListener('change', () => {
-	addImageFiles([...(imageInput.files ?? [])], imageInsertMode === 'primary');
+	addImageFiles(sortFilesByName([...(imageInput.files ?? [])]), imageInsertMode === 'primary');
 	imageInput.value = '';
 	imageInsertMode = 'append';
 });
@@ -6210,7 +6215,7 @@ imageDropZone.addEventListener('drop', (event) => {
 		showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
 		return;
 	}
-	const files = [...event.dataTransfer!.files];
+	const files = sortFilesByName([...event.dataTransfer!.files]);
 	if (files.length > 0) addImageFiles(files);
 	else void addDroppedWebImage(event.dataTransfer!);
 });
@@ -6347,7 +6352,7 @@ imageGalleryColumn.addEventListener('drop', (event) => {
 			showToast(`Solo se permiten ${MAX_IMAGES} imágenes`);
 			return;
 		}
-		const files = [...(event.dataTransfer?.files ?? [])];
+		const files = sortFilesByName([...(event.dataTransfer?.files ?? [])]);
 		if (files.length > 0) addImageFiles(files);
 		else if (event.dataTransfer) void addDroppedWebImage(event.dataTransfer);
 		return;
