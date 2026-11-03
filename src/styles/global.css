@@ -2094,3 +2094,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Links: TikTok no se muestra (el campo sigue en el formulario para conservar los datos cargados); Strega ocupa su lugar */
 #panel-links .tiktok-field { display: none !important; }
+
+/* Imágenes en edición: al pasar o arrastrar se ve solo el borde punteado (sin la línea alrededor de la columna) y más suave */
+.image-gallery-column.external-dragging { box-shadow: none; }
+:is(.creating-record, .editing-record, .importing-record) .image-previews-shell:hover, .image-previews-shell.dragging, .editing-record .image-gallery-column.external-dragging .image-previews-shell { border-color: color-mix(in srgb, var(--forest) 45%, transparent); }
