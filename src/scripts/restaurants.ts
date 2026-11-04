@@ -1909,11 +1909,37 @@ function scheduleDayKey(value: string) {
 	return '';
 }
 
+// Horarios en formato de 24 horas: "12 p.m.–11 p.m." → "12:00-23:00", "8–13 h" → "08:00-13:00".
+// Si hay varios turnos se separan con " / ". Lo que no es un rango de horas ("Cerrado", "Abierto 24 horas") queda igual.
+function formatScheduleHours(hours: string) {
+	const meridiem = (value?: string) => (value ? (/^p/i.test(value) ? 'pm' : 'am') : '');
+	const to24 = (hour: number, minutes: number, period: string) => {
+		const value = period === 'pm' ? (hour % 12) + 12 : period === 'am' ? hour % 12 : hour;
+		return `${String(value).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+	};
+	const rangePattern = /^(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?\s?m\.?|p\.?\s?m\.?)?\s*(?:hs?\.?)?\s*(?:[–—-]|\ba\b)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?\s?m\.?|p\.?\s?m\.?)?\s*(?:hs?\.?|horas?)?$/i;
+	const ranges = hours.split(/\s*(?:,|\/|\by\b)\s*/).filter(Boolean);
+	const formatted = ranges.map((range) => {
+		const match = range.trim().match(rangePattern);
+		if (!match) return null;
+		const [, startHour, startMinutes = '0', startPeriodText, endHour, endMinutes = '0', endPeriodText] = match;
+		const endPeriod = meridiem(endPeriodText);
+		// Google escribe "7–11:30 p.m.": el comienzo toma el a.m./p.m. del final, salvo que así quede después del cierre.
+		let startPeriod = meridiem(startPeriodText) || endPeriod;
+		if (!startPeriodText && endPeriod === 'pm' && Number(startHour) % 12 > Number(endHour) % 12) startPeriod = 'am';
+		const values = [Number(startHour), Number(startMinutes), Number(endHour), Number(endMinutes)];
+		if (values[0] > 24 || values[2] > 24 || values[1] > 59 || values[3] > 59) return null;
+		return `${to24(values[0], values[1], startPeriod)}-${to24(values[2], values[3], endPeriod)}`;
+	});
+	return formatted.every(Boolean) ? formatted.join(' / ') : hours;
+}
+
 function parseScheduleText(value: string) {
 	const result = new Map<string, string>();
 	const dayPattern = /\b(lunes?|lun\.?|monday|martes|mar\.?|tuesday|miércoles?|miercoles?|mié\.?|mie\.?|wednesday|jueves|jue\.?|thursday|viernes|vie\.?|friday|sábados?|sabados?|sáb\.?|sab\.?|saturday|domingos?|dom\.?|sunday)(?!\p{L})/giu;
 	let activeDays: string[] = [];
-	const appendHours = (keys: string[], hours: string) => {
+	const appendHours = (keys: string[], text: string) => {
+		const hours = formatScheduleHours(text);
 		keys.forEach((key) => {
 			const current = result.get(key);
 			if (!current) {
