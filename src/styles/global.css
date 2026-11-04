@@ -2166,3 +2166,17 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .name-import-dialog .import-place-methods button.active { color: var(--accent-text); border-color: currentColor; background: color-mix(in srgb, currentColor 9%, white); }
 :root[data-color-mode='dark'] .name-import-dialog .import-place-methods button.active { background: color-mix(in srgb, currentColor 18%, #1d242d); }
 @media (max-width: 560px) { .name-import-dialog .import-place-methods { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Editar campos comunes: en el mismo cuadro del desplegable se escribe para filtrar o agregar (Enter). */
+.bulk-choice-combo { position: relative; }
+.bulk-choice-combo > .bulk-choice-search { width: 100%; height: 42px; padding: 0 34px 0 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font: inherit; font-size: 12px; font-weight: 400; }
+.bulk-choice-combo > .bulk-choice-search.has-selection::placeholder { color: var(--ink); opacity: 1; }
+.bulk-choice-combo > svg { position: absolute; top: 50%; right: 11px; width: 16px; translate: 0 -50%; fill: none; stroke: currentColor; stroke-width: 2; cursor: pointer; transition: rotate .18s; }
+.bulk-choice-dropdown.open .bulk-choice-search { border-color: var(--forest); outline: 2px solid color-mix(in srgb, var(--forest) 15%, transparent); }
+.bulk-choice-dropdown.open .bulk-choice-combo > svg { rotate: 180deg; }
+.bulk-choice-dropdown:not(.open) > .bulk-choice-list { display: none; }
+.bulk-choice-list label.bulk-choice-option[hidden] { display: none; }
+:root[data-color-mode='dark'] .bulk-choice-combo > .bulk-choice-search { background: #1d242d; border-color: #59606a; }
+.bulk-location-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+.bulk-location-row > label { display: grid; gap: 5px; }
+@media (max-width: 560px) { .bulk-location-row { grid-template-columns: 1fr; } }

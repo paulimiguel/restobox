@@ -1080,42 +1080,40 @@ const userInitials = userDisplayName
 				<p id="bulk-edit-count" class="bulk-edit-help"></p>
 				<div class="bulk-edit-grid">
 					<div class="bulk-choice-field bulk-choice-wide"><span>Zona</span>
-						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-neighborhood-label" data-placeholder="Sin cambios">Sin cambios</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+						<div class="bulk-choice-dropdown">
+							<div class="bulk-choice-combo"><input class="bulk-choice-search" type="text" maxlength="50" autocomplete="off" data-bulk-add="bulkNeighborhoodChoice" data-bulk-add-list="#bulk-neighborhood-options" data-placeholder="Sin cambios (o escribí una nueva y Enter)" placeholder="Sin cambios (o escribí una nueva y Enter)" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></div>
 							<div id="bulk-neighborhood-options" class="bulk-choice-list"></div>
-						</details>
+						</div>
 						<input type="hidden" name="neighborhood" value="" />
-						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="bulkNeighborhoodChoice" data-bulk-add-list="#bulk-neighborhood-options" placeholder="Nueva zona y Enter" />
 					</div>
-					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
-					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
-					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
+					<div class="bulk-location-row">
+						<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
+						<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
+						<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
+					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Categorías</span>
-						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-establishments-label" data-placeholder="Seleccionar categorías">Seleccionar categorías</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+						<div class="bulk-choice-dropdown">
+							<div class="bulk-choice-combo"><input class="bulk-choice-search" type="text" maxlength="50" autocomplete="off" data-bulk-add="establishmentTypes" data-bulk-add-list="#bulk-establishment-options" data-placeholder="Seleccioná o escribí una nueva y Enter" placeholder="Seleccioná o escribí una nueva y Enter" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></div>
 							<div id="bulk-establishment-options" class="bulk-choice-list"></div>
-						</details>
-						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="establishmentTypes" data-bulk-add-list="#bulk-establishment-options" placeholder="Nueva categoría y Enter" />
+						</div>
 					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Servicios</span>
-						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-services-label" data-placeholder="Seleccionar servicios">Seleccionar servicios</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+						<div class="bulk-choice-dropdown">
+							<div class="bulk-choice-combo"><input class="bulk-choice-search" type="text" maxlength="50" autocomplete="off" data-bulk-add="mealTypes" data-bulk-add-list="#bulk-service-options" data-placeholder="Seleccioná o escribí uno nuevo y Enter" placeholder="Seleccioná o escribí uno nuevo y Enter" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></div>
 							<div id="bulk-service-options" class="bulk-choice-list"></div>
-						</details>
-						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="mealTypes" data-bulk-add-list="#bulk-service-options" placeholder="Nuevo servicio y Enter" />
+						</div>
 					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Tipo de cocina</span>
-						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-cuisines-label" data-placeholder="Seleccionar tipos de cocina">Seleccionar tipos de cocina</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+						<div class="bulk-choice-dropdown">
+							<div class="bulk-choice-combo"><input class="bulk-choice-search" type="text" maxlength="50" autocomplete="off" data-bulk-add="cuisines" data-bulk-add-list="#bulk-cuisine-options" data-placeholder="Seleccioná o escribí uno nuevo y Enter" placeholder="Seleccioná o escribí uno nuevo y Enter" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></div>
 							<div id="bulk-cuisine-options" class="bulk-choice-list"></div>
-						</details>
-						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="cuisines" data-bulk-add-list="#bulk-cuisine-options" placeholder="Nuevo tipo de cocina y Enter" />
+						</div>
 					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Etiquetas</span>
-						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-tags-label" data-placeholder="Seleccionar etiquetas">Seleccionar etiquetas</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+						<div class="bulk-choice-dropdown">
+							<div class="bulk-choice-combo"><input class="bulk-choice-search" type="text" maxlength="50" autocomplete="off" data-bulk-add-list="#bulk-tag-options" data-placeholder="Seleccioná o escribí para buscar" placeholder="Seleccioná o escribí para buscar" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></div>
 							<div id="bulk-tag-options" class="bulk-choice-list"></div>
-						</details>
+						</div>
 					</div>
 					<label><span>Nivel de precio</span><select name="price"><option value="">Sin cambios</option><option>$</option><option>$$</option><option>$$$</option><option>$$$$</option></select></label>
 					<label><span>Precio promedio por persona</span><input name="averagePrice" list="average-price-options" placeholder="Sin cambios" /></label>

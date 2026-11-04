@@ -7118,23 +7118,23 @@ function setBulkEditLists() {
 
 // El texto de cada desplegable dice cuántas opciones hay marcadas (o la zona elegida).
 function updateBulkChoiceLabels() {
-	const label = (id: string, name: string, singular: string, plural: string) => {
-		const element = document.querySelector<HTMLElement>(id)!;
+	// Sin escribir nada, el cuadro muestra lo marcado (o la cantidad); al escribir, filtra y Enter agrega.
+	const label = (list: string, name: string, plural: string) => {
+		const element = bulkEditForm.querySelector<HTMLInputElement>(`.bulk-choice-search[data-bulk-add-list="#${list}"]`)!;
 		const checked = [...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value);
-		element.textContent = !checked.length ? element.dataset.placeholder ?? ''
-			: checked.length <= 3 ? checked.join(', ')
-				: `${checked.length} ${checked.length === 1 ? singular : plural}`;
+		element.placeholder = !checked.length ? element.dataset.placeholder ?? '' : checked.length <= 3 ? checked.join(', ') : `${checked.length} ${plural}`;
+		element.classList.toggle('has-selection', checked.length > 0);
 	};
-	label('#bulk-neighborhood-label', 'bulkNeighborhoodChoice', 'zona', 'zonas');
-	label('#bulk-establishments-label', 'establishmentTypes', 'categoría seleccionada', 'categorías seleccionadas');
-	label('#bulk-services-label', 'mealTypes', 'servicio seleccionado', 'servicios seleccionados');
-	label('#bulk-cuisines-label', 'cuisines', 'tipo de cocina seleccionado', 'tipos de cocina seleccionados');
-	label('#bulk-tags-label', 'tags', 'etiqueta seleccionada', 'etiquetas seleccionadas');
+	label('bulk-neighborhood-options', 'bulkNeighborhoodChoice', 'zonas');
+	label('bulk-establishment-options', 'establishmentTypes', 'categorías seleccionadas');
+	label('bulk-service-options', 'mealTypes', 'servicios seleccionados');
+	label('bulk-cuisine-options', 'cuisines', 'tipos de cocina seleccionados');
+	label('bulk-tag-options', 'tags', 'etiquetas seleccionadas');
 }
 
 function openBulkEditDialog() {
 	bulkEditForm.reset();
-	bulkEditForm.querySelectorAll<HTMLDetailsElement>('details').forEach((details) => details.removeAttribute('open'));
+	closeBulkDropdowns();
 	bulkEditCount.textContent = `${printSelectedIds.size} lugares seleccionados. Completá únicamente los campos que quieras modificar. Las categorías, servicios, tipos de cocina y etiquetas se agregarán sin quitar las existentes.`;
 	setBulkEditLists();
 	bulkEditDialog.showModal();
@@ -7188,24 +7188,65 @@ bulkEditForm.addEventListener('keydown', (event) => {
 	option.checked = true;
 	option.dispatchEvent(new Event('change', { bubbles: true }));
 	input.value = '';
+	filterBulkChoices(input);
 	showToast(isNew ? `“${value}” agregado; se guarda al aplicar los cambios` : `“${value}” marcado`);
 });
 bulkEditForm.addEventListener('change', (event) => {
 	const input = event.target as HTMLInputElement;
 	if (input.matches('input[name="bulkNeighborhoodChoice"]')) {
 		(bulkEditForm.elements.namedItem('neighborhood') as HTMLInputElement).value = input.checked ? input.value : '';
-		input.closest('details')?.removeAttribute('open');
+		closeBulkDropdowns();
 	}
 	if (input.matches('.bulk-choice-list input')) updateBulkChoiceLabels();
 });
-// Un solo desplegable abierto a la vez; un clic fuera de él lo cierra.
-bulkEditForm.addEventListener('toggle', (event) => {
-	const details = event.target as HTMLDetailsElement;
-	if (details.open) bulkEditForm.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((item) => { if (item !== details) item.open = false; });
-}, true);
+// Desplegables: se abren al tocar o escribir en su cuadro (uno por vez), lo escrito filtra las opciones,
+// y un clic fuera o Escape los cierra.
+function closeBulkDropdowns(except?: Element | null) {
+	bulkEditForm.querySelectorAll('.bulk-choice-dropdown.open').forEach((item) => { if (item !== except) item.classList.remove('open'); });
+}
+function filterBulkChoices(input: HTMLInputElement) {
+	const list = input.dataset.bulkAddList ? bulkEditForm.querySelector<HTMLElement>(input.dataset.bulkAddList) : null;
+	const query = input.value.trim().toLocaleLowerCase('es');
+	list?.querySelectorAll<HTMLElement>('.bulk-choice-option').forEach((option) => {
+		option.hidden = Boolean(query) && !option.textContent!.toLocaleLowerCase('es').includes(query);
+	});
+}
+function openBulkDropdown(input: HTMLInputElement) {
+	const dropdown = input.closest('.bulk-choice-dropdown');
+	closeBulkDropdowns(dropdown);
+	dropdown?.classList.add('open');
+}
+bulkEditForm.addEventListener('focusin', (event) => {
+	const target = event.target as Element;
+	if (target instanceof HTMLInputElement && target.matches('.bulk-choice-search')) openBulkDropdown(target);
+	else if (!target.closest('.bulk-choice-dropdown')) closeBulkDropdowns();
+});
+bulkEditForm.addEventListener('input', (event) => {
+	const target = event.target as Element;
+	if (target instanceof HTMLInputElement && target.matches('.bulk-choice-search')) {
+		openBulkDropdown(target);
+		filterBulkChoices(target);
+	}
+});
 bulkEditForm.addEventListener('click', (event) => {
 	const target = event.target as Element;
-	bulkEditForm.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((item) => { if (!item.contains(target)) item.open = false; });
+	const combo = target.closest('.bulk-choice-combo');
+	if (combo) {
+		const input = combo.querySelector<HTMLInputElement>('.bulk-choice-search')!;
+		if (target !== input && combo.parentElement!.classList.contains('open')) {
+			closeBulkDropdowns();
+			return;
+		}
+		openBulkDropdown(input);
+		if (target !== input) input.focus({ preventScroll: true });
+		return;
+	}
+	closeBulkDropdowns(target.closest('.bulk-choice-dropdown'));
+});
+bulkEditForm.addEventListener('keydown', (event) => {
+	if (event.key !== 'Escape' || !bulkEditForm.querySelector('.bulk-choice-dropdown.open')) return;
+	event.preventDefault();
+	closeBulkDropdowns();
 });
 bulkEditForm.addEventListener('keydown', (event) => {
 	if (event.key === 'Enter') event.preventDefault();
