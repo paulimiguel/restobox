@@ -2177,13 +2177,18 @@ function updateDirtyState() {
 	const imagesChanged = imageBaselineReady && captureImageState() !== baselineImageState;
 	const logoChanged = logoBaselineReady && captureLogoState() !== baselineLogoState;
 	updateDataButton.disabled = !(formChanged || imagesChanged || logoChanged);
+	updateRestaurantRecordNavigation();
 }
 
 function updateRestaurantRecordNavigation() {
 	const visibleIndex = activeRestaurantId ? visibleRestaurantIds.indexOf(activeRestaurantId) : -1;
 	restaurantRecordNavigation.hidden = visibleIndex < 0;
-	previousRestaurantButton.disabled = visibleIndex <= 0;
-	nextRestaurantButton.disabled = visibleIndex < 0 || visibleIndex >= visibleRestaurantIds.length - 1;
+	// Al editar, con cambios sin guardar no se puede pasar a otro lugar (primero hay que actualizar o cancelar).
+	const unsavedChanges = form.classList.contains('editing-record') && !updateDataButton.disabled;
+	previousRestaurantButton.disabled = unsavedChanges || visibleIndex <= 0;
+	nextRestaurantButton.disabled = unsavedChanges || visibleIndex < 0 || visibleIndex >= visibleRestaurantIds.length - 1;
+	const unsavedTitle = unsavedChanges ? 'Guardá o cancelá los cambios para pasar a otro lugar' : '';
+	[previousRestaurantButton, nextRestaurantButton].forEach((button) => { button.title = unsavedTitle || button.getAttribute('aria-label') || ''; });
 }
 
 function updateClearButton(control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
@@ -4991,7 +4996,7 @@ function navigateVisibleRestaurant(direction: -1 | 1) {
 	const readOnly = form.classList.contains('view-mode');
 	const editing = form.classList.contains('editing-record');
 	if (!readOnly && !editing) return;
-	if (editing && !updateDataButton.disabled && !window.confirm('Hay cambios sin guardar. Si cambiás de lugar, se perderán. ¿Querés continuar?')) return;
+	if (editing && !updateDataButton.disabled) return;
 	const currentIndex = visibleRestaurantIds.indexOf(activeRestaurantId);
 	const targetId = visibleRestaurantIds[currentIndex + direction];
 	const target = restaurants.find((restaurant) => restaurant.id === targetId);
