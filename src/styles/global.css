@@ -2144,3 +2144,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Ficha del lugar: sin las flechas para subir y bajar (se desplaza con la barra o la rueda del mouse) */
 .form-scroll-navigation, .form-scroll-navigation[hidden] { display: none !important; }
+/* "Borrar descripción" a la izquierda de "Importar descripción", del mismo tamaño */
+#panel-description .description-import-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+#panel-description #clear-description { width: auto; min-height: 26px; padding: 4px 12px; font-size: 11px; }
+#panel-description #clear-description:disabled { opacity: .45; cursor: not-allowed; }

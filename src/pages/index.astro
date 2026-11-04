@@ -819,7 +819,10 @@ const userInitials = userDisplayName
 							<textarea id="restaurant-description" name="description" rows="6" placeholder="Contá brevemente su propuesta y sus características…"></textarea>
 						</div>
 						<div class="form-field description-import-field wide">
-							<button id="import-strega-description" class="secondary-button" type="button">Importar descripción</button>
+							<div class="description-import-actions">
+								<button id="clear-description" class="secondary-button" type="button" disabled>Borrar descripción</button>
+								<button id="import-strega-description" class="secondary-button" type="button">Importar descripción</button>
+							</div>
 						</div>
 						<div class="form-field notes-field long-text-field wide">
 							<div class="long-text-field-heading">

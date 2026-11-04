@@ -5168,6 +5168,27 @@ async function searchPlaceWithStrega(body: { name: string; instagramUrl?: string
 // Botón "Importar descripción" (al editar): trae la reseña de Strega del lugar, con los subtítulos en negrita
 // y un párrafo por viñeta. Usa el link de Strega del lugar o, si no lo tiene, lo busca por nombre.
 const importStregaDescriptionButton = document.querySelector<HTMLButtonElement>('#import-strega-description')!;
+// Botón "Borrar descripción": activo solo cuando hay una descripción cargada.
+const clearDescriptionButton = document.querySelector<HTMLButtonElement>('#clear-description')!;
+function updateClearDescriptionButton() {
+	clearDescriptionButton.disabled = !descriptionInput.value.replace(/[•\s⁣]/g, '');
+}
+descriptionInput.addEventListener('input', updateClearDescriptionButton);
+// La descripción también cambia por código (al abrir un lugar, importar o deshacer): se revisa cada vez que se asigna.
+const descriptionValueDescriptor = Object.getOwnPropertyDescriptor(descriptionInput, 'value') ?? Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!;
+Object.defineProperty(descriptionInput, 'value', {
+	configurable: true,
+	get() { return descriptionValueDescriptor.get!.call(this); },
+	set(value: string) { descriptionValueDescriptor.set!.call(this, value); updateClearDescriptionButton(); },
+});
+form.addEventListener('reset', () => setTimeout(updateClearDescriptionButton));
+clearDescriptionButton.addEventListener('click', () => {
+	if (!window.confirm('¿Borrar la descripción?')) return;
+	descriptionInput.value = '';
+	descriptionInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContent' }));
+	descriptionInput.focus();
+});
+updateClearDescriptionButton();
 importStregaDescriptionButton.addEventListener('click', async () => {
 	const stregaUrlInput = form.elements.namedItem('stregaUrl') as HTMLInputElement;
 	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
