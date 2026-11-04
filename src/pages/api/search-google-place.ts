@@ -796,7 +796,7 @@ function googleMapsSearchUrl(place: GooglePlace, name: string) {
 }
 
 // Strega completa lo que falta: los datos salen de Google e Instagram (y Woki o el sitio) y, si alguno quedó vacío,
-// se toma de la ficha de Strega. La descripción es la excepción: si Strega tiene reseña, se usa esa.
+// se toma de la ficha de Strega (también la descripción: la reseña de Strega solo si Google no trae ninguna).
 // Los servicios (reservas, delivery, desayuno…) se suman: que una fuente no los muestre no quiere decir que el lugar no los tenga.
 function stregaCategories(categories: string[]) {
 	const text = normalized(categories.join(' | '));
@@ -835,9 +835,9 @@ function withStrega(result: RestaurantSearchResult, strega: StregaPlace | null):
 	const filled = (value: unknown, fallback: string) => (typeof value === 'string' && value.trim() ? value : fallback);
 	return {
 		...result,
-		// Con reseña de Strega, la descripción sale de ahí (sin los puntos del resumen de Google).
-		description: strega.description || result.description,
-		notes: strega.description ? '' : result.notes,
+		// La descripción también sale primero de Google (con sus puntos): la reseña de Strega solo si no hay ninguna.
+		description: filled(result.description, strega.description),
+		notes: filled(result.description, '') ? result.notes : '',
 		address: filled(result.address, strega.address),
 		neighborhood: filled(result.neighborhood, strega.neighborhood),
 		city: filled(result.city, strega.city),
