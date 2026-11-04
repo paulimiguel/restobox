@@ -31,10 +31,11 @@ export const POST: APIRoute = async ({ request }) => {
 		description = candidate?.content ? descriptionFromHtml(candidate.content) : (await readStregaPlace(stregaUrl))?.description ?? '';
 		url = stregaUrl;
 	} else if (name.length >= 2) {
-		const place = await findStregaPlace(candidates, [name], [body.city ?? '', body.neighborhood ?? '']);
+		// Con ciudad, la ficha tiene que ser de esa ciudad (hay lugares con el mismo nombre en otras); la zona sola puede repetirse.
+		const place = await findStregaPlace(candidates, [name], body.city?.trim() ? [body.city] : [body.neighborhood ?? '']);
 		description = place?.description ?? '';
 		url = place?.url ?? '';
-		if (!place) return json({ error: `No se encontró “${name}” en Strega` }, 404);
+		if (!place) return json({ error: `No se encontró “${name}”${body.city?.trim() ? ` de ${body.city.trim()}` : ""} en Strega` }, 404);
 	} else {
 		return json({ error: 'Cargá el nombre del lugar o su link de Strega' }, 400);
 	}

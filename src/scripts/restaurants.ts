@@ -5206,7 +5206,12 @@ importStregaDescriptionButton.addEventListener('click', async () => {
 	importStregaDescriptionButton.textContent = 'Buscando en Strega…';
 	try {
 		const stregaUrl = stregaUrlInput.value.trim();
-		const candidates = stregaUrl ? await stregaFichaInBrowser(stregaUrl) : await searchStregaInBrowser(name);
+		// Por nombre y, a la vez, por nombre y ciudad: si hay lugares con el mismo nombre en otras ciudades,
+		// el de esta ciudad no queda afuera de los primeros resultados. El servidor elige el de la ciudad del lugar.
+		const city = cityInput.value.trim();
+		const candidates = stregaUrl
+			? await stregaFichaInBrowser(stregaUrl)
+			: (await Promise.all([searchStregaInBrowser(name), ...(city ? [searchStregaInBrowser(`${name} ${city}`)] : [])])).flat();
 		if (!candidates.length) throw new Error(stregaUrl ? 'Strega no devolvió la ficha del link cargado' : `No se encontró “${name}” en Strega`);
 		const response = requireActiveSession(await fetch('/api/strega-description', {
 			method: 'POST',

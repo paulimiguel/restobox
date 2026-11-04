@@ -57,7 +57,11 @@ export function stregaCandidatesFrom(value: unknown): StregaCandidate[] {
 // si se conoce la ciudad o el barrio, la ficha tiene que ser de ahí (Strega los marca como "business_location-mar-del-plata").
 export function pickStregaCandidate(candidates: StregaCandidate[], names: string[], places: string[] = []) {
 	const wanted = names.map(comparable).filter((value) => value.length >= 2);
-	const placeClasses = places.map((place) => place.trim()).filter(Boolean).map((place) => `business_location-${slug(place)}`);
+	// Strega llama a la Capital "Ciudad Autónoma de Buenos Aires".
+	const capital = /^(?:caba|capital federal|ciudad (?:autonoma )?de buenos aires|buenos aires)$/;
+	const placeClasses = places.map((place) => place.trim()).filter(Boolean)
+		.flatMap((place) => [slug(place), ...(capital.test(plain(place)) ? ['ciudad-autonoma-de-buenos-aires'] : [])])
+		.map((place) => `business_location-${place}`);
 	const scored = candidates.flatMap((candidate) => {
 		const title = comparable(candidate.title);
 		if (!title) return [];
@@ -65,9 +69,8 @@ export function pickStregaCandidate(candidates: StregaCandidate[], names: string
 		if (!score) return [];
 		return [{ candidate, score, inPlace: placeClasses.some((placeClass) => candidate.classes.includes(placeClass)) }];
 	});
-	// Si el título es exactamente lo que se escribió ("Bruder Pilar" → "BRÜDER PILAR"), vale aunque la ciudad no coincida.
-	const typed = wanted[0] ?? '';
-	const pool = placeClasses.length ? scored.filter((item) => item.inPlace || comparable(item.candidate.title) === typed) : scored;
+	// Puede haber lugares con el mismo nombre en otras ciudades: si se conoce la ciudad, la ficha tiene que ser de ahí.
+	const pool = placeClasses.length ? scored.filter((item) => item.inPlace) : scored;
 	return pool.sort((a, b) => b.score - a.score)[0]?.candidate ?? null;
 }
 
