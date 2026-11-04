@@ -6515,6 +6515,15 @@ imagePreviews.addEventListener('dragstart', (event) => {
 	window.setTimeout(() => preview.classList.add('dragging'), 0);
 });
 
+// En modo lectura no se pueden soltar imágenes (ni el logo) en la ficha: solo al editar.
+// Se corta antes de que llegue a los cuadros, y se evita que el navegador abra el archivo soltado.
+(['dragenter', 'dragover', 'drop'] as const).forEach((type) => form.addEventListener(type, (event) => {
+	if (!form.classList.contains('view-mode')) return;
+	event.preventDefault();
+	event.stopPropagation();
+	if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
+}, true));
+
 imageGalleryColumn.addEventListener('dragover', (event) => {
 	event.preventDefault();
 	if (draggedImageIndex === null) {
