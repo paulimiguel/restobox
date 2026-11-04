@@ -795,10 +795,9 @@ function googleMapsSearchUrl(place: GooglePlace, name: string) {
 	return url.href;
 }
 
-// Strega primero: si el lugar tiene ficha en Strega, sus datos reemplazan a los de Google, Woki o Instagram;
-// lo que Strega no tiene queda como venía. Los servicios (reservas, delivery, desayuno…) se suman:
-// que Strega no los muestre no quiere decir que el lugar no los tenga.
-const stregaMainCategories = ['Bar', 'Bodegón', 'Café', 'Casa de té', 'Cervecería', 'Comida rápida', 'Heladería', 'Pub', 'Restaurante', 'Vermutería'];
+// Strega completa lo que falta: los datos salen de Google e Instagram (y Woki o el sitio) y, si alguno quedó vacío,
+// se toma de la ficha de Strega. La descripción es la excepción: si Strega tiene reseña, se usa esa.
+// Los servicios (reservas, delivery, desayuno…) se suman: que una fuente no los muestre no quiere decir que el lugar no los tenga.
 function stregaCategories(categories: string[]) {
 	const text = normalized(categories.join(' | '));
 	const found: Array<[string, boolean]> = [
@@ -822,11 +821,10 @@ function withStrega(result: RestaurantSearchResult, strega: StregaPlace | null):
 	const has = (pattern: RegExp) => pattern.test(services);
 	const delivery = Boolean(result.delivery) || has(/entrega a domicilio|delivery/);
 	const takeAway = Boolean(result.takeAway) || has(/para llevar|take ?away/);
-	const mainCategories = stregaCategories(strega.categories);
 	const currentCategories = (result.establishmentTypes as string[] | undefined) ?? [];
-	const establishmentTypes = mainCategories.length
-		? unique([...mainCategories, ...currentCategories.filter((category) => !stregaMainCategories.includes(category)), ...(delivery ? ['Delivery'] : []), ...(takeAway ? ['Take away'] : [])])
-		: currentCategories;
+	const establishmentTypes = currentCategories.length
+		? unique([...currentCategories, ...(delivery ? ['Delivery'] : []), ...(takeAway ? ['Take away'] : [])])
+		: unique([...stregaCategories(strega.categories), ...(delivery ? ['Delivery'] : []), ...(takeAway ? ['Take away'] : [])]);
 	const meals: Array<[string, RegExp]> = [['Desayuno', /sirve desayuno/], ['Brunch', /sirve brunch/], ['Almuerzo', /sirve almuerzo/], ['Cena', /sirve cena/]];
 	const mealOrder = ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Drunch', 'Cena', 'After-dinner', 'Tragos', 'Tienda', 'Eventos'];
 	const mealTypes = unique([...((result.mealTypes as string[] | undefined) ?? []), ...meals.filter(([, pattern]) => has(pattern)).map(([meal]) => meal)])
@@ -834,29 +832,30 @@ function withStrega(result: RestaurantSearchResult, strega: StregaPlace | null):
 	// WhatsApp: el link de la ficha o, si el teléfono es un celular (+54 9…), ese número.
 	const whatsapp = whatsappFromLink(strega.whatsappUrl) || mobileFromGooglePhone(strega.phone);
 	const isMobile = /^\+?54\s*9/.test(strega.phone);
+	const filled = (value: unknown, fallback: string) => (typeof value === 'string' && value.trim() ? value : fallback);
 	return {
 		...result,
-		// Con reseña de Strega, la descripción sale solo de ahí (sin los puntos del resumen de Google).
+		// Con reseña de Strega, la descripción sale de ahí (sin los puntos del resumen de Google).
 		description: strega.description || result.description,
 		notes: strega.description ? '' : result.notes,
-		address: strega.address || result.address,
-		neighborhood: strega.neighborhood || result.neighborhood,
-		city: strega.city || result.city,
-		province: strega.province || result.province,
-		country: result.country || 'Argentina',
-		phone: result.phone || (!isMobile ? strega.phone : ''),
-		mobile: whatsapp || result.mobile,
-		website: strega.website || result.website,
-		instagramUrl: strega.instagramUrl ? normalizeInstagramUrl(strega.instagramUrl) : result.instagramUrl,
-		mapUrl: strega.mapUrl || result.mapUrl,
-		hours: strega.hours || result.hours,
+		address: filled(result.address, strega.address),
+		neighborhood: filled(result.neighborhood, strega.neighborhood),
+		city: filled(result.city, strega.city),
+		province: filled(result.province, strega.province),
+		country: filled(result.country, 'Argentina'),
+		phone: filled(result.phone, !isMobile ? strega.phone : ''),
+		mobile: filled(result.mobile, whatsapp),
+		website: filled(result.website, strega.website),
+		instagramUrl: filled(result.instagramUrl, strega.instagramUrl ? normalizeInstagramUrl(strega.instagramUrl) : ''),
+		mapUrl: filled(result.mapUrl, strega.mapUrl),
+		hours: filled(result.hours, strega.hours),
 		stregaUrl: strega.url,
 		establishmentTypes: establishmentTypes.length ? establishmentTypes : ['Restaurante'],
 		mealTypes,
 		delivery, takeAway,
 		reservations: Boolean(result.reservations) || has(/se puede reservar|reservas?\b/),
 		outdoorDining: Boolean(result.outdoorDining) || has(/aire libre/),
-		sources: ['Strega', ...(result.sources ?? [])],
+		sources: [...(result.sources ?? []), 'Strega'],
 	};
 }
 
