@@ -4903,6 +4903,8 @@ openUrlImportButtons.forEach((button) => button.addEventListener('click', () => 
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	openUrlImportDialog();
 }));
+// "Importar por nombre" es la forma de esta ventana: solo lleva al cuadro de nombres.
+document.querySelector<HTMLButtonElement>('[data-import-by-name]')?.addEventListener('click', () => document.querySelector<HTMLTextAreaElement>('#place-search-name')?.focus());
 cancelUrlImport.addEventListener('click', () => urlImportDialog.close());
 finishUrlImport.addEventListener('click', () => urlImportDialog.close());
 clearUrlImport.addEventListener('click', () => {

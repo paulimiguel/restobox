@@ -2160,3 +2160,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .bulk-choice-option span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 :root[data-color-mode='dark'] .bulk-choice-list label.bulk-choice-option { color: var(--ink); background: #26292e; border-color: #474c53; }
 :root[data-color-mode='dark'] .bulk-choice-list label.bulk-choice-option:is(:hover, :has(input:checked)) { color: #fff; background: #34373e; }
+
+/* Importar lugar: las cuatro formas de importar arriba de todo; "por nombre" es la de esta ventana. */
+.name-import-dialog .import-place-methods { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 16px; }
+.name-import-dialog .import-place-methods button.active { color: var(--accent-text); border-color: currentColor; background: color-mix(in srgb, currentColor 9%, white); }
+:root[data-color-mode='dark'] .name-import-dialog .import-place-methods button.active { background: color-mix(in srgb, currentColor 18%, #1d242d); }
+@media (max-width: 560px) { .name-import-dialog .import-place-methods { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
