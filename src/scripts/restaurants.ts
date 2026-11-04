@@ -5183,7 +5183,6 @@ Object.defineProperty(descriptionInput, 'value', {
 });
 form.addEventListener('reset', () => setTimeout(updateClearDescriptionButton));
 clearDescriptionButton.addEventListener('click', () => {
-	if (!window.confirm('¿Borrar la descripción?')) return;
 	descriptionInput.value = '';
 	descriptionInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContent' }));
 	descriptionInput.focus();
