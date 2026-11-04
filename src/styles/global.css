@@ -2148,3 +2148,15 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #panel-description .description-import-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 #panel-description #clear-description { width: auto; min-height: 26px; padding: 4px 12px; font-size: 11px; }
 #panel-description #clear-description:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Editar campos comunes: zona, categorías, servicios, tipos de cocina y etiquetas en desplegables con tarjetas, como en el alta. */
+.bulk-choice-dropdown > summary > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bulk-choice-dropdown > .bulk-choice-list { display: grid; max-height: 300px; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); align-content: start; gap: 6px; padding: 8px; }
+.bulk-choice-list > .cuisine-empty { grid-column: 1 / -1; }
+.bulk-choice-list label.bulk-choice-option { display: flex; min-width: 0; min-height: 34px; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: 7px; color: var(--ink); background: white; font-size: 11px; font-weight: 500; }
+.bulk-choice-list label.bulk-choice-option:hover { border-color: color-mix(in srgb, var(--forest) 45%, var(--line)); background: color-mix(in srgb, var(--sage) 52%, white); }
+.bulk-choice-list label.bulk-choice-option:has(input:checked) { color: var(--accent-text); border-color: var(--forest); background: color-mix(in srgb, var(--sage) 78%, white); }
+.bulk-choice-option input { flex: 0 0 auto; margin: 0; }
+.bulk-choice-option span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:root[data-color-mode='dark'] .bulk-choice-list label.bulk-choice-option { color: var(--ink); background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] .bulk-choice-list label.bulk-choice-option:is(:hover, :has(input:checked)) { color: #fff; background: #34373e; }

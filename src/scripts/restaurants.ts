@@ -7097,18 +7097,37 @@ function setBulkEditLists() {
 	const fill = (id: string, values: string[]) => {
 		document.querySelector<HTMLDataListElement>(id)!.innerHTML = values.map((value) => `<option value="${safe(value)}"></option>`).join('');
 	};
-	fill('#bulk-neighborhoods', neighborhoods);
 	fill('#bulk-cities', cities);
 	fill('#bulk-provinces', provinces);
 	fill('#bulk-countries', countries);
-	const choices = (values: string[], name: string) => values.map((value) => `<label><input type="checkbox" name="${name}" value="${safe(value)}" />${safe(value)}</label>`).join('');
-	document.querySelector<HTMLDivElement>('#bulk-establishment-options')!.innerHTML = choices(establishmentTypes, 'establishmentTypes');
-	document.querySelector<HTMLDivElement>('#bulk-service-options')!.innerHTML = choices(serviceTypes, 'mealTypes');
-	document.querySelector<HTMLDivElement>('#bulk-cuisine-options')!.innerHTML = choices(cuisines, 'cuisines');
+	// Mismas listas y mismo orden que en el alta de un lugar (alfabético; los servicios por momento del día), en tarjetas.
+	const alphabetical = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b, 'es'));
+	const choices = (values: string[], name: string, type = 'checkbox') => values.map((value) => `<label class="bulk-choice-option" title="${safe(value)}"><input type="${type}" name="${name}" value="${safe(value)}" /><span>${safe(value)}</span></label>`).join('');
+	const availableNeighborhoods = alphabetical([...neighborhoods, ...restaurants.map((restaurant) => restaurant.neighborhood).filter(Boolean)]);
+	document.querySelector<HTMLDivElement>('#bulk-neighborhood-options')!.innerHTML = choices(availableNeighborhoods, 'bulkNeighborhoodChoice', 'radio') || '<span class="cuisine-empty">No hay zonas guardadas.</span>';
+	document.querySelector<HTMLDivElement>('#bulk-establishment-options')!.innerHTML = choices(alphabetical(establishmentTypes), 'establishmentTypes');
+	document.querySelector<HTMLDivElement>('#bulk-service-options')!.innerHTML = choices(sortServices([...new Set(serviceTypes)]), 'mealTypes');
+	document.querySelector<HTMLDivElement>('#bulk-cuisine-options')!.innerHTML = choices(alphabetical(cuisines), 'cuisines');
 	const availableTags = capitalizedCatalogValues([...tagCatalog, ...restaurants.flatMap(restaurantTags)]).sort((a, b) => a.localeCompare(b, 'es'));
 	document.querySelector<HTMLDivElement>('#bulk-tag-options')!.innerHTML = choices(availableTags, 'tags') || '<span class="cuisine-empty">No hay etiquetas guardadas.</span>';
-	document.querySelector<HTMLElement>('#bulk-cuisines-label')!.textContent = 'Seleccionar tipos de cocina';
-	document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = 'Seleccionar etiquetas';
+	(bulkEditForm.elements.namedItem('neighborhood') as HTMLInputElement).value = '';
+	updateBulkChoiceLabels();
+}
+
+// El texto de cada desplegable dice cuántas opciones hay marcadas (o la zona elegida).
+function updateBulkChoiceLabels() {
+	const label = (id: string, name: string, singular: string, plural: string) => {
+		const element = document.querySelector<HTMLElement>(id)!;
+		const checked = [...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value);
+		element.textContent = !checked.length ? element.dataset.placeholder ?? ''
+			: checked.length <= 3 ? checked.join(', ')
+				: `${checked.length} ${checked.length === 1 ? singular : plural}`;
+	};
+	label('#bulk-neighborhood-label', 'bulkNeighborhoodChoice', 'zona', 'zonas');
+	label('#bulk-establishments-label', 'establishmentTypes', 'categoría seleccionada', 'categorías seleccionadas');
+	label('#bulk-services-label', 'mealTypes', 'servicio seleccionado', 'servicios seleccionados');
+	label('#bulk-cuisines-label', 'cuisines', 'tipo de cocina seleccionado', 'tipos de cocina seleccionados');
+	label('#bulk-tags-label', 'tags', 'etiqueta seleccionada', 'etiquetas seleccionadas');
 }
 
 function openBulkEditDialog() {
@@ -7152,11 +7171,15 @@ bulkEditForm.addEventListener('keydown', (event) => {
 	const isNew = !option;
 	if (!option) {
 		const label = document.createElement('label');
+		label.className = 'bulk-choice-option';
+		label.title = value;
 		option = document.createElement('input');
-		option.type = 'checkbox';
+		option.type = name === 'bulkNeighborhoodChoice' ? 'radio' : 'checkbox';
 		option.name = name;
 		option.value = value;
-		label.append(option, value);
+		const text = document.createElement('span');
+		text.textContent = value;
+		label.append(option, text);
 		list.querySelector('.cuisine-empty')?.remove();
 		list.append(label);
 	}
@@ -7167,14 +7190,20 @@ bulkEditForm.addEventListener('keydown', (event) => {
 });
 bulkEditForm.addEventListener('change', (event) => {
 	const input = event.target as HTMLInputElement;
-	if (input.matches('input[name="cuisines"]')) {
-		const count = bulkEditForm.querySelectorAll<HTMLInputElement>('input[name="cuisines"]:checked').length;
-		document.querySelector<HTMLElement>('#bulk-cuisines-label')!.textContent = count ? `${count} tipos de cocina seleccionados` : 'Seleccionar tipos de cocina';
+	if (input.matches('input[name="bulkNeighborhoodChoice"]')) {
+		(bulkEditForm.elements.namedItem('neighborhood') as HTMLInputElement).value = input.checked ? input.value : '';
+		input.closest('details')?.removeAttribute('open');
 	}
-	if (input.matches('input[name="tags"]')) {
-		const count = bulkEditForm.querySelectorAll<HTMLInputElement>('input[name="tags"]:checked').length;
-		document.querySelector<HTMLElement>('#bulk-tags-label')!.textContent = count ? `${count} etiquetas seleccionadas` : 'Seleccionar etiquetas';
-	}
+	if (input.matches('.bulk-choice-list input')) updateBulkChoiceLabels();
+});
+// Un solo desplegable abierto a la vez; un clic fuera de él lo cierra.
+bulkEditForm.addEventListener('toggle', (event) => {
+	const details = event.target as HTMLDetailsElement;
+	if (details.open) bulkEditForm.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((item) => { if (item !== details) item.open = false; });
+}, true);
+bulkEditForm.addEventListener('click', (event) => {
+	const target = event.target as Element;
+	bulkEditForm.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((item) => { if (!item.contains(target)) item.open = false; });
 });
 bulkEditForm.addEventListener('keydown', (event) => {
 	if (event.key === 'Enter') event.preventDefault();

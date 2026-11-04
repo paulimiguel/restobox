@@ -1078,22 +1078,41 @@ const userInitials = userDisplayName
 				<h2>Editar campos comunes</h2>
 				<p id="bulk-edit-count" class="bulk-edit-help"></p>
 				<div class="bulk-edit-grid">
-					<label><span>Zona</span><input name="neighborhood" list="bulk-neighborhoods" placeholder="Sin cambios (podés escribir una zona nueva)" /></label>
+					<div class="bulk-choice-field bulk-choice-wide"><span>Zona</span>
+						<details class="bulk-choice-dropdown">
+							<summary><span id="bulk-neighborhood-label" data-placeholder="Sin cambios">Sin cambios</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div id="bulk-neighborhood-options" class="bulk-choice-list"></div>
+						</details>
+						<input type="hidden" name="neighborhood" value="" />
+						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="bulkNeighborhoodChoice" data-bulk-add-list="#bulk-neighborhood-options" placeholder="Nueva zona y Enter" />
+					</div>
 					<label><span>Ciudad</span><input name="city" list="bulk-cities" placeholder="Sin cambios" /></label>
 					<label><span>Provincia</span><input name="province" list="bulk-provinces" placeholder="Sin cambios" /></label>
 					<label><span>País</span><input name="country" list="bulk-countries" placeholder="Sin cambios" /></label>
-					<div class="bulk-choice-field"><span>Categorías</span><div id="bulk-establishment-options" class="bulk-choice-list"></div><input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="establishmentTypes" data-bulk-add-list="#bulk-establishment-options" placeholder="Nueva categoría y Enter" /></div>
-					<div class="bulk-choice-field"><span>Servicios</span><div id="bulk-service-options" class="bulk-choice-list"></div><input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="mealTypes" data-bulk-add-list="#bulk-service-options" placeholder="Nuevo servicio y Enter" /></div>
+					<div class="bulk-choice-field bulk-choice-wide"><span>Categorías</span>
+						<details class="bulk-choice-dropdown">
+							<summary><span id="bulk-establishments-label" data-placeholder="Seleccionar categorías">Seleccionar categorías</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div id="bulk-establishment-options" class="bulk-choice-list"></div>
+						</details>
+						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="establishmentTypes" data-bulk-add-list="#bulk-establishment-options" placeholder="Nueva categoría y Enter" />
+					</div>
+					<div class="bulk-choice-field bulk-choice-wide"><span>Servicios</span>
+						<details class="bulk-choice-dropdown">
+							<summary><span id="bulk-services-label" data-placeholder="Seleccionar servicios">Seleccionar servicios</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<div id="bulk-service-options" class="bulk-choice-list"></div>
+						</details>
+						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="mealTypes" data-bulk-add-list="#bulk-service-options" placeholder="Nuevo servicio y Enter" />
+					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Tipo de cocina</span>
 						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-cuisines-label">Seleccionar tipos de cocina</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<summary><span id="bulk-cuisines-label" data-placeholder="Seleccionar tipos de cocina">Seleccionar tipos de cocina</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="bulk-cuisine-options" class="bulk-choice-list"></div>
 						</details>
 						<input class="bulk-choice-add" type="text" maxlength="50" autocomplete="off" data-bulk-add="cuisines" data-bulk-add-list="#bulk-cuisine-options" placeholder="Nuevo tipo de cocina y Enter" />
 					</div>
 					<div class="bulk-choice-field bulk-choice-wide"><span>Etiquetas</span>
 						<details class="bulk-choice-dropdown">
-							<summary><span id="bulk-tags-label">Seleccionar etiquetas</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+							<summary><span id="bulk-tags-label" data-placeholder="Seleccionar etiquetas">Seleccionar etiquetas</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
 							<div id="bulk-tag-options" class="bulk-choice-list"></div>
 						</details>
 					</div>
@@ -1122,7 +1141,7 @@ const userInitials = userDisplayName
 						</div>
 					</div>
 				</div>
-				<datalist id="bulk-neighborhoods"></datalist><datalist id="bulk-cities"></datalist><datalist id="bulk-provinces"></datalist><datalist id="bulk-countries"></datalist>
+				<datalist id="bulk-cities"></datalist><datalist id="bulk-provinces"></datalist><datalist id="bulk-countries"></datalist>
 				<div class="mini-dialog-actions">
 					<button id="cancel-bulk-edit" class="secondary-button" type="button">Cancelar</button>
 					<button class="primary-button" type="submit" data-bulk-save-mode="update">Aplicar cambios</button>
