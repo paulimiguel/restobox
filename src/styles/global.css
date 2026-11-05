@@ -2180,3 +2180,16 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .bulk-location-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
 .bulk-location-row > label { display: grid; gap: 5px; }
 @media (max-width: 560px) { .bulk-location-row { grid-template-columns: 1fr; } }
+
+/* Importar lugar: primero solo las cuatro formas; "por nombre" muestra el cuadro de nombres y el botón Volver. */
+.name-import-step { display: contents; }
+.name-import-dialog.choosing-import .name-import-step,
+.name-import-dialog.choosing-import #finish-name-import,
+.name-import-dialog:not(.choosing-import) .import-place-methods,
+.name-import-dialog.choosing-import .name-import-back { display: none; }
+.name-import-dialog.choosing-import .import-place-methods { grid-template-columns: 1fr; gap: 8px; margin: 4px 0 6px; }
+.name-import-dialog.choosing-import .import-place-methods button { min-height: 50px; justify-content: flex-start; padding: 0 16px; border-color: var(--line); color: var(--ink); background: white; font-size: 14px; font-weight: 500; text-align: left; transition: background .15s, border-color .15s; }
+.name-import-dialog.choosing-import .import-place-methods button:hover { border-color: var(--forest); background: color-mix(in srgb, var(--sage) 70%, white); color: var(--ink); }
+:root[data-color-mode='dark'] .name-import-dialog.choosing-import .import-place-methods button { color: var(--ink); background: #26292e; border-color: #474c53; }
+:root[data-color-mode='dark'] .name-import-dialog.choosing-import .import-place-methods button:hover { background: #34373e; border-color: var(--forest); }
+.name-import-back { margin-right: auto; }

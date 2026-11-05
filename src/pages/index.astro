@@ -1000,15 +1000,16 @@ const userInitials = userDisplayName
 			</form>
 		</dialog>
 
-		<dialog id="name-import-dialog" class="mini-dialog name-import-dialog">
+		<dialog id="name-import-dialog" class="mini-dialog name-import-dialog choosing-import">
 			<form id="name-import-form">
-				<h2>Importar lugar</h2>
+				<h2 id="name-import-title">Importar lugar</h2>
 				<div class="import-place-methods" aria-label="Cómo importar">
-					<button class="secondary-button active" type="button" aria-pressed="true" data-import-by-name>Importar por nombre</button>
+					<button class="secondary-button" type="button" data-import-by-name>Importar por nombre</button>
 					<button class="secondary-button" type="button" data-open-url-import>Importar URL</button>
 					<button class="secondary-button" type="button" data-open-txt-import>Importar TXT</button>
 					<button class="secondary-button" type="button" data-open-excel-import>Importar XLS</button>
 				</div>
+				<div class="name-import-step">
 				<label for="place-search-name">Pegá uno o varios nombres</label>
 				<textarea id="place-search-name" rows="6" placeholder="Piazza Ristorante, Mar del Plata&#10;Otro restaurante, ciudad" required></textarea>
 				<div class="name-import-text-actions">
@@ -1018,7 +1019,9 @@ const userInitials = userDisplayName
 				<p class="url-import-help">Ingresá un nombre por línea. Agregá la ciudad o zona para mejorar la precisión. Con un nombre podrás revisar la ficha; con varios se guardarán automáticamente.</p>
 				<div id="name-import-progress" class="url-import-progress" role="status" aria-live="polite" hidden></div>
 				<button id="search-name-import" class="primary-button import-name-button" type="submit">Importar</button>
+				</div>
 				<div class="mini-dialog-actions">
+					<button id="back-name-import" class="secondary-button name-import-back" type="button">Volver</button>
 					<button id="cancel-name-import" class="secondary-button" type="button">Cancelar</button>
 					<button id="finish-name-import" class="primary-button" type="button">Finalizar</button>
 				</div>

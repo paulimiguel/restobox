@@ -4435,10 +4435,18 @@ function openImportPlaceDialog() {
 	cancelNameImport.disabled = false;
 	finishNameImport.disabled = false;
 	searchNameImport.textContent = 'Importar';
+	setImportPlaceStep(false);
 	nameImportDialog.showModal();
-	window.setTimeout(() => placeSearchName.focus(), 50);
 }
 
+// "Importar lugar" empieza mostrando solo las cuatro formas de importar; "Importar por nombre" pasa al cuadro de nombres.
+function setImportPlaceStep(byName: boolean) {
+	nameImportDialog.classList.toggle('choosing-import', !byName);
+	document.querySelector<HTMLElement>('#name-import-title')!.textContent = byName ? 'Importar por nombre' : 'Importar lugar';
+	if (byName) window.setTimeout(() => placeSearchName.focus(), 50);
+}
+document.querySelector<HTMLButtonElement>('[data-import-by-name]')?.addEventListener('click', () => setImportPlaceStep(true));
+document.querySelector<HTMLButtonElement>('#back-name-import')?.addEventListener('click', () => setImportPlaceStep(false));
 openImportPlaceButtons.forEach((button) => button.addEventListener('click', () => {
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	openImportPlaceDialog();
@@ -4485,6 +4493,7 @@ nameImportForm.addEventListener('submit', async (event) => {
 	pasteNameImport.disabled = true;
 	clearNameImport.disabled = true;
 	cancelNameImport.disabled = true;
+	document.querySelector<HTMLButtonElement>('#back-name-import')!.disabled = true;
 	finishNameImport.disabled = true;
 	searchNameImport.textContent = names.length > 1 ? `Importando 1 de ${names.length}…` : 'Buscando…';
 	nameImportProgress.hidden = false;
@@ -4543,6 +4552,7 @@ nameImportForm.addEventListener('submit', async (event) => {
 		pasteNameImport.disabled = false;
 		clearNameImport.disabled = false;
 		cancelNameImport.disabled = false;
+		document.querySelector<HTMLButtonElement>('#back-name-import')!.disabled = false;
 		finishNameImport.disabled = false;
 		searchNameImport.textContent = 'Importar';
 	}
@@ -4903,8 +4913,6 @@ openUrlImportButtons.forEach((button) => button.addEventListener('click', () => 
 	button.closest<HTMLDetailsElement>('details')?.removeAttribute('open');
 	openUrlImportDialog();
 }));
-// "Importar por nombre" es la forma de esta ventana: solo lleva al cuadro de nombres.
-document.querySelector<HTMLButtonElement>('[data-import-by-name]')?.addEventListener('click', () => document.querySelector<HTMLTextAreaElement>('#place-search-name')?.focus());
 cancelUrlImport.addEventListener('click', () => urlImportDialog.close());
 finishUrlImport.addEventListener('click', () => urlImportDialog.close());
 clearUrlImport.addEventListener('click', () => {
