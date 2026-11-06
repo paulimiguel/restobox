@@ -2193,3 +2193,10 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 :root[data-color-mode='dark'] .name-import-dialog.choosing-import .import-place-methods button { color: var(--ink); background: #26292e; border-color: #474c53; }
 :root[data-color-mode='dark'] .name-import-dialog.choosing-import .import-place-methods button:hover { background: #34373e; border-color: var(--forest); }
 .name-import-back { margin-right: auto; }
+
+/* Características al editar (tablet y escritorio): puntuación Google, nivel de precio y precio promedio en una sola fila. */
+@media (min-width: 641px) {
+	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > * { grid-column: 1 / -1; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.score-field, .price-level-field, .average-price-field) { grid-column: span 2; }
+}

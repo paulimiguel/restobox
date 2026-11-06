@@ -635,6 +635,7 @@ const userInitials = userDisplayName
 								<div id="cuisine-options" class="cuisine-dropdown tag-dropdown" role="listbox" aria-multiselectable="true" hidden></div>
 							</div>
 						</div>
+						<label class="score-field">Puntuación Google <input name="score" type="number" min="0" max="5" step="0.1" placeholder="0 a 5" /></label>
 						<label class="price-level-field">Nivel de precio
 							<select name="price">
 								<option value="">Sin especificar</option>
@@ -651,7 +652,6 @@ const userInitials = userDisplayName
 							</div>
 						</label>
 						<datalist id="average-price-options"></datalist>
-						<label>Puntuación Google <input name="score" type="number" min="0" max="5" step="0.1" placeholder="0 a 5" /></label>
 						<input id="personal-rate" name="rating" type="hidden" />
 						<div class="form-field characteristics-checks wide">
 							<label class="boolean-check-control"><input name="daytimeKitchen" type="checkbox" /><span>Daytime kitchen</span></label>
@@ -661,7 +661,7 @@ const userInitials = userDisplayName
 							<label class="boolean-check-control"><input name="reservations" type="checkbox" /><span>Reservas</span></label>
 							<label class="boolean-check-control"><input name="outdoorDining" type="checkbox" /><span>Comida al aire libre</span></label>
 						</div>
-						<div class="form-field branches-field store-only wide">
+						<div class="form-field branches-field wide">
 							<div class="branches-controls">
 								<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
 								<input type="hidden" name="branchList" id="branch-list-value" />
