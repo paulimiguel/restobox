@@ -1752,7 +1752,7 @@ body.hide-new-button .directory-toolbar-lower-row { justify-content: space-betwe
 	.primary-image-column .restaurant-status-option svg, .primary-image-column .restaurant-status-option .checked-icon { width: 15px; height: 15px; flex: 0 0 auto; }
 	.characteristics-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	#restaurant-form:not(.view-mode) #panel-details .form-grid > :not(.rate-field):not(label:has(input[name="score"])) { grid-column: 1 / -1; }
+	#restaurant-form:not(.view-mode) #panel-details .form-grid > * { grid-column: 1 / -1; }
 }
 
 /* Celular, al editar: dirección, zona, WhatsApp y teléfono fijo; después ciudad y provincia */

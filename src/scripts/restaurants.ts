@@ -1169,7 +1169,6 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 		{ id: 'price', label: 'Nivel de precio', isEmpty: (r) => !isStorePlace(r) && !r.price?.trim() },
 		{ id: 'averagePrice', label: 'Precio promedio por persona', isEmpty: (r) => !isStorePlace(r) && !r.averagePrice?.trim() },
 		{ id: 'score', label: 'Puntuación Google', isEmpty: (r) => !isStorePlace(r) && !r.score?.trim() },
-		{ id: 'rating', label: 'Rate', isEmpty: (r) => !isStorePlace(r) && !r.rating?.trim() },
 	] },
 	{ id: 'links', label: 'Links', options: [
 		{ id: 'googleUrl', label: 'Google', isEmpty: (r) => !r.googleUrl?.trim() },
@@ -7266,7 +7265,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'rating', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'reservations', 'outdoorDining', 'loadChecked', 'daytimeKitchen'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'reservations', 'outdoorDining', 'loadChecked', 'daytimeKitchen'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
