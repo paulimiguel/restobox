@@ -6773,7 +6773,7 @@ document.querySelector<HTMLButtonElement>('#mobile-search-button')?.addEventList
 	mobileSearchDialog.showModal();
 	window.setTimeout(() => document.querySelector<HTMLInputElement>('#search')?.focus(), 50);
 });
-document.querySelector<HTMLButtonElement>('#close-mobile-search')?.addEventListener('click', () => mobileSearchDialog.close());
+document.querySelectorAll<HTMLButtonElement>('#close-mobile-search, #dismiss-mobile-search').forEach((button) => button.addEventListener('click', () => mobileSearchDialog.close()));
 mobileSearchDialog.addEventListener('close', () => {
 	searchBoxParts.forEach(({ element, parent, next }) => parent.insertBefore(element, next));
 });

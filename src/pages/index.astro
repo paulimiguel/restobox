@@ -997,7 +997,10 @@ const userInitials = userDisplayName
 
 		<dialog id="mobile-search-dialog" class="mini-dialog mobile-search-dialog" aria-labelledby="mobile-search-title">
 			<div class="mobile-search-panel">
-				<h2 id="mobile-search-title">Buscar</h2>
+				<div class="profile-dialog-heading">
+					<h2 id="mobile-search-title">Buscar</h2>
+					<button id="dismiss-mobile-search" class="profile-close-button" type="button" aria-label="Cerrar" title="Cerrar">×</button>
+				</div>
 				<div id="mobile-search-slot" class="mobile-search-slot"></div>
 				<div class="mini-dialog-actions">
 					<button id="close-mobile-search" class="primary-button" type="button">Ver resultados</button>
