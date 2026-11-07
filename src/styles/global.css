@@ -2276,8 +2276,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.top-actions > .mobile-menu-button svg { width: 24px; height: 24px; }
 	.top-actions > .mobile-search-button { width: 34px; height: 34px; flex-basis: 34px; }
 	.top-actions > .mobile-search-button svg { width: 19px; height: 19px; }
-	.top-actions > .header-tool-menu > summary { width: 30px; }
+	.top-actions > .header-tool-menu > summary { width: 36px; height: 36px; border: 1px solid var(--line); background: #fff; }
 	.top-actions > .header-tool-menu > summary span svg { width: 20px; height: 20px; }
 	.top-actions > .add-dropdown > summary { width: 34px; height: 34px; }
-	.header-brand { width: 96px; flex-basis: 96px; margin-right: 6px; }
+	.header-brand { width: 84px; flex-basis: 84px; margin-right: 2px; }
 }
