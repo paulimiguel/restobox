@@ -5250,8 +5250,8 @@ async function searchPlaceWithStrega(body: { name: string; instagramUrl?: string
 	return { ok, result };
 }
 
-// Botón "Importar descripción" (al editar): Claude busca el lugar en la web y arma la descripción al estilo del modo IA
-// de Google: títulos en negrita (con una línea en blanco arriba) y un punto por viñeta. Ya no usa Strega.
+// Botón "Importar descripción" (al editar): trae la descripción de Google (su resumen hecho con IA y los puntos
+// del resumen de reseñas), igual que al importar un lugar; un punto por viñeta. No usa Strega.
 const importStregaDescriptionButton = document.querySelector<HTMLButtonElement>('#import-strega-description')!;
 // Botón "Borrar descripción": activo solo cuando hay una descripción cargada.
 const clearDescriptionButton = document.querySelector<HTMLButtonElement>('#clear-description')!;
@@ -5274,8 +5274,7 @@ clearDescriptionButton.addEventListener('click', () => {
 });
 updateClearDescriptionButton();
 importStregaDescriptionButton.addEventListener('click', async () => {
-	const field = (name: string) => (form.elements.namedItem(name) as HTMLInputElement | null)?.value.trim() ?? '';
-	const name = field('name');
+	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
 	if (name.length < 2) {
 		showToast('Cargá el nombre del lugar');
 		return;
@@ -5283,21 +5282,23 @@ importStregaDescriptionButton.addEventListener('click', async () => {
 	if (descriptionInput.value.replace(/[•\s⁣]/g, '') && !window.confirm('¿Reemplazar la descripción actual?')) return;
 	const label = importStregaDescriptionButton.textContent;
 	importStregaDescriptionButton.disabled = true;
-	importStregaDescriptionButton.textContent = 'Buscando en la web…';
+	importStregaDescriptionButton.textContent = 'Buscando en Google…';
 	try {
-		const response = requireActiveSession(await fetch('/api/ai-description', {
+		// Nombre y ciudad, para que Google no elija un lugar con el mismo nombre en otra ciudad.
+		const city = cityInput.value.trim();
+		const response = requireActiveSession(await fetch('/api/search-google-place', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({
-				name, address: field('address'), neighborhood: neighborhoodInput.value.trim(), city: cityInput.value.trim(),
-				province: field('province'), country: field('country'), instagramUrl: field('instagramUrl'), website: field('website'),
-			}),
+			body: JSON.stringify({ name: city ? `${name}, ${city}` : name }),
 		}));
-		const result = await response.json() as { description?: string; error?: string };
-		if (!response.ok || !result.description) throw new Error(result.error || 'No se pudo importar la descripción');
-		descriptionInput.value = notesWithBullets(result.description);
+		const result = await response.json() as ImportedRestaurant & { error?: string };
+		if (!response.ok) throw new Error(result.error || 'No se pudo importar la descripción');
+		if (!result.sources?.includes('Google')) throw new Error('Google no devolvió este lugar');
+		const description = [result.description, result.notes].map((value) => value?.trim() ?? '').filter(Boolean).join('\n');
+		if (!description) throw new Error('Google no tiene una descripción de este lugar');
+		descriptionInput.value = notesWithBullets(description);
 		descriptionInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
-		showToast('Descripción importada');
+		showToast('Descripción importada de Google');
 	} catch (error) {
 		showToast(error instanceof Error ? error.message : 'No se pudo importar la descripción');
 	} finally {
