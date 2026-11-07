@@ -428,6 +428,13 @@ const userInitials = userDisplayName
 					</section>
 					<section id="directory-filter-panel" class="directory-filter-panel" aria-label="Filtros del directorio" hidden>
 						<button id="close-directory-filter-panel" class="close-directory-filter-panel" type="button" aria-label="Cerrar filtros" title="Cerrar filtros">&times;</button>
+						<nav class="filter-place-pages" aria-label="Tipo de lugar">
+							<a href="/restaurantes" aria-current={restaurantsMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M3 20h18"/></svg>Restaurantes</a>
+							<a href="/cafes" aria-current={cafesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8Zm11 2h2a3 3 0 0 1 0 6h-2M4 21h14"/></svg>Cafés</a>
+							<a href="/entregas" aria-current={deliveryMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>Delivery/Take away</a>
+							<a href="/tiendas" aria-current={storesMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2"/></svg>Tiendas</a>
+							<a href="/todos" aria-current={everythingMode ? 'page' : undefined}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Todos</a>
+						</nav>
 						<div class="directory-filter-fields">
 							<div class="filter-control store-only-filter"><span>Tipo de tienda</span><details class="filter-multiselect"><summary><span id="store-type-filter-label">Todos los tipos de tienda</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="store-type-filter-options" class="filter-checkbox-list"></div></details><div id="store-type-filter-chips" class="filter-chips"></div></div>
 							<div class="filter-control store-only-filter"><span>Productos</span><details class="filter-multiselect"><summary><span id="product-filter-label">Todos los productos</span><svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg></summary><div id="product-filter-options" class="filter-checkbox-list"></div></details><div id="product-filter-chips" class="filter-chips"></div></div>

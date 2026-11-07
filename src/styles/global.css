@@ -2233,3 +2233,16 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 @media (max-width: 640px) {
 	.directory-toolbar-main .quick-place-filters { display: none !important; }
 }
+
+/* Panel Filtrar: accesos a Restaurantes, Cafés, Delivery/Take away, Tiendas y Todos (la página actual resaltada). */
+.filter-place-pages { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-place-pages a { display: inline-flex; height: 39px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: white; font-size: 11px; font-weight: 650; text-decoration: none; text-transform: uppercase; transition: color .16s, border-color .16s, background .16s; }
+.filter-place-pages a svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.filter-place-pages a:hover { color: var(--accent-text); border-color: var(--forest); }
+.filter-place-pages a[aria-current="page"] { color: var(--button-ink); border-color: var(--forest); background: var(--forest); }
+:root[data-color-mode='dark'] .filter-place-pages a { color: var(--ink); background: #26292e; border-color: #474c53; }
+@media (max-width: 640px) {
+	.filter-place-pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+	.filter-place-pages a { min-width: 0; padding-inline: 8px; font-size: 10px; }
+	.filter-place-pages a:last-child { grid-column: 1 / -1; }
+}
