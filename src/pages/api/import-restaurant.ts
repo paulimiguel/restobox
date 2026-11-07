@@ -167,6 +167,25 @@ function instagramPlaceName(value: string, url: URL) {
 	return (url.pathname.split('/').filter(Boolean)[0] ?? '').replace(/[._]+/g, ' ').trim();
 }
 
+// Biografía y links del perfil (vienen en el JSON de la página). Los links pasan por l.instagram.com/?u=…
+function instagramProfileExtras(html: string) {
+	const biography = decodeInstagramEmbedValue(html.match(/\\?"biography\\?"\s*:\s*\\?"((?:\\\\.|[^"\\]|\\[^"])*?)\\?"\s*,/)?.[1] ?? '');
+	const bioLinksStart = html.search(/\\?"bio_links\\?"/);
+	const bioLinks = bioLinksStart >= 0 ? html.slice(bioLinksStart, bioLinksStart + 4000).split(/\\?"(?:biography|full_name|external_url_linkshimmed)\\?"/)[0] : '';
+	const links = [...bioLinks.matchAll(/\\?"(?:url|lynx_url)\\?"\s*:\s*\\?"(https?:(?:\\\\.|[^"\\]|\\[^"])*?)\\?"/g)]
+		.map((match) => decodeInstagramEmbedValue(match[1]))
+		.map((value) => {
+			try {
+				const url = new URL(value);
+				return /^l\.instagram\.com$/i.test(url.hostname) ? url.searchParams.get('u') ?? '' : value;
+			} catch { return ''; }
+		})
+		.filter((value) => {
+			try { return !/(?:^|\.)(?:instagram|cdninstagram|facebook|fbcdn|fbsbx|threads)\.(?:com|net)$/i.test(new URL(value).hostname); } catch { return false; }
+		});
+	return { biography, links: [...new Set(links)] };
+}
+
 function decodeInstagramEmbedValue(value: string) {
 	let decoded = value;
 	for (let level = 0; level < 3; level += 1) {
@@ -229,14 +248,27 @@ export const POST: APIRoute = async ({ request }) => {
 		const requestedUrl = await validateUrl(body.url);
 		let response: Response;
 		let finalUrl: URL;
+		// Perfil de Instagram: se toma el usuario del link pedido. Si Instagram responde con otra página
+		// (por ejemplo, la de iniciar sesión) o sin los datos del perfil, se usa la versión "embed" del perfil.
+		const requestedInstagramUser = body.mode === 'image' ? '' : instagramUsername(requestedUrl);
+		const instagramProfile = requestedInstagramUser ? new URL(`https://www.instagram.com/${requestedInstagramUser}/`) : null;
+		let prefetchedHtml = '';
 		try {
 			({ response, finalUrl } = await fetchRemote(requestedUrl.href));
+			if (instagramProfile) {
+				prefetchedHtml = await response.text();
+				const isProfilePage = instagramUsername(finalUrl).toLowerCase() === requestedInstagramUser.toLowerCase()
+					&& [`instagram.com/${requestedInstagramUser}/"`, `"username":"${requestedInstagramUser}"`]
+						.some((marker) => prefetchedHtml.toLowerCase().includes(marker.toLowerCase()));
+				if (!isProfilePage) throw new Error('Instagram no mostró el perfil');
+				finalUrl = instagramProfile;
+			}
 		} catch (error) {
-			const username = instagramUsername(requestedUrl);
-			if (!username || body.mode === 'image') throw error;
-			const embedded = await fetchRemote(`${requestedUrl.origin}/${username}/embed/`);
+			if (!instagramProfile) throw error;
+			const embedded = await fetchRemote(`https://www.instagram.com/${requestedInstagramUser}/embed/`);
 			response = embedded.response;
-			finalUrl = new URL(`${requestedUrl.origin}/${username}/`);
+			prefetchedHtml = '';
+			finalUrl = instagramProfile;
 		}
 		if (/^(?:www\.)?wokiapp\.com$/i.test(finalUrl.hostname) && /^\/search\/?$/i.test(finalUrl.pathname)) {
 			const collectionUrls = await getWokiSearchRestaurantUrls(finalUrl);
@@ -254,7 +286,7 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 		if (!contentType.includes('text/html')) return json({ error: 'El enlace no corresponde a una página web' }, 415);
 		if (declaredSize > 3_000_000) return json({ error: 'La página es demasiado grande para importarla' }, 413);
-		const html = await response.text();
+		const html = prefetchedHtml || await response.text();
 		if (html.length > 3_000_000) return json({ error: 'La página es demasiado grande para importarla' }, 413);
 		const $ = cheerio.load(html);
 		const instagramEmbed = instagramEmbedDetails(html);
@@ -357,9 +389,13 @@ export const POST: APIRoute = async ({ request }) => {
 		const takeAway = /\b(take[ -]?away|takeout|para llevar|retiro por (?:el )?local|retir[ao] en (?:el )?local|pick[ -]?up)\b/.test(normalizedPageText);
 		const glutenFree = /\b(sin gluten|gluten[ -]?free|apto(?:s)? para celiacos?|opciones? celiacas?)\b/.test(normalizedPageText);
 		const pageName = instagramEmbed.name || text(schema.name) || meta('og:title') || $('h1').first().text().trim() || $('title').text().trim();
+		// En Instagram la descripción es la biografía (no "11K Followers…") y el sitio web, el link de la biografía.
+		const instagramExtras = importingFromInstagram ? instagramProfileExtras(html) : { biography: '', links: [] };
+		const instagramLinktree = instagramExtras.links.find((link) => /linktr\.ee/i.test(link)) ?? '';
+		const instagramWebsite = instagramExtras.links.find((link) => !/linktr\.ee|wa\.me|whatsapp/i.test(link)) ?? '';
 		return json({
 			name: importingFromInstagram ? instagramPlaceName(pageName, finalUrl) : pageName,
-			description: text(schema.description) || meta('description') || meta('og:description'),
+			description: importingFromInstagram ? instagramExtras.biography : text(schema.description) || meta('description') || meta('og:description'),
 			address: text(schema.streetAddress) || text(address.streetAddress) || $('[itemprop="streetAddress"]').first().text().trim(),
 			neighborhood: text(address.addressNeighborhood) || $('[itemprop="addressNeighborhood"]').first().text().trim(),
 			city: text(address.addressLocality) || $('[itemprop="addressLocality"]').first().text().trim(),
@@ -367,7 +403,7 @@ export const POST: APIRoute = async ({ request }) => {
 			country: normalizeCountry(text(address.addressCountry) || $('[itemprop="addressCountry"]').first().text().trim()),
 			phone: text(schema.telephone) || text(contactPoint.telephone) || $('[itemprop="telephone"]').first().text().trim(),
 			mobile: importingFromWoki ? '' : whatsapp,
-			website,
+			website: importingFromInstagram ? instagramWebsite : website,
 			googleUrl: findAllLink(/google\.[^/]+\/(?:search|maps)|g\.page/i),
 			menuUrl: absolute(schema.hasMenu ?? schema.menu, finalUrl.href) || findLink(/menu|carta/i),
 			mapUrl: findAllLink(/google\.[^/]+\/maps|maps\.app\.goo\.gl/i),
@@ -376,7 +412,7 @@ export const POST: APIRoute = async ({ request }) => {
 			facebookUrl: importingFromWoki ? '' : findAllLink(/facebook\.com/i),
 			wokiUrl: importingFromWoki ? finalUrl.href : findAllLink(/wokiapp\.com/i),
 			tripAdvisorUrl: findAllLink(/tripadvisor\./i),
-			linktreeUrl: findAllLink(/linktr\.ee/i),
+			linktreeUrl: instagramLinktree || findAllLink(/linktr\.ee/i),
 			hours: formatHours(schema.openingHours ?? schema.openingHoursSpecification).slice(0, 500),
 			price: normalizePriceRange(schema.priceRange),
 			tags,

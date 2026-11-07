@@ -4199,7 +4199,12 @@ async function fetchImportedRestaurant(url: string) {
 			? `${sourceUrl.origin}/${username}/`
 			: sourceUrl.href;
 		try {
-			const google = await searchPlaceWithStrega({ name: result.name.trim(), instagramUrl });
+			// Primero por el nombre del perfil; si Google no lo encuentra, por el usuario (ej. "dondera valentina").
+			let google = await searchPlaceWithStrega({ name: result.name.trim(), instagramUrl });
+			const usernameQuery = username.replace(/[._]+/g, ' ').trim();
+			if (!google.ok && usernameQuery && usernameQuery.toLocaleLowerCase('es') !== result.name.trim().toLocaleLowerCase('es')) {
+				google = await searchPlaceWithStrega({ name: usernameQuery, instagramUrl });
+			}
 			if (google.ok) {
 				const googleResult = google.result;
 				let googleWebsite = googleResult.website?.trim() ?? '';
@@ -4210,13 +4215,15 @@ async function fetchImportedRestaurant(url: string) {
 					...result,
 					...googleResult,
 					instagramUrl,
-					website: googleWebsite,
+					description: googleResult.description?.trim() ? googleResult.description : result.description,
+					website: googleWebsite || result.website?.trim() || '',
+					linktreeUrl: googleResult.linktreeUrl?.trim() || result.linktreeUrl,
 					logoUrl: result.logoUrl || googleResult.logoUrl,
 					sourceUrl: result.sourceUrl || url,
 				};
 			}
 		} catch { /* Si Google no puede completar el lugar, se conservan los datos de Instagram. */ }
-		return { ...result, instagramUrl, website: '', sourceUrl: result.sourceUrl || url };
+		return { ...result, instagramUrl, sourceUrl: result.sourceUrl || url };
 	}
 	return result;
 }
