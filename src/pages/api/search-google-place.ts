@@ -498,6 +498,65 @@ function requestedPlaceName(requestedName: string) {
 	return requestedName.split(',')[0].trim();
 }
 
+// Párrafos de texto de una página (por ejemplo "Nosotros" del sitio del lugar), sin menú, pie ni avisos de cookies.
+async function pageParagraphs(value: string) {
+	if (!value) return [] as string[];
+	try {
+		let url = await safePublicUrl(value);
+		for (let redirect = 0; redirect < 4; redirect += 1) {
+			const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(8_000), headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; RestoBoxImporter/2.0)' } });
+			if (response.status >= 300 && response.status < 400) {
+				const location = response.headers.get('location');
+				if (!location) return [];
+				url = await safePublicUrl(new URL(location, url).href);
+				continue;
+			}
+			if (!response.ok || !(response.headers.get('content-type') ?? '').includes('text/html')) return [];
+			const $ = cheerio.load((await response.text()).slice(0, 3_000_000));
+			$('script, style, noscript, nav, header, footer, form, [class*="cookie"], [id*="cookie"]').remove();
+			return unique($('p').map((_, element) => $(element).text().replace(/\s+/g, ' ').trim()).get())
+				.filter((text) => text.length >= 60 && text.length <= 700 && !/cookies?|copyright|©|todos los derechos|suscrib|newsletter|javascript/i.test(text))
+				.slice(0, 6);
+		}
+	} catch { /* Página no disponible. */ }
+	return [];
+}
+
+// Botón "Importar descripción": sin ninguna API, con lo que publican el sitio del lugar, su Instagram, Woki
+// y los resultados de una búsqueda web. Párrafo de presentación y secciones "## Título" con un punto por línea.
+async function publicDescription(body: { name: string; city?: string; website?: string; instagramUrl?: string; wokiUrl?: string }) {
+	const query = [body.name, body.city].map((value) => value?.trim()).filter(Boolean).join(', ');
+	const [results, websitePage, websiteParagraphs, instagram, wokiPage] = await Promise.all([
+		publicSearch(query),
+		pageDataOrEmpty(body.website ?? ''),
+		pageParagraphs(body.website ?? ''),
+		body.instagramUrl ? instagramProfile(body.instagramUrl).catch(() => ({ biography: '' })) : Promise.resolve({ biography: '' }),
+		pageDataOrEmpty(body.wokiUrl ?? ''),
+	]);
+	const clean = (text: string) => text.replace(/\s+/g, ' ').replace(/^\W*(?:\.\.\.|…)\s*|\s*(?:\.\.\.|…)\s*$/g, '').replace(/^[|•·\-–—\s]+/, '').trim();
+	// Fuera los textos de sitios de reseñas ("calificado 5 de 5 en Restaurant Guru…") y los que están en inglés.
+	const isListing = (text: string) => /restaurant ?guru|tripadvisor|calificad[oa] \d|rated \d|reseñas de visitantes|\breviews?\b|\bopiniones\b|fotos? (?:&|y) \d|explor(?:e|ar) (?:el )?men[uú]|horarios de apertura|opening hours|followers|following|talking about|were here|contactar con|^ver (?:la )?carta|c[oó]mo llegar/i.test(text)
+		|| /\b(?:the|and|with|of|is|in)\b.*\b(?:the|and|with|of|is)\b/i.test(text);
+	const snippets = results.map((result) => clean(result.snippet)).filter((text) => !isListing(text));
+	const intro = [websitePage.description, wokiPage.description, snippets[0] ?? '']
+		.map((text) => clean(text ?? '')).find((text) => text.length >= 40 && !isListing(text)) ?? '';
+	const seen = new Set([normalized(intro)]);
+	const fresh = (values: string[], minLength = 30) => values.map(clean).filter((text) => {
+		const key = normalized(text);
+		if (text.length < minLength || seen.has(key) || [...seen].some((item) => item && (item.includes(key) || key.includes(item)))) return false;
+		seen.add(key);
+		return true;
+	});
+	// Del sitio, los párrafos que cuentan algo (no los ítems de una carta: "2 infusiones + …", ingredientes, precios).
+	const about = fresh(websiteParagraphs.filter((text) => !/^\d|\+|\$\s?\d|ingredientes|exprimid/i.test(text) && /\b(?:somos|nuestr[oa]s?|lugar|ofrecemos|cocina|ambiente|ubicad[oa]s?|desde|abierto|fundad[oa])\b/i.test(text)));
+	const bio = fresh(instagram.biography.split(/\n+/).map((line) => line.replace(/^[\p{Extended_Pictographic}️\s•·|-]+/u, '')).filter((line) => line.trim().length >= 3), 8);
+	const web = fresh(snippets).slice(0, 4);
+	const sections: Array<[string, string[]]> = [['Sobre el lugar', about], ['En su Instagram', bio], ['Lo que dicen en la web', web]];
+	return [intro, ...sections.filter(([, lines]) => lines.length).flatMap(([title, lines]) => [`## ${title}`, ...lines])]
+		.filter(Boolean)
+		.join('\n');
+}
+
 function defaultedPublicQuery(requestedName: string) {
 	const value = normalized(requestedName);
 	const hasLocation = requestedName.includes(',') || /\b(?:mar del plata|caba|capital federal|buenos aires|cordoba|mendoza|rosario|argentina|uruguay|chile)\b/.test(value);
@@ -870,6 +929,13 @@ export const POST: APIRoute = async ({ request }) => {
 			// Lo que se encuentra en la web sin Google ni Woki es una suposición: si está en Strega, se usa solo Strega.
 			if (!found || found.sources?.includes('Fuentes públicas')) return json(await addRequestedSocialImages(resultFromStrega(strega), {}));
 			return json(withStrega(found, strega));
+		}
+		if (body.mode === 'description') {
+			const extra = body as { city?: string; website?: string; wokiUrl?: string };
+			const description = await publicDescription({ name, city: extra.city, website: extra.website, instagramUrl: body.instagramUrl, wokiUrl: extra.wokiUrl });
+			return description
+				? json({ description })
+				: json({ error: `No se encontró información pública de “${name}”` }, 404);
 		}
 		if (body.mode === 'logo') {
 			const logoResult = await addRequestedSocialImages({ name, imageUrls: [], sources: [] }, body, true);
