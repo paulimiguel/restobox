@@ -314,6 +314,7 @@ const userInitials = userDisplayName
 						<div id="directory-owner-summary" class="directory-owner-summary">
 							<h1 id="catalog-title" class="catalog-title"></h1>
 							<h1>{everythingMode ? 'Todos los lugares de ' : profileMode ? 'Mis lugares de ' : mapMode ? 'Mapa de lugares de ' : storesMode ? 'Tiendas de ' : restaurantsMode ? 'Restaurantes de ' : cafesMode ? 'Cafés de ' : deliveryMode ? (deliveryKind === 'delivery' ? 'Delivery de ' : deliveryKind === 'takeaway' ? 'Take away de ' : 'Delivery/Take away de ') : 'Lugares de '}<span id="directory-user-name">{userDisplayName}</span></h1>
+							<button id="mobile-clear-filters" class="mobile-clear-filters" type="button" aria-label="Quitar filtros" title="Quitar filtros" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/><path d="m15.5 15.5 5 5m0-5-5 5"/></svg></button>
 							<p id="result-description">Cargando lugares…</p>
 							<div id="directory-active-filters" class="directory-active-filters" hidden>
 								<span class="directory-active-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></svg></span>

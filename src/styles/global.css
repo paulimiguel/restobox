@@ -2246,3 +2246,14 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.filter-place-pages a { min-width: 0; padding-inline: 8px; font-size: 10px; }
 	.filter-place-pages a:last-child { grid-column: 1 / -1; }
 }
+
+/* Celular: con un filtro o búsqueda aplicada, un botoncito al lado del título los quita. */
+.mobile-clear-filters { display: none; }
+@media (max-width: 640px) {
+	.directory-owner-summary { grid-template-columns: minmax(0, max-content) auto; justify-content: start; column-gap: 8px; }
+	.directory-owner-summary > * { grid-column: 1 / -1; }
+	.directory-owner-summary > h1:not(.catalog-title) { grid-column: 1; grid-row: 1; align-self: center; }
+	body.catalog-view .directory-owner-summary > .catalog-title { grid-column: 1; grid-row: 1; }
+	.directory-owner-summary > .mobile-clear-filters:not([hidden]) { display: grid; grid-column: 2; grid-row: 1; width: 32px; height: 32px; place-items: center; align-self: center; padding: 0; border: 1px solid var(--forest); border-radius: 8px; color: var(--button-ink); background: var(--forest); cursor: pointer; }
+	.mobile-clear-filters svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}

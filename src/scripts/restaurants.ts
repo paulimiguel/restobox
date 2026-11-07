@@ -3373,6 +3373,8 @@ function render() {
 		? 'Probá con otro término o cambiá el filtro seleccionado.'
 		: 'Agregá tu primer restaurante para empezar a organizar la información.';
 	emptyState.querySelector<HTMLButtonElement>('[data-open-form]')!.hidden = isFiltered;
+	const mobileClearFilters = document.querySelector<HTMLButtonElement>('#mobile-clear-filters');
+	if (mobileClearFilters) mobileClearFilters.hidden = !isFiltered;
 	updatePrintPanelState();
 }
 
@@ -6222,6 +6224,14 @@ clearActiveDirectoryFiltersButton.addEventListener('click', () => {
 	showingCatalog = null;
 	clearDirectoryFilterSelections();
 	render();
+});
+// Celular: el botoncito junto al título quita todos los filtros y también las palabras buscadas.
+document.querySelector<HTMLButtonElement>('#mobile-clear-filters')?.addEventListener('click', () => {
+	showingCatalog = null;
+	clearDirectoryFilterSelections();
+	clearSearchTerms();
+	render();
+	showToast('Filtros quitados');
 });
 closeDirectoryFilterPanelButton.addEventListener('click', () => {
 	filterActionMenu.removeAttribute('open');
