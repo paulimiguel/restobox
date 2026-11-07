@@ -2200,3 +2200,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > * { grid-column: 1 / -1; }
 	#restaurant-form:not(.view-mode) #panel-details .form-grid > :is(.score-field, .price-level-field, .average-price-field) { grid-column: span 2; }
 }
+
+/* Sucursales: el botón Ingresar sucursales al lado del interruptor. */
+.branches-controls { grid-template-columns: auto auto; justify-content: start; align-items: stretch; }
+.branches-controls .edit-branches-button { min-height: 0; height: auto; padding-inline: 16px; white-space: nowrap; }
