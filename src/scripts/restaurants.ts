@@ -2435,7 +2435,7 @@ restaurantVideoPlayer.addEventListener('error', () => {
 	restaurantVideoExternal.hidden = false;
 });
 
-// Ver video: si el lugar tiene video y video oficial, se reproducen uno después del otro
+// Ver video: si el lugar tiene video oficial y video, se reproducen uno después del otro (primero el oficial)
 // (al terminar el primero empieza el segundo) y las flechas permiten pasar de uno a otro.
 let videoPlaylist: string[] = [];
 let videoPlaylistIndex = 0;
@@ -6544,10 +6544,10 @@ imagePreviews.addEventListener('click', (event) => {
 videoInput.addEventListener('input', updateRestaurantVideoButton);
 officialVideoInput.addEventListener('input', updateRestaurantVideoButton);
 viewOfficialVideoButton.addEventListener('click', async () => {
-	if (!await openRestaurantVideoPlaylist([videoInput.value, officialVideoInput.value], 1)) showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
+	if (!await openRestaurantVideoPlaylist([officialVideoInput.value, videoInput.value], 0)) showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
 });
 viewRestaurantVideoButton.addEventListener('click', async () => {
-	if (!await openRestaurantVideoPlaylist([videoInput.value, officialVideoInput.value], 0)) {
+	if (!await openRestaurantVideoPlaylist([officialVideoInput.value, videoInput.value], 1)) {
 		showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
 	}
 });
@@ -7864,7 +7864,7 @@ list.addEventListener('click', async (event) => {
 	}
 	if (viewVideoButton?.dataset.viewVideo) {
 		const restaurant = restaurants.find((item) => item.id === viewVideoButton.dataset.viewVideo);
-		if (restaurant && !await openRestaurantVideoPlaylist([restaurant.videoUrl ?? '', restaurant.officialVideoUrl ?? ''])) showToast('El enlace de video no es válido');
+		if (restaurant && !await openRestaurantVideoPlaylist([restaurant.officialVideoUrl ?? '', restaurant.videoUrl ?? ''])) showToast('El enlace de video no es válido');
 		return;
 	}
 	if (shareButton) {
