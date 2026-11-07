@@ -3374,7 +3374,8 @@ function render() {
 		: 'Agregá tu primer restaurante para empezar a organizar la información.';
 	emptyState.querySelector<HTMLButtonElement>('[data-open-form]')!.hidden = isFiltered;
 	const mobileClearFilters = document.querySelector<HTMLButtonElement>('#mobile-clear-filters');
-	if (mobileClearFilters) mobileClearFilters.hidden = !isFiltered;
+	// También aparece en Restaurantes, Cafés, Delivery/Take away y Tiendas (es una sección filtrada de todos los lugares).
+	if (mobileClearFilters) mobileClearFilters.hidden = !isFiltered && !scopedPlacesMode && !storesMode;
 	updatePrintPanelState();
 }
 
@@ -6227,6 +6228,11 @@ clearActiveDirectoryFiltersButton.addEventListener('click', () => {
 });
 // Celular: el botoncito junto al título quita todos los filtros y también las palabras buscadas.
 document.querySelector<HTMLButtonElement>('#mobile-clear-filters')?.addEventListener('click', () => {
+	// En una sección (Restaurantes, Cafés, Delivery/Take away, Tiendas) quitar el filtro es ir a Todos.
+	if (scopedPlacesMode || storesMode) {
+		window.location.assign('/todos');
+		return;
+	}
 	showingCatalog = null;
 	clearDirectoryFilterSelections();
 	clearSearchTerms();
