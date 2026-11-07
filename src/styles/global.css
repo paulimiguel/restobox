@@ -900,7 +900,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 #panel-details :is(.cuisine-type-field, .tags-field) .cuisine-select-actions { grid-template-columns: minmax(0, 1fr) 31px; }
 #panel-details :is(.cuisine-type-field, .tags-field) .select-with-action > button { width: 31px; height: 31px; }
 .boolean-check-control { display: flex; min-height: 39px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: white; font-size: 12px; font-weight: 400; }
-:is(#panel-general, #panel-details) .boolean-check-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
+:is(#panel-general, #panel-details, #panel-information) .boolean-check-control input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--forest); }
 .characteristics-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 #panel-details .characteristics-checks { gap: 16px; }
 .characteristics-checks > .boolean-check-control { display: flex; }
@@ -916,7 +916,7 @@ dialog[open] { animation: dialog-in .18s ease-out; }
 .rate-stars button.is-active { color: #f2b01e; }
 .rate-stars button:disabled { opacity: 1; }
 
-.view-mode #panel-details .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
+.view-mode :is(#panel-details, #panel-information) .boolean-check-control { min-height: auto; padding: 0; border: 0; background: transparent; }
 :is(#panel-information, #panel-description) .form-grid { padding-top: 12px; }
 #panel-links .view-map-link-field { display: none; }
 .schedule-field { gap: 7px; }
@@ -1815,12 +1815,12 @@ body[data-profile-mode='true'] .directory-toolbar-lower-row > .directory-actions
 #panel-details:not(.store-mode) .store-only { display: none !important; }
 #panel-details.store-mode :is(.meal-type-field, .cuisine-type-field, .price-level-field, .average-price-field) { display: none !important; }
 .branches-field textarea { min-height: 96px; resize: vertical; }
-.view-mode #panel-details .branches-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
-.view-mode #panel-details .branches-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; }
-.view-mode #panel-details .branches-field textarea::placeholder { color: transparent; }
+.view-mode #panel-information .branches-field { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: start; gap: 10px; padding-block: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.view-mode #panel-information .branches-field textarea { height: auto; min-height: 24px; padding: 0; border: 0; color: var(--ink); background: transparent; font-size: 14px; font-weight: 400; line-height: 1.55; resize: none; overflow: hidden; }
+.view-mode #panel-information .branches-field textarea::placeholder { color: transparent; }
 .view-mode #panel-details .products-field #product-input { display: none; }
-@media (max-width: 640px) { .view-mode #panel-details .branches-field { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
-.view-mode #panel-details .products-field, .view-mode #panel-details .branches-field { grid-column: 1 / -1; }
+@media (max-width: 640px) { .view-mode #panel-information .branches-field { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+.view-mode #panel-details .products-field, .view-mode #panel-information .branches-field { grid-column: 1 / -1; }
 #panel-details.store-mode .establishment-type-field:not(.store-type-field) { display: none !important; }
 .store-type-dropdown { right: 0; }
 
@@ -1904,11 +1904,11 @@ body.catalog-view .sort-options [data-directory-sort-key] { display: none; }
 body.map-stores-filters .filter-control.store-only-filter { display: grid; }
 body.map-stores-filters .restaurant-only-filter { display: none; }
 
-#panel-details .branches-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 14px; }
+#panel-information .branches-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 14px; }
 .branches-controls { display: grid; gap: 8px; }
 .branches-controls .boolean-check-control { display: flex !important; flex-direction: row !important; justify-content: flex-start; gap: 12px !important; padding-inline: 14px; }
 .branches-controls .edit-branches-button:disabled { opacity: .45; cursor: not-allowed; }
-@media (max-width: 640px) { #panel-details .branches-field { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { #panel-information .branches-field { grid-template-columns: minmax(0, 1fr); } }
 .branches-controls .boolean-check-control input[type="checkbox"] { margin: 0 !important; }
 .branches-dialog { width: min(760px, calc(100% - 30px)); }
 .branches-table { width: 100%; border-collapse: collapse; }

@@ -661,14 +661,6 @@ const userInitials = userDisplayName
 							<label class="boolean-check-control"><input name="reservations" type="checkbox" /><span>Reservas</span></label>
 							<label class="boolean-check-control"><input name="outdoorDining" type="checkbox" /><span>Comida al aire libre</span></label>
 						</div>
-						<div class="form-field branches-field wide">
-							<div class="branches-controls">
-								<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
-								<input type="hidden" name="branchList" id="branch-list-value" />
-								<button id="edit-branches" class="secondary-button edit-branches-button" type="button" disabled>Ingresar sucursales</button>
-							</div>
-							<div id="branches-list" class="branches-list" hidden></div>
-						</div>
 					</div>
 				</section>
 
@@ -797,6 +789,14 @@ const userInitials = userDisplayName
 									<button id="clear-schedule-hours" class="secondary-button schedule-paste-button" type="button">Borrar horarios</button>
 								</div>
 							</div>
+						</div>
+						<div class="form-field branches-field wide">
+							<div class="branches-controls">
+								<label class="boolean-check-control"><input name="hasBranches" type="checkbox" /><span>Sucursales</span></label>
+								<input type="hidden" name="branchList" id="branch-list-value" />
+								<button id="edit-branches" class="secondary-button edit-branches-button" type="button" disabled>Ingresar sucursales</button>
+							</div>
+							<div id="branches-list" class="branches-list" hidden></div>
 						</div>
 					</div>
 				</section>
