@@ -5224,12 +5224,6 @@ function searchStregaInBrowser(name: string) {
 	const search = name.split(',')[0].normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 	return search.length < 2 ? Promise.resolve([]) : queryStregaInBrowser({ search, orderby: 'relevance', per_page: '10' });
 }
-// La ficha de un link de Strega (https://www.strega.com.ar/bar/bruder-pilar/ → slug "bruder-pilar").
-function stregaFichaInBrowser(stregaUrl: string) {
-	let slug = '';
-	try { slug = new URL(stregaUrl).pathname.split('/').filter(Boolean).at(-1) ?? ''; } catch { /* Link inválido. */ }
-	return slug ? queryStregaInBrowser({ slug }) : Promise.resolve([]);
-}
 
 // Importación de un lugar: Google y las demás fuentes en el servidor y, al mismo tiempo, la búsqueda en Strega
 // desde el navegador. Si el lugar está en Strega, sus datos tienen prioridad (el servidor los combina).
@@ -5256,8 +5250,8 @@ async function searchPlaceWithStrega(body: { name: string; instagramUrl?: string
 	return { ok, result };
 }
 
-// Botón "Importar descripción" (al editar): trae la reseña de Strega del lugar, con los subtítulos en negrita
-// y un párrafo por viñeta. Usa el link de Strega del lugar o, si no lo tiene, lo busca por nombre.
+// Botón "Importar descripción" (al editar): Claude busca el lugar en la web y arma la descripción al estilo del modo IA
+// de Google: títulos en negrita (con una línea en blanco arriba) y un punto por viñeta. Ya no usa Strega.
 const importStregaDescriptionButton = document.querySelector<HTMLButtonElement>('#import-strega-description')!;
 // Botón "Borrar descripción": activo solo cuando hay una descripción cargada.
 const clearDescriptionButton = document.querySelector<HTMLButtonElement>('#clear-description')!;
@@ -5280,39 +5274,30 @@ clearDescriptionButton.addEventListener('click', () => {
 });
 updateClearDescriptionButton();
 importStregaDescriptionButton.addEventListener('click', async () => {
-	const stregaUrlInput = form.elements.namedItem('stregaUrl') as HTMLInputElement;
-	const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
-	if (!stregaUrlInput.value.trim() && name.length < 2) {
-		showToast('Cargá el nombre del lugar o su link de Strega');
+	const field = (name: string) => (form.elements.namedItem(name) as HTMLInputElement | null)?.value.trim() ?? '';
+	const name = field('name');
+	if (name.length < 2) {
+		showToast('Cargá el nombre del lugar');
 		return;
 	}
-	if (descriptionInput.value.trim() && !window.confirm('¿Reemplazar la descripción actual por la de Strega?')) return;
+	if (descriptionInput.value.replace(/[•\s⁣]/g, '') && !window.confirm('¿Reemplazar la descripción actual?')) return;
 	const label = importStregaDescriptionButton.textContent;
 	importStregaDescriptionButton.disabled = true;
-	importStregaDescriptionButton.textContent = 'Buscando en Strega…';
+	importStregaDescriptionButton.textContent = 'Buscando en la web…';
 	try {
-		const stregaUrl = stregaUrlInput.value.trim();
-		// Por nombre y, a la vez, por nombre y ciudad: si hay lugares con el mismo nombre en otras ciudades,
-		// el de esta ciudad no queda afuera de los primeros resultados. El servidor elige el de la ciudad del lugar.
-		const city = cityInput.value.trim();
-		const candidates = stregaUrl
-			? await stregaFichaInBrowser(stregaUrl)
-			: (await Promise.all([searchStregaInBrowser(name), ...(city ? [searchStregaInBrowser(`${name} ${city}`)] : [])])).flat();
-		if (!candidates.length) throw new Error(stregaUrl ? 'Strega no devolvió la ficha del link cargado' : `No se encontró “${name}” en Strega`);
-		const response = requireActiveSession(await fetch('/api/strega-description', {
+		const response = requireActiveSession(await fetch('/api/ai-description', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ stregaUrl, name, city: cityInput.value, neighborhood: neighborhoodInput.value, candidates }),
+			body: JSON.stringify({
+				name, address: field('address'), neighborhood: neighborhoodInput.value.trim(), city: cityInput.value.trim(),
+				province: field('province'), country: field('country'), instagramUrl: field('instagramUrl'), website: field('website'),
+			}),
 		}));
-		const result = await response.json() as { description?: string; url?: string; error?: string };
+		const result = await response.json() as { description?: string; error?: string };
 		if (!response.ok || !result.description) throw new Error(result.error || 'No se pudo importar la descripción');
 		descriptionInput.value = notesWithBullets(result.description);
 		descriptionInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
-		if (!stregaUrlInput.value.trim() && result.url) {
-			stregaUrlInput.value = result.url;
-			stregaUrlInput.dispatchEvent(new Event('input', { bubbles: true }));
-		}
-		showToast('Descripción importada de Strega');
+		showToast('Descripción importada');
 	} catch (error) {
 		showToast(error instanceof Error ? error.message : 'No se pudo importar la descripción');
 	} finally {
