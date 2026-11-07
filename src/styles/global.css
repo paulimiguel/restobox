@@ -2299,7 +2299,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* WhatsApp se carga en "Datos del lugar": en la solapa Links queda oculto (el campo sigue guardando el número). */
 #panel-links .whatsapp-links-field { display: none !important; }
 
-/* Rappi: su logo (bigote blanco sobre fondo rosa) como ícono del botón. */
-.rappi-brand-icon { display: block; width: 18px; height: 18px; border-radius: 4px; background: var(--rappi-logo) center / cover no-repeat; opacity: .85; transition: opacity .2s, transform .2s; }
-.external-link-button:hover .rappi-brand-icon { opacity: 1; transform: scale(1.08); }
-.external-link-button.disabled .rappi-brand-icon { filter: grayscale(1); opacity: .45; }
+
+/* Rappi: un bigote de un solo color, como los demás íconos de la solapa Links. */
+.external-link-button .rappi-mustache-icon { width: 22px; height: 9px; fill: currentColor; stroke: none; opacity: .8; }
