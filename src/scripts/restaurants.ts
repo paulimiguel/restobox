@@ -20,7 +20,7 @@ type Restaurant = {
 	address: string;
 	neighborhood: string;
 	hasBranches?: boolean;
-	branchList?: Array<{ address: string; zone: string; city: string; whatsapp: string }>;
+	branchList?: Array<{ address: string; zone: string; city: string; mapUrl: string }>;
 	branchAddresses?: string[];
 	products?: string[];
 	branches?: string;
@@ -2725,14 +2725,13 @@ function parseBranchList(value: string) {
 		const parsed = JSON.parse(value);
 		if (!Array.isArray(parsed)) return [];
 		return parsed
-			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim(), city: String(item?.city ?? '').trim(), whatsapp: String(item?.whatsapp ?? '').trim() }))
-			.filter((item) => item.address || item.zone || item.whatsapp);
+			.map((item) => ({ address: String(item?.address ?? '').trim(), zone: String(item?.zone ?? '').trim(), city: String(item?.city ?? '').trim(), mapUrl: String(item?.mapUrl ?? '').trim() }))
+			.filter((item) => item.address || item.zone || item.mapUrl);
 	} catch {
 		return [];
 	}
 }
 
-const BRANCH_WHATSAPP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg>';
 const BRANCH_LOCATION_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>';
 
 function branchActionLink(href: string, label: string, icon: string) {
@@ -2758,7 +2757,7 @@ function renderBranchesList() {
 	if (!branches.length) return;
 	const header = document.createElement('div');
 	header.className = 'branches-list-header';
-	['Sucursal', 'Dirección', 'WhatsApp'].forEach((title) => {
+	['Sucursal', 'Dirección', 'Google Maps'].forEach((title) => {
 		const cell = document.createElement('span');
 		cell.textContent = title;
 		header.append(cell);
@@ -2777,14 +2776,16 @@ function renderBranchesList() {
 		const addressText = document.createElement('span');
 		addressText.textContent = branch.address || '—';
 		address.append(addressText);
-		if (branch.address) address.append(branchActionLink(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, 'Ver ubicación en Google Maps', BRANCH_LOCATION_ICON));
-		const whatsapp = document.createElement('span');
-		whatsapp.className = 'branch-cell branch-whatsapp';
-		const whatsappText = document.createElement('span');
-		whatsappText.textContent = branch.whatsapp || '—';
-		whatsapp.append(whatsappText);
-		if (branch.whatsapp) whatsapp.append(branchActionLink(getWhatsAppUrl(branch.whatsapp, countryInput.value), 'Abrir WhatsApp', BRANCH_WHATSAPP_ICON));
-		row.append(zone, address, whatsapp);
+		// Google Maps: el link cargado para la sucursal; si no hay, una búsqueda por nombre y dirección.
+		const mapHref = /^https?:\/\//i.test(branch.mapUrl) ? branch.mapUrl
+			: branch.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : '';
+		const location = document.createElement('span');
+		location.className = 'branch-cell branch-location';
+		const locationText = document.createElement('span');
+		locationText.textContent = branch.mapUrl ? 'Ver ubicación' : mapHref ? 'Buscar en Maps' : '—';
+		location.append(locationText);
+		if (mapHref) location.append(branchActionLink(mapHref, 'Ver ubicación en Google Maps', BRANCH_LOCATION_ICON));
+		row.append(zone, address, location);
 		branchesList.append(row);
 	});
 }
@@ -2932,7 +2933,7 @@ const branchZoneConfig: BranchComboboxConfig = {
 let branchesCityCombobox: ReturnType<typeof createBranchCombobox> | null = null;
 const branchRowZones = new Map<HTMLTableRowElement, () => string>();
 
-function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }) {
+function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, mapUrl: '' }) {
 	const row = document.createElement('tr');
 	const readOnly = form.classList.contains('view-mode');
 	const zoneCell = document.createElement('td');
@@ -2940,14 +2941,14 @@ function addBranchRow(branch = { address: '', zone: '', city: DEFAULT_CITY, what
 	branchRowZones.set(row, zoneCombobox.getValue);
 	zoneCell.append(zoneCombobox.element);
 	row.append(zoneCell);
-	[['address', branch.address, 'Calle y número', 'text'], ['whatsapp', branch.whatsapp, 'Ej. 11 1234 5678', 'tel']].forEach(([field, value, placeholder, type]) => {
+	[['address', branch.address, 'Calle y número', 'text'], ['mapUrl', branch.mapUrl, 'Link de Google Maps', 'url']].forEach(([field, value, placeholder, type]) => {
 		const cell = document.createElement('td');
 		const input = document.createElement('input');
 		input.type = type;
 		input.dataset.branchField = field;
 		input.value = value;
 		input.placeholder = placeholder;
-		input.maxLength = 120;
+		input.maxLength = field === 'mapUrl' ? 500 : 120;
 		input.readOnly = readOnly;
 		cell.append(input);
 		row.append(cell);
@@ -2973,7 +2974,7 @@ function openBranchesDialog() {
 	branchesCityCombobox = createBranchCombobox(branchCityConfig, branches.find((branch) => branch.city)?.city || DEFAULT_CITY, readOnly);
 	branchesCitySlot.replaceChildren(branchesCityCombobox.element);
 	branchRowZones.clear();
-	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', city: DEFAULT_CITY, whatsapp: '' }]).forEach((branch) => addBranchRow(branch));
+	(branches.length ? branches : readOnly ? [] : [{ address: '', zone: '', city: DEFAULT_CITY, mapUrl: '' }]).forEach((branch) => addBranchRow(branch));
 	branchesDialog.showModal();
 	(document.activeElement as HTMLElement | null)?.blur();
 }
@@ -2990,8 +2991,8 @@ branchesForm.addEventListener('submit', (event) => {
 	event.preventDefault();
 	const fieldValue = (row: Element, field: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-branch-field="${field}"]`)!.value.trim();
 	const branches = [...branchesRows.querySelectorAll('tr')]
-		.map((row) => ({ zone: branchRowZones.get(row as HTMLTableRowElement)?.() ?? '', city: branchesCityCombobox?.getValue() || DEFAULT_CITY, address: fieldValue(row, 'address'), whatsapp: fieldValue(row, 'whatsapp') }))
-		.filter((branch) => branch.address || branch.zone || branch.whatsapp);
+		.map((row) => ({ zone: branchRowZones.get(row as HTMLTableRowElement)?.() ?? '', city: branchesCityCombobox?.getValue() || DEFAULT_CITY, address: fieldValue(row, 'address'), mapUrl: fieldValue(row, 'mapUrl') }))
+		.filter((branch) => branch.address || branch.zone || branch.mapUrl);
 	branchListInput.value = JSON.stringify(branches);
 	updateBranchesButton();
 	updateDirtyState();
@@ -3933,7 +3934,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		daytimeKitchenInput.checked = Boolean(restaurant.daytimeKitchen) || selectedEstablishments.some(isDaytimeKitchenCategory);
 		(form.elements.namedItem('loadChecked') as HTMLInputElement).checked = Boolean(restaurant.loadChecked);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(restaurant.healthy);
-		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, whatsapp: '' })).filter((branch) => branch.address);
+		const legacyBranches = (restaurant.branches ?? '').split('\n').map((line) => ({ address: line.trim(), zone: '', city: DEFAULT_CITY, mapUrl: '' })).filter((branch) => branch.address);
 		const branchList = restaurant.branchList?.length ? restaurant.branchList : legacyBranches;
 		hasBranchesInput.checked = Boolean(restaurant.hasBranches) || branchList.length > 0;
 		branchListInput.value = JSON.stringify(branchList);

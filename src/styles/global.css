@@ -1927,7 +1927,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .branches-list-header > span + span, .branches-list-row > span + span { border-left: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
 .branches-list-row > .branch-zone { font-weight: 600; }
 .branches-list-row > .branch-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.branch-whatsapp .branch-action { color: #22a95b; }
+.branch-location .branch-action { color: var(--forest); }
 .branch-action { display: inline-grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 7px; color: var(--forest); background: white; }
 .branch-action svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .branch-action[aria-disabled="true"] { opacity: .35; pointer-events: none; }
