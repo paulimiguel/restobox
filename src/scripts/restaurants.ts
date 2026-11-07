@@ -4216,6 +4216,7 @@ async function fetchImportedRestaurant(url: string) {
 					...googleResult,
 					instagramUrl,
 					description: googleResult.description?.trim() ? googleResult.description : result.description,
+					hours: googleResult.hours?.trim() ? googleResult.hours : result.hours,
 					website: googleWebsite || result.website?.trim() || '',
 					linktreeUrl: googleResult.linktreeUrl?.trim() || result.linktreeUrl,
 					logoUrl: result.logoUrl || googleResult.logoUrl,

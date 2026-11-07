@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { hoursFromBio } from '../../lib/server/hours';
 import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
@@ -413,7 +414,7 @@ export const POST: APIRoute = async ({ request }) => {
 			wokiUrl: importingFromWoki ? finalUrl.href : findAllLink(/wokiapp\.com/i),
 			tripAdvisorUrl: findAllLink(/tripadvisor\./i),
 			linktreeUrl: instagramLinktree || findAllLink(/linktr\.ee/i),
-			hours: formatHours(schema.openingHours ?? schema.openingHoursSpecification).slice(0, 500),
+			hours: (formatHours(schema.openingHours ?? schema.openingHoursSpecification) || hoursFromBio(instagramExtras.biography)).slice(0, 500),
 			price: normalizePriceRange(schema.priceRange),
 			tags,
 			rating,

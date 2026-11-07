@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { hoursFromBio } from '../../lib/server/hours';
 import * as cheerio from 'cheerio';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
@@ -629,7 +630,7 @@ async function publicWebFallback(requestedName: string) {
 		city: properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), neighborhood: properties?.district || '', address,
 		phone: '', mobile: '', website,
 		googleUrl: googleSearchUrl(properties?.name || requestedPlaceName(requestedName), address, properties?.city || (inferredMarDelPlata ? 'Mar del Plata' : ''), properties?.state),
-		mapUrl: googleUrl || openMapUrl, hours: '',
+		mapUrl: googleUrl || openMapUrl, hours: hoursFromBio(instagramPage.description ?? ''),
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl, tripAdvisorUrl, linktreeUrl,
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
 		delivery: false, takeAway: false,
@@ -658,25 +659,6 @@ function averagePrice(place: GooglePlace) {
 // Horarios escritos en la bio de Instagram: se devuelven las líneas que nombran un día y traen una hora o "cerrado",
 // para que el cliente las cargue con el mismo analizador del botón "Pegar horarios".
 // Cada línea se normaliza a "Lunes a viernes: 8:00 – 20:00" (o "Domingo: Cerrado"), que es lo que ese analizador entiende.
-function hoursFromBio(bio: string) {
-	const dayWord = /\b(?:lun(?:es)?|mar(?:tes)?|mi[eé](?:rcoles)?|jue(?:ves)?|vie(?:rnes)?|s[aá]b(?:ado)?s?|dom(?:ingo)?s?)\b\.?/i;
-	const timeRange = /(\d{1,2})(?::(\d{2}))?\s*(?:hs?\b\.?)?\s*(?:a|al|-|–|—)\s*(\d{1,2})(?::(\d{2}))?\s*(?:hs?\b\.?|horas?\b)?/gi;
-	const time = (hour: string, minutes?: string) => `${Number(hour)}:${minutes ?? '00'}`;
-	return bio.split(/\n|•|\|/)
-		.map((line) => line.trim())
-		.flatMap((line) => {
-			if (!dayWord.test(line)) return [];
-			const ranges = [...line.matchAll(timeRange)].filter((match) => Number(match[1]) <= 24 && Number(match[3]) <= 24);
-			const closed = /cerrado/i.test(line);
-			if (!ranges.length && !closed) return [];
-			const dayText = line.slice(0, ranges.length ? ranges[0].index : line.search(/cerrado/i))
-				.replace(/\b(?:de|desde|el|los|las|todos)\s*$/i, '').replace(/[\s:,\-–—]+$/, '').replace(/\b(s[aá]bado|domingo)s\b/gi, '$1').trim();
-			if (!dayWord.test(dayText)) return [];
-			const hours = ranges.length ? ranges.map((match) => `${time(match[1], match[2])} – ${time(match[3], match[4])}`).join(', ') : 'Cerrado';
-			return [`${dayText}: ${hours}`];
-		})
-		.join('\n');
-}
 
 // Texto del resumen de Google como puntos ("• …"): un punto por línea o, si viene en un párrafo, por oración.
 function bulletLines(text: string) {
