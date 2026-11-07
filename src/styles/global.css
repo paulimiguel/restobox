@@ -2228,3 +2228,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .mobile-search-slot .action-search input { height: 44px; padding: 0 64px 0 42px; font-size: 16px; }
 .mobile-search-slot .action-search > svg { left: 14px; }
 .mobile-search-panel .mini-dialog-actions { margin-top: 6px; }
+
+/* Celular: sin los botones para filtrar por tipo de lugar (Todos, Restaurantes, Cafés, Tiendas, Delivery, Take away). */
+@media (max-width: 640px) {
+	.directory-toolbar-main .quick-place-filters { display: none !important; }
+}
