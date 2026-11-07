@@ -3328,6 +3328,7 @@ function render() {
 						<button class="favorite-button${restaurant.favorite ? ' active' : ''}" type="button" data-favorite="${restaurant.id}" aria-pressed="${Boolean(restaurant.favorite)}" aria-label="${restaurant.favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}" title="Favorito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button>
 						<button class="visited-button${restaurant.visited ? ' active' : ''}" type="button" data-visited="${restaurant.id}" aria-pressed="${Boolean(restaurant.visited)}" aria-label="${restaurant.visited ? 'Marcar como no visitado' : 'Marcar como visitado'}" title="Visitado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></button>
 						<button class="to-visit-button${restaurant.checked ? ' active' : ''}" type="button" data-to-visit="${restaurant.id}" aria-pressed="${Boolean(restaurant.checked)}" aria-label="${restaurant.checked ? 'Quitar de A visitar' : 'Marcar como A visitar'}" title="A visitar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4h11a1 1 0 0 1 1 1v15.5L12 16.8l-6.5 3.7V5a1 1 0 0 1 1-1Z"/></svg></button>
+						<button class="load-checked-button${restaurant.loadChecked ? ' active' : ''}" type="button" data-load-checked="${restaurant.id}" aria-pressed="${Boolean(restaurant.loadChecked)}" aria-label="${restaurant.loadChecked ? 'Marcar como unchecked' : 'Marcar como checked'}" title="Checked"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></button>
 						${restaurant.imageCount ? `<button class="view-images-button" type="button" data-view-images="${restaurant.id}" aria-label="Ver imágenes de ${safe(restaurant.name)}" title="Ver imágenes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4-4 3 3 3-3 4 4"/></svg></button>` : ''}
 						${hasVideo ? `<button class="view-video-button" type="button" data-view-video="${restaurant.id}" aria-label="Ver video de ${safe(restaurant.name)}" title="Ver video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3Z"/></svg></button>` : ''}
 						<details class="restaurant-card-actions-menu">
@@ -7723,6 +7724,18 @@ list.addEventListener('click', async (event) => {
 			saveRestaurants();
 			render();
 			showToast(restaurant.visited ? 'Marcado como visitado' : 'Marcado como no visitado');
+		}
+		return;
+	}
+	const loadCheckedButton = target.closest<HTMLButtonElement>('[data-load-checked]');
+	if (loadCheckedButton) {
+		const restaurant = restaurants.find((item) => item.id === loadCheckedButton.dataset.loadChecked);
+		if (restaurant) {
+			backupRestaurants();
+			restaurant.loadChecked = !restaurant.loadChecked;
+			saveRestaurants();
+			render();
+			showToast(restaurant.loadChecked ? 'Marcado como checked' : 'Marcado como unchecked');
 		}
 		return;
 	}

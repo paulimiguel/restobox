@@ -2204,3 +2204,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Sucursales: el botón Ingresar sucursales al lado del interruptor. */
 .branches-controls { grid-template-columns: auto auto; justify-content: start; align-items: stretch; }
 .branches-controls .edit-branches-button { min-height: 0; height: auto; padding-inline: 16px; white-space: nowrap; }
+
+/* Tarjeta: botón Checked (carga finalizada), antes de Ver imágenes. */
+.restaurant-card-top-actions .load-checked-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+.restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-top-actions .load-checked-button svg { width: 18px; height: 18px; }
+.restaurant-card-top-actions .load-checked-button:hover, .restaurant-card-top-actions .load-checked-button.active { color: #2a8fab; }
+.restaurant-card-top-actions .load-checked-button.active svg { stroke-width: 2.6; }
