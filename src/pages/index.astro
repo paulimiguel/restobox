@@ -3,6 +3,7 @@ import '../styles/global.css';
 import 'leaflet/dist/leaflet.css';
 import { getUserProfile } from '../lib/server/auth';
 import pedidosYaLogoUrl from '../../imagenes/logos/logo pedidos ya negro.png?url';
+import rappiLogoUrl from '../../imagenes/logos/logo rappi.png?url';
 const profileMode = Astro.props.profile === true;
 const mapMode = Astro.props.map === true;
 const storesMode = Astro.props.stores === true;
@@ -772,7 +773,7 @@ const userInitials = userDisplayName
 							<label for="rappi-url">Rappi</label>
 							<div class="url-with-action">
 								<input id="rappi-url" name="rappiUrl" type="url" maxlength="300" placeholder="https://www.rappi.com.ar/…" />
-								<a id="open-rappi" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Rappi" title="Abrir Rappi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1.5 9.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 13c1 1.6 2.4 2.4 4 2.4s3-.8 4-2.4"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg></a>
+								<a id="open-rappi" class="external-link-button disabled" target="_blank" rel="noreferrer" aria-label="Abrir Rappi" title="Abrir Rappi"><span class="rappi-brand-icon" style={`--rappi-logo: url("${rappiLogoUrl}")`} aria-hidden="true"></span></a>
 							</div>
 						</div>
 						<div class="form-field catalog-link-field">
