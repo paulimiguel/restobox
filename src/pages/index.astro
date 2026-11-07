@@ -149,6 +149,9 @@ const userInitials = userDisplayName
 						<button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Abrir men&uacute;" aria-controls="mobile-main-menu" aria-expanded="false" title="Men&uacute;">
 							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
 						</button>
+						<button class="top-nav-button mobile-search-button" id="mobile-search-button" type="button" aria-label="Buscar" title="Buscar" aria-haspopup="dialog">
+							<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+						</button>
 						<details class="top-dropdown add-dropdown">
 							<summary class="top-nav-button" aria-label="Agregar" title="Agregar">
 								<svg class="plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
@@ -990,6 +993,16 @@ const userInitials = userDisplayName
 					<button id="finish-url-import" class="primary-button" type="button">Finalizar</button>
 				</div>
 			</form>
+		</dialog>
+
+		<dialog id="mobile-search-dialog" class="mini-dialog mobile-search-dialog" aria-labelledby="mobile-search-title">
+			<div class="mobile-search-panel">
+				<h2 id="mobile-search-title">Buscar</h2>
+				<div id="mobile-search-slot" class="mobile-search-slot"></div>
+				<div class="mini-dialog-actions">
+					<button id="close-mobile-search" class="primary-button" type="button">Ver resultados</button>
+				</div>
+			</div>
 		</dialog>
 
 		<dialog id="name-import-dialog" class="mini-dialog name-import-dialog choosing-import">

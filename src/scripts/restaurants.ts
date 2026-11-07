@@ -6761,6 +6761,24 @@ function placeLocationFields() {
 placeLocationFields();
 phoneLayoutQuery.addEventListener('change', placeLocationFields);
 
+// Celular: el buscador no se muestra en la pantalla de inicio; la lupa del menú abre una ventana con el mismo
+// buscador (cuadro y Nombre / Zona / Todo), que se mueve ahí mientras está abierta y vuelve a su lugar al cerrarla.
+const mobileSearchDialog = document.querySelector<HTMLDialogElement>('#mobile-search-dialog')!;
+const mobileSearchSlot = document.querySelector<HTMLElement>('#mobile-search-slot')!;
+const searchBoxParts = [document.querySelector<HTMLElement>('.directory-search-row .action-search'), document.querySelector<HTMLElement>('.search-scope-options')]
+	.filter((element): element is HTMLElement => Boolean(element))
+	.map((element) => ({ element, parent: element.parentElement!, next: element.nextSibling }));
+document.querySelector<HTMLButtonElement>('#mobile-search-button')?.addEventListener('click', () => {
+	searchBoxParts.forEach(({ element }) => mobileSearchSlot.append(element));
+	mobileSearchDialog.showModal();
+	window.setTimeout(() => document.querySelector<HTMLInputElement>('#search')?.focus(), 50);
+});
+document.querySelector<HTMLButtonElement>('#close-mobile-search')?.addEventListener('click', () => mobileSearchDialog.close());
+mobileSearchDialog.addEventListener('close', () => {
+	searchBoxParts.forEach(({ element, parent, next }) => parent.insertBefore(element, next));
+});
+phoneLayoutQuery.addEventListener('change', () => { if (!phoneLayoutQuery.matches && mobileSearchDialog.open) mobileSearchDialog.close(); });
+
 const tabbarTargets: Record<string, string> = {
 	directory: '#header-directory',
 	establishment: '.show-catalogs-button[data-show-catalog="establishment"]',

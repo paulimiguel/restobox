@@ -2210,3 +2210,21 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .restaurant-list:is(.view-columns-5, .view-columns-6, .view-detail) .restaurant-card-top-actions .load-checked-button svg { width: 18px; height: 18px; }
 .restaurant-card-top-actions .load-checked-button:hover, .restaurant-card-top-actions .load-checked-button.active { color: #2a8fab; }
 .restaurant-card-top-actions .load-checked-button.active svg { stroke-width: 2.6; }
+
+/* Celular: sin buscador en la pantalla de inicio; la lupa (a la izquierda del +) abre la ventana Buscar. */
+.top-actions > .mobile-search-button { display: none; }
+@media (max-width: 640px) {
+	.top-actions > .mobile-search-button { display: grid !important; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: var(--forest); background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.14); cursor: pointer; }
+	.top-actions > .mobile-search-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+	.directory-toolbar-main :is(.action-search, .search-scope-options) { display: none !important; }
+}
+.mobile-search-dialog { width: min(100% - 24px, 460px); }
+.mobile-search-slot { display: grid; gap: 10px; margin-top: 8px; }
+.mobile-search-slot .action-search { position: relative; display: flex; width: 100%; align-items: center; }
+.mobile-search-slot .search-scope-options { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-search-slot .search-scope-option { font-size: 12px; }
+:root[data-color-mode='dark'] .top-actions > .mobile-search-button { color: #f8fafc; background: #262a2f; }
+.mobile-search-panel { display: grid; gap: 9px; padding: 25px; }
+.mobile-search-slot .action-search input { height: 44px; padding: 0 64px 0 42px; font-size: 16px; }
+.mobile-search-slot .action-search > svg { left: 14px; }
+.mobile-search-panel .mini-dialog-actions { margin-top: 6px; }
