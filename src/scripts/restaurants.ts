@@ -2435,7 +2435,45 @@ restaurantVideoPlayer.addEventListener('error', () => {
 	restaurantVideoExternal.hidden = false;
 });
 
+// Ver video: si el lugar tiene video y video oficial, se reproducen uno después del otro
+// (al terminar el primero empieza el segundo) y las flechas permiten pasar de uno a otro.
+let videoPlaylist: string[] = [];
+let videoPlaylistIndex = 0;
+const videoPlaylistBar = document.querySelector<HTMLElement>('.restaurant-video-playlist')!;
+const videoPlaylistPrev = document.querySelector<HTMLButtonElement>('#restaurant-video-prev')!;
+const videoPlaylistNext = document.querySelector<HTMLButtonElement>('#restaurant-video-next')!;
+const videoPlaylistCount = document.querySelector<HTMLElement>('#restaurant-video-count')!;
+
+function updateVideoPlaylistBar() {
+	videoPlaylistBar.hidden = videoPlaylist.length < 2;
+	videoPlaylistPrev.disabled = videoPlaylistIndex <= 0;
+	videoPlaylistNext.disabled = videoPlaylistIndex >= videoPlaylist.length - 1;
+	videoPlaylistCount.textContent = `${videoPlaylistIndex + 1} / ${videoPlaylist.length}`;
+}
+
+async function openRestaurantVideoPlaylist(urls: string[], start = 0) {
+	const startUrl = urls[start]?.trim() ?? '';
+	videoPlaylist = [...new Set(urls.map((url) => url.trim()).filter(isSupportedRestaurantVideoUrl))];
+	if (!videoPlaylist.length) return false;
+	videoPlaylistIndex = Math.max(0, videoPlaylist.indexOf(startUrl));
+	updateVideoPlaylistBar();
+	return openRestaurantVideo(videoPlaylist[videoPlaylistIndex]);
+}
+
+async function moveVideoPlaylist(step: number) {
+	const next = videoPlaylistIndex + step;
+	if (next < 0 || next >= videoPlaylist.length) return;
+	videoPlaylistIndex = next;
+	updateVideoPlaylistBar();
+	await openRestaurantVideo(videoPlaylist[videoPlaylistIndex]);
+}
+
 async function openRestaurantVideo(value: string) {
+	// Al pasar de un video a otro con la ventana abierta, se limpia lo del video anterior.
+	instagramFallbackValue = '';
+	restaurantVideoExternal.hidden = true;
+	restaurantVideoDialog.style.removeProperty('--video-ratio');
+	restaurantVideoPlayer.pause();
 	const instagramMediaRoute = instagramRestaurantVideoRoute(value);
 	if (instagramMediaRoute) {
 		restaurantVideoDialog.classList.add('instagram-video');
@@ -2451,7 +2489,7 @@ async function openRestaurantVideo(value: string) {
 		restaurantVideoPlayer.removeAttribute('muted');
 		restaurantVideoPlayer.muted = false;
 		restaurantVideoPlayer.volume = 1;
-		restaurantVideoDialog.showModal();
+		if (!restaurantVideoDialog.open) restaurantVideoDialog.showModal();
 		restaurantVideoPlayer.focus({ preventScroll: true });
 		void restaurantVideoPlayer.play().catch(() => undefined);
 		return true;
@@ -2474,7 +2512,7 @@ async function openRestaurantVideo(value: string) {
 		restaurantVideoPlayer.removeAttribute('src');
 		restaurantVideoFrame.src = source.url;
 	}
-	restaurantVideoDialog.showModal();
+	if (!restaurantVideoDialog.open) restaurantVideoDialog.showModal();
 	if (nativeVideo) {
 		restaurantVideoPlayer.focus({ preventScroll: true });
 		void restaurantVideoPlayer.play().catch(() => undefined);
@@ -3303,7 +3341,7 @@ function render() {
 		const cardCuisines = isStorePlace(restaurant)
 			? (restaurant.storeTypes ?? []).join(', ') || 'Sin tipo de tienda'
 			: getRestaurantCuisines(restaurant).join(', ') || 'Sin tipo de cocina';
-		const hasVideo = isSupportedRestaurantVideoUrl(restaurant.videoUrl ?? '');
+		const hasVideo = isSupportedRestaurantVideoUrl(restaurant.videoUrl ?? '') || isSupportedRestaurantVideoUrl(restaurant.officialVideoUrl ?? '');
 		const whatsappUrl = getWhatsAppUrl(restaurant.mobile, restaurant.country);
 		const links = [
 			whatsappUrl ? `<a href="${whatsappUrl}" target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp de ${safe(restaurant.name)}" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.3c.3 3.7 2.3 5.8 6.1 6.4l1.2-1.3 2 1"/></svg></a>` : '',
@@ -6506,12 +6544,17 @@ imagePreviews.addEventListener('click', (event) => {
 videoInput.addEventListener('input', updateRestaurantVideoButton);
 officialVideoInput.addEventListener('input', updateRestaurantVideoButton);
 viewOfficialVideoButton.addEventListener('click', async () => {
-	if (!await openRestaurantVideo(officialVideoInput.value)) showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
+	if (!await openRestaurantVideoPlaylist([videoInput.value, officialVideoInput.value], 1)) showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
 });
 viewRestaurantVideoButton.addEventListener('click', async () => {
-	if (!await openRestaurantVideo(videoInput.value)) {
+	if (!await openRestaurantVideoPlaylist([videoInput.value, officialVideoInput.value], 0)) {
 		showToast('Ingresá un enlace válido de YouTube, Instagram o TikTok');
 	}
+});
+videoPlaylistPrev.addEventListener('click', () => void moveVideoPlaylist(-1));
+videoPlaylistNext.addEventListener('click', () => void moveVideoPlaylist(1));
+restaurantVideoPlayer.addEventListener('ended', () => {
+	if (restaurantVideoDialog.open && videoPlaylistIndex < videoPlaylist.length - 1) void moveVideoPlaylist(1);
 });
 closeRestaurantVideoButton.addEventListener('click', closeRestaurantVideo);
 restaurantVideoDialog.addEventListener('click', (event) => {
@@ -7821,7 +7864,7 @@ list.addEventListener('click', async (event) => {
 	}
 	if (viewVideoButton?.dataset.viewVideo) {
 		const restaurant = restaurants.find((item) => item.id === viewVideoButton.dataset.viewVideo);
-		if (restaurant && !await openRestaurantVideo(restaurant.videoUrl ?? '')) showToast('El enlace de video no es válido');
+		if (restaurant && !await openRestaurantVideoPlaylist([restaurant.videoUrl ?? '', restaurant.officialVideoUrl ?? ''])) showToast('El enlace de video no es válido');
 		return;
 	}
 	if (shareButton) {

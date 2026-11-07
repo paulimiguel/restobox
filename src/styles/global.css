@@ -2286,3 +2286,12 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.top-actions > .mobile-menu-button { order: 1; }
 	.top-actions > .user-dropdown { order: 2; }
 }
+
+/* Ver video: con dos videos, flechas para pasar de uno a otro (se reproducen uno después del otro). */
+.restaurant-video-playlist { position: absolute; top: 8px; left: 50%; translate: -50% 0; z-index: 3; display: flex; align-items: center; gap: 6px; padding: 3px; border: 1px solid rgba(255,255,255,.48); border-radius: 8px; color: white; background: rgba(20,24,22,.68); backdrop-filter: blur(7px); }
+.restaurant-video-playlist[hidden] { display: none; }
+.restaurant-video-playlist button { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 0; border-radius: 6px; color: white; background: transparent; cursor: pointer; }
+.restaurant-video-playlist button:hover:not(:disabled) { background: var(--forest); }
+.restaurant-video-playlist button:disabled { opacity: .35; cursor: default; }
+.restaurant-video-playlist svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.restaurant-video-playlist span { min-width: 34px; font-size: 12px; font-weight: 700; text-align: center; }
