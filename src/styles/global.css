@@ -2136,11 +2136,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Botón "Importar descripción": solo al editar, debajo del recuadro */
 #panel-description .description-import-field { justify-items: start; }
 .view-mode #panel-description .description-import-field { display: none; }
-/* "Importar descripción" abajo a la derecha, del mismo tamaño que "Importar logo" (260px de ancho, 29px de alto) */
 #panel-description .description-import-field { justify-items: end; }
-#panel-description #import-strega-description { width: min(260px, 100%); min-height: 29px; padding: 5px 10px; font-size: 11px; font-weight: 600; }
-/* "Importar descripción" más chico: del ancho de su texto */
-#panel-description #import-strega-description { width: auto; min-height: 26px; padding: 4px 12px; font-size: 11px; }
 
 /* Ficha del lugar: sin las flechas para subir y bajar (se desplaza con la barra o la rueda del mouse) */
 .form-scroll-navigation, .form-scroll-navigation[hidden] { display: none !important; }
