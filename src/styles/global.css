@@ -2295,3 +2295,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .restaurant-video-playlist button:disabled { opacity: .35; cursor: default; }
 .restaurant-video-playlist svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .restaurant-video-playlist span { min-width: 34px; font-size: 12px; font-weight: 700; text-align: center; }
+
+/* WhatsApp se carga en "Datos del lugar": en la solapa Links queda oculto (el campo sigue guardando el número). */
+#panel-links .whatsapp-links-field { display: none !important; }

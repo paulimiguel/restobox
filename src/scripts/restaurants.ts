@@ -40,6 +40,7 @@ type Restaurant = {
 	stregaUrl?: string;
 	tripAdvisorUrl: string;
 	pedidosYaUrl?: string;
+	rappiUrl?: string;
 	videoUrl?: string;
 	// Enlace al video del Instagram oficial del lugar.
 	officialVideoUrl?: string;
@@ -440,6 +441,7 @@ const tripAdvisorInput = document.querySelector<HTMLInputElement>('#tripadvisor-
 const whatsappInput = document.querySelector<HTMLInputElement>('#whatsapp-number')!;
 const whatsappGeneralInput = document.querySelector<HTMLInputElement>('#whatsapp-number-general')!;
 const pedidosYaInput = document.querySelector<HTMLInputElement>('#pedidosya-url')!;
+const rappiInput = document.querySelector<HTMLInputElement>('#rappi-url')!;
 const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement;
 const branchesList = document.querySelector<HTMLElement>('#branches-list')!;
 const hasBranchesInput = document.querySelector<HTMLInputElement>('input[name="hasBranches"]')!;
@@ -472,6 +474,7 @@ const openTripAdvisor = document.querySelector<HTMLAnchorElement>('#open-tripadv
 const openWhatsAppWeb = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web')!;
 const openWhatsAppWebGeneral = document.querySelector<HTMLAnchorElement>('#open-whatsapp-web-general')!;
 const openPedidosYa = document.querySelector<HTMLAnchorElement>('#open-pedidosya')!;
+const openRappi = document.querySelector<HTMLAnchorElement>('#open-rappi')!;
 const placeRestaurantInput = form.elements.namedItem('placeRestaurant') as HTMLInputElement;
 const placeCafeInput = form.elements.namedItem('placeCafe') as HTMLInputElement;
 const placeStoreInput = form.elements.namedItem('placeStore') as HTMLInputElement;
@@ -1182,6 +1185,7 @@ const emptyFieldGroups: EmptyFieldGroup[] = [
 		{ id: 'wokiUrl', label: 'Woki', isEmpty: (r) => !r.wokiUrl?.trim() },
 		{ id: 'stregaUrl', label: 'Strega', isEmpty: (r) => !r.stregaUrl?.trim() },
 		{ id: 'pedidosYaUrl', label: 'Pedidos Ya', isEmpty: (r) => !r.pedidosYaUrl?.trim() },
+		{ id: 'rappiUrl', label: 'Rappi', isEmpty: (r) => !r.rappiUrl?.trim() },
 		{ id: 'catalogUrl', label: 'Link al catálogo', isEmpty: (r) => isStorePlace(r) && !r.catalogUrl?.trim() },
 	] },
 	{ id: 'hours', label: 'Horarios', options: [
@@ -2578,7 +2582,7 @@ function updateViewEmptyFields(readOnly: boolean) {
 	};
 	[
 		'address', 'neighborhood', 'mobile', 'phone', 'city', 'province', 'country', 'rating', 'score', 'price', 'averagePrice',
-		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'stregaUrl', 'videoUrl', 'officialVideoUrl',
+		'website', 'googleUrl', 'linktreeUrl', 'menuUrl', 'catalogUrl', 'instagramUrl', 'tiktokUrl', 'facebookUrl', 'wokiUrl', 'tripAdvisorUrl', 'pedidosYaUrl', 'rappiUrl', 'stregaUrl', 'videoUrl', 'officialVideoUrl',
 		'description', 'notes', 'discounts', 'branches',
 	].forEach(markNamedField);
 
@@ -4009,6 +4013,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	updateExternalLink(stregaInput, openStrega);
 	updateExternalLink(tripAdvisorInput, openTripAdvisor);
 	updateExternalLink(pedidosYaInput, openPedidosYa);
+	updateExternalLink(rappiInput, openRappi);
 	updateRestaurantVideoButton();
 	updateWhatsAppWebLink();
 	updateViewEmptyFields(readOnly);
@@ -4315,6 +4320,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		stregaUrl: imported.stregaUrl?.trim() ?? '',
 		tripAdvisorUrl: imported.tripAdvisorUrl?.trim() ?? '',
 		pedidosYaUrl: imported.pedidosYaUrl?.trim() ?? '',
+		rappiUrl: imported.rappiUrl?.trim() ?? '',
 		mapUrl: importedGoogleMapsLocation(imported),
 		hours: imported.hours?.trim() ?? '',
 		notes: imported.notes?.trim() ?? '',
@@ -4407,6 +4413,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	setImportedField('stregaUrl', imported.stregaUrl);
 	setImportedField('tripAdvisorUrl', imported.tripAdvisorUrl);
 	setImportedField('pedidosYaUrl', imported.pedidosYaUrl);
+	setImportedField('rappiUrl', imported.rappiUrl);
 	setImportedField('linktreeUrl', imported.linktreeUrl);
 	loadScheduleFromText(imported.hours ?? '');
 	if (['$', '$$', '$$$', '$$$$'].includes(imported.price ?? '')) setImportedField('price', imported.price);
@@ -4463,6 +4470,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	updateExternalLink(stregaInput, openStrega);
 	updateExternalLink(tripAdvisorInput, openTripAdvisor);
 	updateExternalLink(pedidosYaInput, openPedidosYa);
+	updateExternalLink(rappiInput, openRappi);
 	updateWhatsAppWebLink();
 	updateClearButtons();
 	form.dispatchEvent(new Event('input', { bubbles: true }));
@@ -5944,6 +5952,7 @@ wokiInput.addEventListener('input', () => updateExternalLink(wokiInput, openWoki
 stregaInput.addEventListener('input', () => updateExternalLink(stregaInput, openStrega));
 tripAdvisorInput.addEventListener('input', () => updateExternalLink(tripAdvisorInput, openTripAdvisor));
 pedidosYaInput.addEventListener('input', () => updateExternalLink(pedidosYaInput, openPedidosYa));
+rappiInput.addEventListener('input', () => updateExternalLink(rappiInput, openRappi));
 whatsappInput.addEventListener('input', updateWhatsAppWebLink);
 whatsappGeneralInput.addEventListener('input', () => {
 	whatsappInput.value = whatsappGeneralInput.value;
@@ -7525,6 +7534,7 @@ form.addEventListener('submit', async (event) => {
 		stregaUrl: (data.stregaUrl ?? '').trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(),
 		pedidosYaUrl: data.pedidosYaUrl.trim(),
+		rappiUrl: (data.rappiUrl ?? '').trim(),
 		videoUrl: data.videoUrl.trim(),
 		officialVideoUrl: (data.officialVideoUrl ?? '').trim(),
 		mapUrl: data.mapUrl.trim(),
