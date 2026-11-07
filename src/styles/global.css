@@ -2257,3 +2257,27 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 	.directory-owner-summary > .mobile-clear-filters:not([hidden]) { display: grid; grid-column: 2; grid-row: 1; width: 32px; height: 32px; place-items: center; align-self: center; padding: 0; border: 1px solid var(--forest); border-radius: 8px; color: var(--button-ink); background: var(--forest); cursor: pointer; }
 	.mobile-clear-filters svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 }
+
+/* Celular: Ver, Ordenar y Filtrar en el menú de arriba, después de la lupa, solo con el ícono. */
+@media (max-width: 640px) {
+	.top-actions > .header-tool-menu { display: block !important; position: static; flex: 0 0 auto; }
+	.top-actions > .header-tool-menu > summary { display: grid; width: 36px; height: 40px; place-items: center; padding: 0; border: 0; border-radius: 7px; color: var(--muted); background: transparent; box-shadow: none; }
+	.top-actions > .header-tool-menu > summary span { gap: 0; font-size: 0; }
+	.top-actions > .header-tool-menu > summary span svg { width: 22px; height: 22px; }
+	.top-actions > .header-tool-menu > summary .action-chevron { display: none; }
+	.top-actions > .header-tool-menu > summary:hover, .top-actions > .header-tool-menu[open] > summary { color: var(--accent-text); background: var(--sage); box-shadow: none; }
+	.top-actions > .header-tool-menu > .directory-action-popover { top: calc(100% + 4px); right: 12px; left: auto; min-width: 200px; z-index: 60; }
+	.directory-actions-grid { display: none !important; }
+}
+/* Con Ver, Ordenar y Filtrar arriba, los botones del menú se achican para que entren junto al logo. */
+@media (max-width: 640px) {
+	.top-actions { gap: 2px !important; }
+	.top-actions > .mobile-menu-button { width: 34px; height: 40px; flex-basis: 34px; }
+	.top-actions > .mobile-menu-button svg { width: 24px; height: 24px; }
+	.top-actions > .mobile-search-button { width: 34px; height: 34px; flex-basis: 34px; }
+	.top-actions > .mobile-search-button svg { width: 19px; height: 19px; }
+	.top-actions > .header-tool-menu > summary { width: 30px; }
+	.top-actions > .header-tool-menu > summary span svg { width: 20px; height: 20px; }
+	.top-actions > .add-dropdown > summary { width: 34px; height: 34px; }
+	.header-brand { width: 96px; flex-basis: 96px; margin-right: 6px; }
+}

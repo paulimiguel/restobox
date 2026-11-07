@@ -6789,6 +6789,29 @@ mobileSearchDialog.addEventListener('close', () => {
 });
 phoneLayoutQuery.addEventListener('change', () => { if (!phoneLayoutQuery.matches && mobileSearchDialog.open) mobileSearchDialog.close(); });
 
+// Celular: Ver, Ordenar y Filtrar van en el menú de arriba, después de la lupa, solo con el ícono.
+const headerToolMenus = ['.view-action-menu', '.directory-action-menu:has(.sort-options)', '.filter-action-menu']
+	.map((selector) => document.querySelector<HTMLDetailsElement>(`.directory-actions-grid ${selector}`))
+	.filter((menu): menu is HTMLDetailsElement => Boolean(menu));
+const headerToolsHome = headerToolMenus[0]?.parentElement ?? null;
+const headerToolsNext = headerToolMenus.at(-1)?.nextElementSibling ?? null;
+function placeHeaderToolMenus() {
+	const searchButton = document.querySelector<HTMLElement>('#mobile-search-button');
+	if (!searchButton || !headerToolsHome) return;
+	headerToolMenus.forEach((menu) => menu.removeAttribute('open'));
+	if (phoneLayoutQuery.matches) {
+		searchButton.after(...headerToolMenus);
+		headerToolMenus.forEach((menu) => menu.classList.add('header-tool-menu'));
+	} else {
+		headerToolMenus.forEach((menu) => {
+			menu.classList.remove('header-tool-menu');
+			headerToolsHome.insertBefore(menu, headerToolsNext);
+		});
+	}
+}
+placeHeaderToolMenus();
+phoneLayoutQuery.addEventListener('change', placeHeaderToolMenus);
+
 const tabbarTargets: Record<string, string> = {
 	directory: '#header-directory',
 	establishment: '.show-catalogs-button[data-show-catalog="establishment"]',
