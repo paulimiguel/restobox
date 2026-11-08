@@ -56,6 +56,8 @@ type Restaurant = {
 	freeBreakfast?: boolean;
 	reservations?: boolean;
 	outdoorDining?: boolean;
+	// Menú ejecutivo: almuerzo a precio fijo los días de semana.
+	executiveMenu?: boolean;
 	// Daytime kitchen: cafés que también sirven almuerzos.
 	daytimeKitchen?: boolean;
 	// "Checked": la carga del lugar está finalizada (distinto de `checked`, que es "A visitar").
@@ -134,6 +136,7 @@ type SpreadsheetRestaurant = {
 	freeBreakfast: boolean;
 	reservations: boolean;
 	outdoorDining: boolean;
+	executiveMenu: boolean;
 	daytimeKitchen: boolean;
 	loadChecked: boolean;
 	healthy: boolean;
@@ -3215,7 +3218,7 @@ function render() {
 						restaurant.name, restaurant.address, restaurant.neighborhood, restaurant.city, restaurant.province,
 						...(restaurant.branchList ?? []).flatMap((branch) => [branch.address, branch.zone, branch.city]), ...(restaurant.branchAddresses ?? []),
 						...restaurantEstablishments, ...restaurantMeals, ...restaurantCuisines, ...restaurantTags(restaurant),
-						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '', restaurant.reservations ? 'Reservas' : '', restaurant.outdoorDining ? 'Comida al aire libre' : '', restaurant.daytimeKitchen ? 'Daytime kitchen' : '',
+						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '', restaurant.reservations ? 'Reservas' : '', restaurant.outdoorDining ? 'Comida al aire libre' : '', restaurant.daytimeKitchen ? 'Daytime kitchen' : '', restaurant.executiveMenu ? 'Menú ejecutivo' : '',
 					].filter((value): value is string => typeof value === 'string' && value.length > 0)
 		).map(neighborhoodImageKey);
 		const searchHaystack = searchValues.join(' | ');
@@ -3973,6 +3976,7 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 		(form.elements.namedItem('freeBreakfast') as HTMLInputElement).checked = Boolean(restaurant.freeBreakfast);
 		(form.elements.namedItem('reservations') as HTMLInputElement).checked = Boolean(restaurant.reservations);
 		(form.elements.namedItem('outdoorDining') as HTMLInputElement).checked = Boolean(restaurant.outdoorDining);
+		(form.elements.namedItem('executiveMenu') as HTMLInputElement).checked = Boolean(restaurant.executiveMenu);
 		if (restaurant.daytimeKitchen && !selectedEstablishments.some(isDaytimeKitchenCategory)) {
 			selectedEstablishments.push(daytimeKitchenCategoryName());
 			renderSelectedEstablishments();
@@ -4673,7 +4677,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'daytime kitchen': 'daytimeKitchen', reservas: 'reservations', 'comida al aire libre': 'outdoorDining', 'aire libre': 'outdoorDining', daytimekitchen: 'daytimeKitchen', 'checked (carga finalizada)': 'loadChecked',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'daytime kitchen': 'daytimeKitchen', 'menu ejecutivo': 'executiveMenu', 'menú ejecutivo': 'executiveMenu', reservas: 'reservations', 'comida al aire libre': 'outdoorDining', 'aire libre': 'outdoorDining', daytimekitchen: 'daytimeKitchen', 'checked (carga finalizada)': 'loadChecked',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
@@ -4743,7 +4747,7 @@ function emptySpreadsheetRestaurant(): SpreadsheetRestaurant {
 	return {
 		name: '', description: '', establishmentTypes: [], cuisines: [], tags: '', rating: '', mealTypes: [], price: '', averagePrice: '', score: '',
 		country: '', province: '', city: '', address: '', neighborhood: '', phone: '', mobile: '', website: '', googleUrl: '', linktreeUrl: '',
-		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false, reservations: false, outdoorDining: false, loadChecked: false, daytimeKitchen: false,
+		menuUrl: '', tiktokUrl: '', instagramUrl: '', facebookUrl: '', wokiUrl: '', tripAdvisorUrl: '', mapUrl: '', hours: '', notes: '', favorite: false, visited: false, delivery: false, takeAway: false, glutenFree: false, healthy: false, freeBreakfast: false, reservations: false, outdoorDining: false, loadChecked: false, daytimeKitchen: false, executiveMenu: false,
 	};
 }
 
@@ -4766,7 +4770,7 @@ function spreadsheetRowsToPreview(rows: Array<{ rowNumber: number; cells: string
 			const value = cells[index]?.trim() ?? '';
 			if (column === 'establishmentTypes' || column === 'cuisines') data[column] = capitalizedCatalogValues(splitSpreadsheetValues(value));
 			else if (column === 'mealTypes') data[column] = splitSpreadsheetValues(value);
-			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast' || column === 'reservations' || column === 'outdoorDining' || column === 'loadChecked' || column === 'daytimeKitchen') data[column] = spreadsheetBoolean(value);
+			else if (column === 'favorite' || column === 'visited' || column === 'delivery' || column === 'takeAway' || column === 'glutenFree' || column === 'healthy' || column === 'freeBreakfast' || column === 'reservations' || column === 'outdoorDining' || column === 'loadChecked' || column === 'daytimeKitchen' || column === 'executiveMenu') data[column] = spreadsheetBoolean(value);
 			else data[column] = value;
 		});
 		data.rating = ['1', '2', '3', '4', '5'].includes(data.rating) ? data.rating : '';
@@ -4834,7 +4838,7 @@ function createRestaurantFromSpreadsheet(data: SpreadsheetRestaurant, index: num
 		website: data.website.trim(), googleUrl: data.googleUrl.trim(), linktreeUrl: data.linktreeUrl.trim(), menuUrl: data.menuUrl.trim(),
 		tiktokUrl: data.tiktokUrl.trim(), instagramUrl: data.instagramUrl.trim(), facebookUrl: data.facebookUrl.trim(), wokiUrl: data.wokiUrl.trim(),
 		tripAdvisorUrl: data.tripAdvisorUrl.trim(), mapUrl: data.mapUrl.trim(), hours: data.hours.trim(), notes: data.notes.trim(),
-		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, reservations: data.reservations, outdoorDining: data.outdoorDining, loadChecked: data.loadChecked, daytimeKitchen: data.daytimeKitchen, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
+		favorite: data.favorite, visited: data.visited, checked: false, delivery: data.delivery, takeAway: data.takeAway, glutenFree: data.glutenFree, healthy: data.healthy, freeBreakfast: data.freeBreakfast, reservations: data.reservations, outdoorDining: data.outdoorDining, loadChecked: data.loadChecked, daytimeKitchen: data.daytimeKitchen, executiveMenu: data.executiveMenu, imageCount: 0, createdAt: new Date(Date.now() + index).toISOString(),
 	};
 }
 
@@ -4859,6 +4863,7 @@ function completeRestaurantFromSpreadsheet(existing: Restaurant, imported: Resta
 	existing.freeBreakfast = Boolean(existing.freeBreakfast || imported.freeBreakfast);
 	existing.reservations = Boolean(existing.reservations || imported.reservations);
 	existing.outdoorDining = Boolean(existing.outdoorDining || imported.outdoorDining);
+	existing.executiveMenu = Boolean(existing.executiveMenu || imported.executiveMenu);
 	existing.daytimeKitchen = Boolean(existing.daytimeKitchen || imported.daytimeKitchen);
 	return before !== JSON.stringify(existing);
 }
@@ -7334,7 +7339,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 	const finishEditing = submitter?.dataset.bulkSaveMode === 'finish';
 	const value = (name: string) => (bulkEditForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value.trim();
 	const listValues = (name: string) => [...new Set([...bulkEditForm.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value))];
-	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'reservations', 'outdoorDining', 'loadChecked', 'daytimeKitchen'];
+	const simpleFields = ['neighborhood', 'city', 'province', 'country', 'price', 'averagePrice', 'score', 'favorite', 'visited', 'checked', 'delivery', 'takeAway', 'glutenFree', 'healthy', 'freeBreakfast', 'reservations', 'outdoorDining', 'loadChecked', 'daytimeKitchen', 'executiveMenu'];
 	const enabled = [
 		...simpleFields.filter((field) => value(field) !== ''),
 		...(['establishmentTypes', 'mealTypes', 'cuisines', 'tags'] as const).filter((field) => listValues(field).length > 0),
@@ -7371,7 +7376,7 @@ bulkEditForm.addEventListener('submit', async (event) => {
 				restaurant.cuisine = values[0] ?? '';
 			} else if (field === 'tags') {
 				restaurant.tags = mergeUniqueValues(restaurantTags(restaurant), listValues(field)).join(', ');
-			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast' || field === 'reservations' || field === 'outdoorDining' || field === 'loadChecked' || field === 'daytimeKitchen') restaurant[field] = value(field) === 'true';
+			} else if (field === 'favorite' || field === 'visited' || field === 'checked' || field === 'delivery' || field === 'takeAway' || field === 'glutenFree' || field === 'healthy' || field === 'freeBreakfast' || field === 'reservations' || field === 'outdoorDining' || field === 'loadChecked' || field === 'daytimeKitchen' || field === 'executiveMenu') restaurant[field] = value(field) === 'true';
 			else if (field === 'price' || field === 'averagePrice' || field === 'rating' || field === 'score') restaurant[field] = value(field);
 		}
 	}
@@ -7517,6 +7522,7 @@ form.addEventListener('submit', async (event) => {
 		freeBreakfast: formData.has('freeBreakfast'),
 		reservations: formData.has('reservations'),
 		outdoorDining: formData.has('outdoorDining'),
+		executiveMenu: formData.has('executiveMenu'),
 		daytimeKitchen: formData.has('daytimeKitchen'),
 		loadChecked: formData.has('loadChecked'),
 		healthy: formData.has('healthy'),
