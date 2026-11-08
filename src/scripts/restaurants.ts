@@ -5248,12 +5248,18 @@ function searchStregaInBrowser(name: string) {
 
 // Importación de un lugar: Google y las demás fuentes en el servidor y, al mismo tiempo, la búsqueda en Strega
 // desde el navegador. Si el lugar está en Strega, sus datos tienen prioridad (el servidor los combina).
+const shownGoogleWarnings = new Set<string>();
 async function searchPlaceWithStrega(body: { name: string; instagramUrl?: string }) {
 	const stregaSearch = searchStregaInBrowser(body.name);
 	const response = await fetch('/api/search-google-place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 	requireActiveSession(response);
-	let result = await response.json() as ImportedRestaurant & { error?: string };
+	let result = await response.json() as ImportedRestaurant & { error?: string; googleWarning?: string };
 	let ok = response.ok;
+	// Google no respondió y se usaron solo fuentes públicas: se muestra el motivo (una vez por sesión).
+	if (result.googleWarning && !shownGoogleWarnings.has(result.googleWarning)) {
+		shownGoogleWarnings.add(result.googleWarning);
+		window.alert(`${result.googleWarning}.\n\nSe importó con fuentes públicas: sin puntuación ni precio por persona de Google.`);
+	}
 	const candidates = await stregaSearch;
 	if (candidates.length) {
 		try {

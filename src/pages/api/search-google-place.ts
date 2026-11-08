@@ -900,15 +900,18 @@ export const POST: APIRoute = async ({ request }) => {
 				: json({ error: 'No se pudo obtener la foto de perfil de Instagram' }, 404);
 		}
 		const enrichResult = (result: RestaurantSearchResult) => addRequestedSocialImages(result, body, body.mode === 'images');
-		const publicFallback = async () => {
+		// Si Google no responde, se usan las fuentes públicas y se avisa por qué (sin Google no hay puntuación ni precio por persona).
+		const publicFallback = async (googleWarning = '') => {
+			if (googleWarning) console.error(`[importar] ${name}: ${googleWarning}`);
 			const fallback = await fallbackWithoutGoogle(name);
 			const enriched = await enrichResult(fallback ?? { name, imageUrls: [], sources: [] });
-			return fallback || enriched.imageUrls?.length ? enriched : null;
+			return fallback || enriched.imageUrls?.length ? { ...enriched, ...(googleWarning ? { googleWarning } : {}) } : null;
 		};
-		const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+		const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim();
 		if (!apiKey) {
-			const fallback = await publicFallback();
-			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes públicas disponibles` }, 404);
+			const googleWarning = 'Google Maps no está configurado en el servidor (falta GOOGLE_MAPS_API_KEY en el .env)';
+			const fallback = await publicFallback(googleWarning);
+			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes públicas disponibles. ${googleWarning}` }, 404);
 		}
 
 		const fieldMask = [
@@ -925,14 +928,15 @@ export const POST: APIRoute = async ({ request }) => {
 				method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': fieldMask },
 				body: JSON.stringify({ textQuery: name, languageCode: 'es', regionCode: 'AR', pageSize: 1 }),
 			});
-		} catch {
-			const fallback = await publicFallback();
+		} catch (error) {
+			const fallback = await publicFallback(`No se pudo conectar con Google Maps (${error instanceof Error ? error.message : 'error de red'})`);
 			return fallback ? json(fallback) : json({ error: `No se encontró “${name}” en las fuentes disponibles` }, 404);
 		}
-		const result = await response.json() as { places?: GooglePlace[]; error?: { message?: string } };
+		const result = await response.json().catch(() => ({})) as { places?: GooglePlace[]; error?: { message?: string; status?: string } };
 		if (!response.ok) {
-			const fallback = await publicFallback();
-			return fallback ? json(fallback) : json({ error: result.error?.message ?? 'No se pudo completar la búsqueda' }, response.status);
+			const googleWarning = `Google Maps rechazó la búsqueda (${response.status}${result.error?.status ? ` ${result.error.status}` : ''}): ${result.error?.message ?? 'sin detalle'}`;
+			const fallback = await publicFallback(googleWarning);
+			return fallback ? json(fallback) : json({ error: googleWarning }, response.status);
 		}
 		const place = result.places?.[0];
 		if (!place) {
