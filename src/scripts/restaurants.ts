@@ -284,6 +284,7 @@ const healthyFilterButton = document.querySelector<HTMLButtonElement>('#healthy-
 const freeBreakfastFilterButton = document.querySelector<HTMLButtonElement>('#free-breakfast-filter')!;
 const outdoorDiningFilterButton = document.querySelector<HTMLButtonElement>('#outdoor-dining-filter')!;
 const daytimeKitchenFilterButton = document.querySelector<HTMLButtonElement>('#daytime-kitchen-filter')!;
+const executiveMenuFilterButton = document.querySelector<HTMLButtonElement>('#executive-menu-filter')!;
 const tagFilterOptions = document.querySelector<HTMLDivElement>('#tag-filter-options');
 const cityFilterOptions = document.querySelector<HTMLDivElement>('#city-filter-options');
 const establishmentFilterLabel = document.querySelector<HTMLElement>('#establishment-filter-label')!;
@@ -633,6 +634,7 @@ let healthyFilterActive = false;
 let freeBreakfastFilterActive = false;
 let outdoorDiningFilterActive = false;
 let daytimeKitchenFilterActive = false;
+let executiveMenuFilterActive = false;
 let selectedTagFilters = new Set<string>();
 let selectedCityFilters = new Set<string>();
 let selectedEmptyFields = new Set<string>();
@@ -1265,6 +1267,7 @@ function updateDirectoryFilterLabels() {
 	freeBreakfastFilterButton.setAttribute('aria-pressed', String(freeBreakfastFilterActive));
 	outdoorDiningFilterButton.setAttribute('aria-pressed', String(outdoorDiningFilterActive));
 	daytimeKitchenFilterButton.setAttribute('aria-pressed', String(daytimeKitchenFilterActive));
+	executiveMenuFilterButton.setAttribute('aria-pressed', String(executiveMenuFilterActive));
 	deliveryFilterButton.setAttribute('aria-pressed', String(deliveryFilterActive));
 	takeAwayFilterButton.setAttribute('aria-pressed', String(takeAwayFilterActive));
 }
@@ -3250,6 +3253,7 @@ function render() {
 		const matchesFreeBreakfast = !freeBreakfastFilterActive || Boolean(restaurant.freeBreakfast);
 		const matchesOutdoorDining = !outdoorDiningFilterActive || Boolean(restaurant.outdoorDining);
 		const matchesDaytimeKitchen = !daytimeKitchenFilterActive || Boolean(restaurant.daytimeKitchen);
+		const matchesExecutiveMenu = !executiveMenuFilterActive || Boolean(restaurant.executiveMenu);
 		const matchesGlutenFree = !glutenFreeFilterActive || Boolean(restaurant.glutenFree);
 		const matchesDelivery = !deliveryFilterActive || Boolean(restaurant.delivery);
 		const matchesTakeAway = !takeAwayFilterActive || Boolean(restaurant.takeAway);
@@ -3276,6 +3280,7 @@ function render() {
 			&& matchesPrice
 			&& matchesLoadChecked
 			&& matchesDaytimeKitchen
+			&& matchesExecutiveMenu
 			&& matchesDelivery
 			&& matchesTakeAway;
 	});
@@ -3303,6 +3308,7 @@ function render() {
 		|| freeBreakfastFilterActive
 		|| outdoorDiningFilterActive
 		|| daytimeKitchenFilterActive
+		|| executiveMenuFilterActive
 		|| selectedTagFilters.size > 0
 		|| selectedCityFilters.size > 0
 		|| selectedEmptyFields.size > 0
@@ -6163,6 +6169,11 @@ daytimeKitchenFilterButton.addEventListener('click', () => {
 	updateDirectoryFilterLabels();
 	render();
 });
+executiveMenuFilterButton.addEventListener('click', () => {
+	executiveMenuFilterActive = !executiveMenuFilterActive;
+	updateDirectoryFilterLabels();
+	render();
+});
 outdoorDiningFilterButton.addEventListener('click', () => {
 	outdoorDiningFilterActive = !outdoorDiningFilterActive;
 	updateDirectoryFilterLabels();
@@ -6206,6 +6217,7 @@ function clearDirectoryFilterSelections() {
 	freeBreakfastFilterActive = false;
 	outdoorDiningFilterActive = false;
 	daytimeKitchenFilterActive = false;
+	executiveMenuFilterActive = false;
 	selectedTagFilters.clear();
 	selectedCityFilters.clear();
 	selectedEmptyFields.clear();
