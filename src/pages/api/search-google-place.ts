@@ -457,6 +457,22 @@ function detectedPublicValues(text: string) {
 	return { establishments, cuisines, meals };
 }
 
+// Sin Google: categorías, servicios y tipos de cocina con las mismas reglas y listas que cuando hay datos de Google,
+// a partir del texto público del lugar (sitio, Instagram, Facebook, Woki y la búsqueda web).
+function publicClassification(text: string) {
+	const value = normalized(text);
+	const basic = detectedPublicValues(text);
+	const catalog = catalogList('cuisines');
+	const known = new Map(catalog.map((name) => [normalized(name), name]));
+	const establishmentTypes = unique([...detectCategories({}, value), ...basic.establishments.filter((name) => name !== 'Panadería')]);
+	const cuisines = unique([
+		...detectCuisines({}, value, catalog),
+		...basic.cuisines.map((name) => (catalog.length ? known.get(normalized(name)) ?? '' : name)),
+	]).slice(0, 6);
+	const mealTypes = unique([...detectServices(establishmentTypes.includes('Café') ? { types: ['cafe'] } : {}, value, establishmentTypes.includes('Tienda')),...basic.meals.filter((name) => ['Desayuno', 'Brunch', 'Almuerzo', 'Merienda', 'Cena', 'Drunch'].includes(name))]);
+	return { establishmentTypes, cuisines, mealTypes, flags: detectInstagramFlags(value) };
+}
+
 async function wokiFallback(requestedName: string) {
 	const place = await findWokiPlaceWithoutGoogle(requestedName);
 	if (!place?.slug) return null;
@@ -466,10 +482,10 @@ async function wokiFallback(requestedName: string) {
 	const facebookUrl = socialLink(page.links, /(?:^|\.)facebook\.com\//i);
 	const tiktokUrl = socialLink(page.links, /(?:^|\.)tiktok\.com\//i);
 	const [instagramPage, facebookPage] = await Promise.all([pageDataOrEmpty(instagramUrl), pageDataOrEmpty(facebookUrl)]);
-	const detected = detectedPublicValues([
+	const detected = publicClassification([
 		place.category, place.info, place.subtitle, ...(place.tags ?? []),
 		page.description, ...page.keywords,
-		instagramPage.description, ...instagramPage.keywords,
+		instagramPage.description, ...instagramPage.keywords, facebookPage.description,
 	].filter(Boolean).join(' '));
 	const allLinks = unique([...page.links, ...instagramPage.links, ...facebookPage.links]);
 	const whatsappUrl = socialLink(allLinks, /(?:wa\.me|whatsapp\.com)/i);
@@ -477,16 +493,16 @@ async function wokiFallback(requestedName: string) {
 	if (whatsappUrl) { const parsed = new URL(whatsappUrl); mobile = parsed.hostname.includes('wa.me') ? parsed.pathname.replace(/\D/g, '') : (parsed.searchParams.get('phone') ?? '').replace(/\D/g, ''); }
 	return {
 		name: place.displayName || requestedName.split(',')[0].trim(), description: place.info || page.description || '', notes: '',
-		establishmentTypes: detected.establishments, cuisines: detected.cuisines, mealTypes: detected.meals,
+		establishmentTypes: detected.establishmentTypes, cuisines: detected.cuisines, mealTypes: detected.mealTypes,
 		tags: unique([...(place.tags ?? []), ...page.keywords, ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
 		price: /^\${1,4}$/.test(place.price || '') ? place.price : '', averagePrice: '', rating: '', score: '',
 		country: place.zones?.country?.name || 'Argentina', province: place.zones?.state?.name || '', city: place.zones?.city?.name || '',
 		neighborhood: '', address: place.address || '', phone: '', mobile, website: '',
-		googleUrl: googleSearchUrl(place.displayName || requestedName, place.address, place.zones?.city?.name, place.zones?.state?.name), mapUrl: '', hours: '',
+		googleUrl: googleSearchUrl(place.displayName || requestedName, place.address, place.zones?.city?.name, place.zones?.state?.name), mapUrl: '', hours: hoursFromBio(instagramPage.description ?? ''),
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl,
 		tripAdvisorUrl: socialLink(allLinks, /(?:^|\.)tripadvisor\./i), linktreeUrl: socialLink(allLinks, /(?:^|\.)linktr\.ee\//i),
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
-		delivery: false, takeAway: false,
+		...detected.flags, reservations: true,
 		logoUrl: instagramPage.images[0] || place.squareImageUrl || '',
 		imageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images, ...instagramPage.images, ...facebookPage.images]).slice(0, 12),
 		wokiImageUrls: unique([place.bannerImageUrl || '', place.squareImageUrl || '', ...page.images]),
@@ -608,7 +624,12 @@ async function publicWebFallback(requestedName: string) {
 		instagramPage.description, ...instagramPage.keywords,
 		wokiPage.description, ...wokiPage.keywords,
 	].filter(Boolean).join(' ');
-	const detected = detectedPublicValues(trustedClassificationText);
+	// Lo que el lugar dice de sí mismo, más los títulos y resúmenes de la búsqueda y de las páginas que la nombran.
+	const detected = publicClassification([
+		trustedClassificationText, facebookPage.description,
+		...results.flatMap((result) => [result.title, result.snippet]), ...pages.map((page) => page.description),
+	].filter(Boolean).join(' '));
+	const ownFlags = detectInstagramFlags(normalized([trustedClassificationText, facebookPage.description].join(' ')));
 	const properties = openMapPlace?.properties;
 	const mapAddress = [properties?.street, properties?.housenumber].filter(Boolean).join(' ');
 	const publicAddress = addressFromPublicText(sourceText);
@@ -621,8 +642,8 @@ async function publicWebFallback(requestedName: string) {
 	return {
 		name: properties?.name || requestedPlaceName(requestedName).replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase('es')),
 		description: descriptions[0] || '', notes: '',
-		establishmentTypes: detected.establishments,
-		cuisines: detected.cuisines, mealTypes: detected.meals,
+		establishmentTypes: detected.establishmentTypes,
+		cuisines: detected.cuisines, mealTypes: detected.mealTypes,
 		tags: unique([...pages.flatMap((page) => page.keywords), ...instagramPage.keywords, ...facebookPage.keywords]).slice(0, 20).join(', '),
 		price: '', averagePrice: '', rating: '', score: '',
 		country: properties?.country || (inferredMarDelPlata ? 'Argentina' : ''),
@@ -633,7 +654,7 @@ async function publicWebFallback(requestedName: string) {
 		mapUrl: googleUrl || openMapUrl, hours: hoursFromBio(instagramPage.description ?? ''),
 		instagramUrl, facebookUrl, tiktokUrl, wokiUrl, tripAdvisorUrl, linktreeUrl,
 		menuUrl: allLinks.find((link) => /(?:menu|carta)/i.test(link)) ?? '',
-		delivery: false, takeAway: false,
+		...ownFlags, reservations: Boolean(wokiUrl),
 		logoUrl: instagramPage.images[0] || '', imageUrls: pageImages.slice(0, 12),
 		publicImageUrls: pageImages.filter((imageUrl) => imageUrl !== instagramPage.images[0]),
 		sources: ['Fuentes públicas', ...(openMapPlace ? ['OpenStreetMap'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
@@ -675,6 +696,7 @@ function detectInstagramFlags(text: string) {
 		takeAway: matches(/take ?away|para llevar|retiro en (?:el )?(?:local|sucursal)|retiros? por/),
 		glutenFree: matches(/sin gluten|gluten ?free|sin tacc|celiac|libre de gluten/),
 		daytimeKitchen: matches(/daytime ?kitchen/),
+		executiveMenu: matches(/menu ejecutivo|menues ejecutivos|ejecutivos? del dia/),
 		freeBreakfast: matches(/(?:desayunos?|meriendas?) (?:y (?:desayunos?|meriendas?) )?libres?|libre de (?:desayuno|merienda)/),
 		healthy: matches(/saludable|healthy|comida sana|\bfit\b|organic|plant based|nutritiv|bienestar|detox/),
 	};
@@ -1010,7 +1032,7 @@ export const POST: APIRoute = async ({ request }) => {
 			googleUrl: googleSearchUrl(place.displayName?.text || name, address, component(place, 'locality', 'administrative_area_level_2'), component(place, 'administrative_area_level_1')),
 			mapUrl: googleMapsSearchUrl(place, name),
 			instagramUrl, tiktokUrl, facebookUrl, wokiUrl, tripAdvisorUrl, linktreeUrl, menuUrl, pedidosYaUrl,
-			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen, reservations: Boolean(place.reservable), outdoorDining: Boolean(place.outdoorSeating),
+			hours: place.regularOpeningHours?.weekdayDescriptions?.join('\n') || hoursFromBio(instagramPage.description), delivery: Boolean(place.delivery) || instagramFlags.delivery, takeAway: Boolean(place.takeout) || instagramFlags.takeAway, glutenFree: instagramFlags.glutenFree, healthy: instagramFlags.healthy, freeBreakfast: instagramFlags.freeBreakfast, daytimeKitchen: instagramFlags.daytimeKitchen, executiveMenu: instagramFlags.executiveMenu, reservations: Boolean(place.reservable), outdoorDining: Boolean(place.outdoorSeating),
 			logoUrl: instagramPage.images[0] || '', imageUrls, wokiImageUrls, googleImageUrls,
 			sources: ['Google', ...(wokiUrl ? ['Woki'] : []), ...(instagramUrl ? ['Instagram'] : []), ...(facebookUrl ? ['Facebook'] : [])],
 		}));

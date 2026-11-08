@@ -16,5 +16,7 @@ export function hoursFromBio(bio: string) {
 			const hours = ranges.length ? ranges.map((match) => `${time(match[1], match[2])} – ${time(match[3], match[4])}`).join(', ') : 'Cerrado';
 			return [`${dayText}: ${hours}`];
 		})
+		// La bio a veces llega repetida (descripción y vista previa): cada línea va una sola vez.
+		.filter((line, index, lines) => lines.indexOf(line) === index)
 		.join('\n');
 }

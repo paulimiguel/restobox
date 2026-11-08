@@ -4344,6 +4344,7 @@ async function saveImportedRestaurant(imported: ImportedRestaurant) {
 		reservations: Boolean(imported.reservations),
 		outdoorDining: Boolean(imported.outdoorDining),
 		daytimeKitchen: Boolean(imported.daytimeKitchen),
+		executiveMenu: Boolean(imported.executiveMenu),
 		loadChecked: false,
 		healthy: Boolean(imported.healthy),
 		imageCount: 0,
@@ -4436,6 +4437,7 @@ async function applyImportedRestaurant(imported: ImportedRestaurant) {
 	(form.elements.namedItem('reservations') as HTMLInputElement).checked = Boolean(imported.reservations);
 	(form.elements.namedItem('outdoorDining') as HTMLInputElement).checked = Boolean(imported.outdoorDining);
 	(form.elements.namedItem('daytimeKitchen') as HTMLInputElement).checked = Boolean(imported.daytimeKitchen);
+	(form.elements.namedItem('executiveMenu') as HTMLInputElement).checked = Boolean(imported.executiveMenu);
 		(form.elements.namedItem('healthy') as HTMLInputElement).checked = Boolean(imported.healthy);
 	selectedEstablishments = valuesFromExistingCatalog((imported.establishmentTypes ?? []).filter(Boolean), establishmentTypes);
 	selectedEstablishments.forEach((type) => {
