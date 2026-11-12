@@ -2312,3 +2312,6 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 :root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--ink); background: transparent; box-shadow: none; }
 :root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--accent-text); background: transparent; }
 :root .top-actions .top-nav-button.nav-all-button[aria-current='page'], :root .mobile-menu-nav .mobile-menu-item.mobile-all-button[aria-current='page'] { color: var(--accent-text); background: transparent; }
+
+/* Panel Filtrar: sin los botones Delivery y Take away (están en Delivery/Take away del mismo panel) */
+#delivery-filter, #take-away-filter { display: none !important; }
