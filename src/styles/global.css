@@ -2307,3 +2307,8 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 .characteristics-checks > .boolean-check-control:has(input[name="healthy"]) { order: 6; }
 .characteristics-checks > .boolean-check-control:has(input[name="reservations"]) { order: 7; }
 #restaurant-form .boolean-check-control:has(input[name="executiveMenu"]) { --toggle-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='5.5'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M2.5 3v5a1.5 1.5 0 0 0 3 0V3M4 3v18M21.5 3c-1.6 1-2.5 3-2.5 6.5h2.5V21'/%3E%3C/svg%3E"); }
+
+/* TODOS (menú principal y menú del celular): sin fondo de color; solo el texto se resalta cuando está seleccionado */
+:root .top-actions .top-nav-button.nav-all-button, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button { color: var(--ink); background: transparent; box-shadow: none; }
+:root .top-actions .top-nav-button.nav-all-button:hover, :root .mobile-menu-nav .mobile-menu-item.mobile-all-button:hover { color: var(--accent-text); background: transparent; }
+:root .top-actions .top-nav-button.nav-all-button[aria-current='page'], :root .mobile-menu-nav .mobile-menu-item.mobile-all-button[aria-current='page'] { color: var(--accent-text); background: transparent; }
