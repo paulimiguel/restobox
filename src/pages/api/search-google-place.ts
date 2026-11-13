@@ -696,7 +696,7 @@ function detectInstagramFlags(text: string) {
 		takeAway: matches(/take ?away|para llevar|retiro en (?:el )?(?:local|sucursal)|retiros? por/),
 		glutenFree: matches(/sin gluten|gluten ?free|sin tacc|celiac|libre de gluten/),
 		daytimeKitchen: matches(/daytime ?kitchen/),
-		executiveMenu: matches(/menu ejecutivo|menues ejecutivos|ejecutivos? del dia/),
+		executiveMenu: matches(/menu del dia|menues del dia|plato del dia|menu ejecutivo|menues ejecutivos|ejecutivos? del dia/),
 		freeBreakfast: matches(/(?:desayunos?|meriendas?) (?:y (?:desayunos?|meriendas?) )?libres?|libre de (?:desayuno|merienda)/),
 		healthy: matches(/saludable|healthy|comida sana|\bfit\b|organic|plant based|nutritiv|bienestar|detox/),
 	};

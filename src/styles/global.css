@@ -2299,7 +2299,7 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 /* Rappi: un bigote de un solo color, como los demás íconos de la solapa Links. */
 .external-link-button .rappi-mustache-icon { width: 22px; height: 9px; fill: currentColor; stroke: none; opacity: .8; }
 
-/* Menú ejecutivo: después de Daytime kitchen (los demás se corren un lugar) */
+/* Menú del día: después de Daytime kitchen (los demás se corren un lugar) */
 .characteristics-checks > .boolean-check-control:has(input[name="executiveMenu"]) { order: 2; }
 .characteristics-checks > .boolean-check-control:has(input[name="freeBreakfast"]) { order: 3; }
 .characteristics-checks > .boolean-check-control:has(input[name="outdoorDining"]) { order: 4; }

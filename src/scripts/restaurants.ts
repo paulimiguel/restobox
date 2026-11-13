@@ -56,7 +56,7 @@ type Restaurant = {
 	freeBreakfast?: boolean;
 	reservations?: boolean;
 	outdoorDining?: boolean;
-	// Menú ejecutivo: almuerzo a precio fijo los días de semana.
+	// Menú del día (antes "Menú ejecutivo"): almuerzo a precio fijo los días de semana.
 	executiveMenu?: boolean;
 	// Daytime kitchen: cafés que también sirven almuerzos.
 	daytimeKitchen?: boolean;
@@ -3221,7 +3221,7 @@ function render() {
 						restaurant.name, restaurant.address, restaurant.neighborhood, restaurant.city, restaurant.province,
 						...(restaurant.branchList ?? []).flatMap((branch) => [branch.address, branch.zone, branch.city]), ...(restaurant.branchAddresses ?? []),
 						...restaurantEstablishments, ...restaurantMeals, ...restaurantCuisines, ...restaurantTags(restaurant),
-						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '', restaurant.reservations ? 'Reservas' : '', restaurant.outdoorDining ? 'Comida al aire libre' : '', restaurant.daytimeKitchen ? 'Daytime kitchen' : '', restaurant.executiveMenu ? 'Menú ejecutivo' : '',
+						...(restaurant.storeTypes ?? []), ...(restaurant.products ?? []), restaurant.description, restaurant.notes, restaurant.discounts, restaurant.freeBreakfast ? 'Desayuno libre / merienda libre' : '', restaurant.reservations ? 'Reservas' : '', restaurant.outdoorDining ? 'Comida al aire libre' : '', restaurant.daytimeKitchen ? 'Daytime kitchen' : '', restaurant.executiveMenu ? 'Menú del día Menú ejecutivo' : '',
 					].filter((value): value is string => typeof value === 'string' && value.length > 0)
 		).map(neighborhoodImageKey);
 		const searchHaystack = searchValues.join(' | ');
@@ -4685,7 +4685,7 @@ const SPREADSHEET_HEADER_ALIASES: Record<string, keyof SpreadsheetRestaurant> = 
 	woki: 'wokiUrl', 'link a woki': 'wokiUrl', tripadvisor: 'tripAdvisorUrl', 'link a tripadvisor': 'tripAdvisorUrl',
 	mapa: 'mapUrl', 'url mapa': 'mapUrl', 'google maps': 'mapUrl', 'link a google maps': 'mapUrl',
 	horario: 'hours', horarios: 'hours', 'horarios de lunes a viernes': 'hours', 'horario de lunes a viernes': 'hours', notas: 'notes', observaciones: 'notes',
-	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'daytime kitchen': 'daytimeKitchen', 'menu ejecutivo': 'executiveMenu', 'menú ejecutivo': 'executiveMenu', reservas: 'reservations', 'comida al aire libre': 'outdoorDining', 'aire libre': 'outdoorDining', daytimekitchen: 'daytimeKitchen', 'checked (carga finalizada)': 'loadChecked',
+	favorito: 'favorite', favorita: 'favorite', visitado: 'visited', visitada: 'visited', delivery: 'delivery', 'take away': 'takeAway', takeaway: 'takeAway', 'sin gluten': 'glutenFree', glutenfree: 'glutenFree', saludable: 'healthy', 'desayuno libre': 'freeBreakfast', 'merienda libre': 'freeBreakfast', 'desayuno/merienda libre': 'freeBreakfast', 'desayuno y/o merienda libre': 'freeBreakfast', 'carga finalizada': 'loadChecked', 'daytime kitchen': 'daytimeKitchen', 'menu ejecutivo': 'executiveMenu', 'menú ejecutivo': 'executiveMenu', 'menu del dia': 'executiveMenu', 'menú del día': 'executiveMenu', reservas: 'reservations', 'comida al aire libre': 'outdoorDining', 'aire libre': 'outdoorDining', daytimekitchen: 'daytimeKitchen', 'checked (carga finalizada)': 'loadChecked',
 };
 
 function normalizeSpreadsheetHeader(value: string) {
