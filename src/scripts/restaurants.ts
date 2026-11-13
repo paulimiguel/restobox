@@ -3936,7 +3936,8 @@ async function openForm(restaurant?: Restaurant, readOnly = false, initialTab = 
 	imageDropZone.tabIndex = readOnly ? -1 : 0;
 	updateLongTextEditorLabels(Boolean(restaurant) && !readOnly);
 	placeMapField(readOnly);
-	viewEditButton.hidden = !readOnly;
+	viewEditButton.hidden = !restaurant;
+	setViewEditButtonMode(readOnly);
 	closeFormButton.textContent = readOnly ? 'Cerrar' : 'Cancelar';
 	form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')
 		.forEach((control) => { control.disabled = readOnly; });
@@ -5131,14 +5132,32 @@ function navigateVisibleRestaurant(direction: -1 | 1) {
 }
 previousRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(-1));
 nextRestaurantButton.addEventListener('click', () => navigateVisibleRestaurant(1));
+// Botón con ícono junto a las flechas: en modo vista (lápiz) pasa a editar; editando (ojo) vuelve a la vista de solo lectura.
+function setViewEditButtonMode(readOnly: boolean) {
+	const label = readOnly ? 'Editar lugar' : 'Ver en modo lectura';
+	viewEditButton.classList.toggle('shows-view', !readOnly);
+	viewEditButton.setAttribute('aria-label', label);
+	viewEditButton.title = label;
+}
+viewEditButton.addEventListener('click', (event) => {
+	if (form.classList.contains('view-mode')) return;
+	const restaurant = restaurants.find((item) => item.id === activeRestaurantId);
+	if (!restaurant) return;
+	if (!updateDataButton.disabled && !window.confirm('Hay cambios sin guardar. ¿Descartarlos y volver a la vista?')) return;
+	const activeTab = [...formTabs].find((tab) => tab.classList.contains('active'))?.dataset.formTab ?? 'general';
+	// openForm ya puso el modo vista: el otro manejador de este clic (pasar a editar) no debe correr.
+	event.stopImmediatePropagation();
+	void openForm(restaurant, true, activeTab);
+});
 viewEditButton.addEventListener('click', () => {
+	if (!form.classList.contains('view-mode')) return;
 	form.classList.remove('view-mode');
 	form.classList.add('editing-record');
 	updateLongTextEditorLabels(true);
 	updateRestaurantRecordNavigation();
 	placeMapField(false);
 	updateViewEmptyFields(false);
-	viewEditButton.hidden = true;
+	setViewEditButtonMode(false);
 	closeFormButton.textContent = 'Cancelar';
 	form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')
 		.forEach((control) => { control.disabled = false; });

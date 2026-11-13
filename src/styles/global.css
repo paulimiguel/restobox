@@ -2315,3 +2315,11 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 
 /* Panel Filtrar: sin los botones Delivery y Take away (están en Delivery/Take away del mismo panel) */
 #delivery-filter, #take-away-filter { display: none !important; }
+
+/* Ficha: Editar / Ver como ícono, del mismo tamaño que las flechas. Lápiz en modo vista; ojo editando (vuelve a solo lectura). */
+#view-edit-button.header-edit-button { display: grid; width: 34px; height: 34px; min-height: 34px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 7px; color: #69716d; background: color-mix(in srgb, var(--sage) 38%, white); box-shadow: none; transform: none; }
+#view-edit-button.header-edit-button:hover { color: var(--button-ink); border-color: var(--forest); background: var(--forest); box-shadow: 0 5px 12px rgba(33,79,63,.14); transform: translateY(-1px); }
+#view-edit-button.header-edit-button[hidden] { display: none; }
+#view-edit-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#view-edit-button .to-view-icon, #view-edit-button.shows-view .to-edit-icon { display: none; }
+#view-edit-button.shows-view .to-view-icon { display: block; }
