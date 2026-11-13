@@ -516,6 +516,36 @@ function addDescriptionTitle(restaurant: Restaurant) {
 	}
 	return true;
 }
+// Tipo de cocina "Menú ejecutivo" → "Menú del día" (en cada lugar y en la lista). Si ya no queda ninguno, no hace nada.
+const RENAMED_CUISINES: Array<[string, string]> = [['Menú ejecutivo', 'Menú del día']];
+function renamedCuisine(value: string) {
+	const key = neighborhoodImageKey(value);
+	return RENAMED_CUISINES.find(([from]) => neighborhoodImageKey(from) === key)?.[1] ?? value;
+}
+function renameRestaurantCuisines(restaurant: Restaurant) {
+	const current = restaurant.cuisines?.length ? restaurant.cuisines : restaurant.cuisine ? [restaurant.cuisine] : [];
+	const renamed = [...new Set(current.map(renamedCuisine))];
+	if (renamed.length === current.length && renamed.every((value, index) => value === current[index])) return false;
+	restaurant.cuisines = renamed;
+	restaurant.cuisine = renamed[0] ?? '';
+	return true;
+}
+function renameCatalogCuisines() {
+	let changed = false;
+	const renamedList = [...new Set(cuisines.map(renamedCuisine))];
+	if (renamedList.length !== cuisines.length || renamedList.some((value, index) => value !== cuisines[index])) {
+		cuisines = renamedList.sort((a, b) => a.localeCompare(b, 'es'));
+		changed = true;
+	}
+	RENAMED_CUISINES.forEach(([from, to]) => {
+		const fromKey = Object.keys(cuisineImages).find((key) => neighborhoodImageKey(key) === neighborhoodImageKey(from));
+		if (!fromKey) return;
+		if (!Object.keys(cuisineImages).some((key) => neighborhoodImageKey(key) === neighborhoodImageKey(to))) cuisineImages[to] = cuisineImages[fromKey];
+		delete cuisineImages[fromKey];
+		changed = true;
+	});
+	return changed;
+}
 function syncDaytimeKitchen(restaurant: Restaurant) {
 	const types = getRestaurantEstablishmentTypes(restaurant);
 	const hasCategory = types.some(isDaytimeKitchenCategory);
@@ -8039,6 +8069,8 @@ async function initializeServerPersistence() {
 		// Las notas están ocultas: las que haya cargadas pasan al final de la descripción (cada renglón, una viñeta) y se guardan.
 		if (restaurants.map(moveNotesToDescription).some(Boolean)) void saveRestaurants();
 		if (restaurants.map(addDescriptionTitle).some(Boolean)) void saveRestaurants();
+		if (restaurants.map(renameRestaurantCuisines).some(Boolean)) void saveRestaurants();
+		if (renameCatalogCuisines()) persistCatalogSettings();
 		const removedCuisineNames = new Set(removedCuisines.map((item) => item.toLocaleLowerCase('es')));
 		cuisines = [...new Set([...cuisines, ...restaurants.flatMap(getRestaurantCuisines)])].filter((item) => !removedCuisineNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedTagNames = new Set(removedTags.map((item) => item.toLocaleLowerCase('es')));
