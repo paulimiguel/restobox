@@ -2323,3 +2323,9 @@ body.map-stores-filters .restaurant-only-filter { display: none; }
 #view-edit-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #view-edit-button .to-view-icon, #view-edit-button.shows-view .to-edit-icon { display: none; }
 #view-edit-button.shows-view .to-view-icon { display: block; }
+
+/* Ficha en modo vista (tablet y escritorio): el número de WhatsApp alineado con los demás valores (Zona, Dirección…) */
+@media (min-width: 641px) {
+	.view-mode #panel-general .lead-contacts > .whatsapp-general-field { grid-template-columns: 155px minmax(0, 1fr); }
+	.view-mode #panel-general .lead-contacts .whatsapp-general-field .url-with-action { grid-template-columns: minmax(0, max-content) 34px; max-width: 100%; }
+}
