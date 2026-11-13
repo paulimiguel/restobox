@@ -58,6 +58,8 @@ type Restaurant = {
 	outdoorDining?: boolean;
 	// Menú del día (antes "Menú ejecutivo"): almuerzo a precio fijo los días de semana.
 	executiveMenu?: boolean;
+	// Ya se le agregó el título "Descripción" arriba de la descripción (cambio único del 13/11/2026).
+	descriptionTitled?: boolean;
 	// Daytime kitchen: cafés que también sirven almuerzos.
 	daytimeKitchen?: boolean;
 	// "Checked": la carga del lugar está finalizada (distinto de `checked`, que es "A visitar").
@@ -496,6 +498,22 @@ function moveNotesToDescription(restaurant: Restaurant) {
 	if (!notes) return false;
 	restaurant.description = [restaurant.description?.trim() ?? '', notes].filter(Boolean).join('\n');
 	restaurant.notes = '';
+	return true;
+}
+// Una sola vez, a los lugares cargados hasta el 13/11/2026 que tienen descripción: el título "Descripción" (en negrita)
+// arriba del primer párrafo. La marca evita volver a agregarlo si después se borra a mano.
+const DESCRIPTION_TITLE_CUTOFF = '2026-11-14T03:00:00.000Z';
+function addDescriptionTitle(restaurant: Restaurant) {
+	if (restaurant.descriptionTitled) return false;
+	if (restaurant.createdAt && restaurant.createdAt >= DESCRIPTION_TITLE_CUTOFF) return false;
+	restaurant.descriptionTitled = true;
+	const description = restaurant.description ?? '';
+	if (description.replace(/[•\s⁣]/g, '')) {
+		const firstLine = description.split(/\r?\n/).find((line) => line.trim()) ?? '';
+		const alreadyTitled = firstLine.startsWith('⁣') && firstLine.slice(1).trim().toLocaleLowerCase('es') === 'descripción';
+		// Si la descripción ya empieza con otro título, queda un renglón en blanco entre los dos (como entre todos los títulos).
+		if (!alreadyTitled) restaurant.description = `⁣Descripción\n${firstLine.startsWith('⁣') ? '\n' : ''}${description.replace(/^\s*\n/, '')}`;
+	}
 	return true;
 }
 function syncDaytimeKitchen(restaurant: Restaurant) {
@@ -7549,6 +7567,7 @@ form.addEventListener('submit', async (event) => {
 		imageCount: restaurantImages.length,
 		logoCount: restaurantLogo ? 1 : 0,
 		createdAt: existingIndex >= 0 ? restaurants[existingIndex].createdAt : new Date().toISOString(),
+		descriptionTitled: existingRestaurant ? existingRestaurant.descriptionTitled : true,
 	};
 	backupRestaurants();
 	if (existingIndex >= 0) restaurants[existingIndex] = restaurant;
@@ -8000,6 +8019,7 @@ async function initializeServerPersistence() {
 		if (restaurants.map(syncDaytimeKitchen).some(Boolean)) void saveRestaurants();
 		// Las notas están ocultas: las que haya cargadas pasan al final de la descripción (cada renglón, una viñeta) y se guardan.
 		if (restaurants.map(moveNotesToDescription).some(Boolean)) void saveRestaurants();
+		if (restaurants.map(addDescriptionTitle).some(Boolean)) void saveRestaurants();
 		const removedCuisineNames = new Set(removedCuisines.map((item) => item.toLocaleLowerCase('es')));
 		cuisines = [...new Set([...cuisines, ...restaurants.flatMap(getRestaurantCuisines)])].filter((item) => !removedCuisineNames.has(item.toLocaleLowerCase('es'))).sort((a, b) => a.localeCompare(b, 'es'));
 		const removedTagNames = new Set(removedTags.map((item) => item.toLocaleLowerCase('es')));
